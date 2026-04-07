@@ -6,6 +6,8 @@
  * from components/components.php in any module.
  */
 
+
+
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../components/components.php';
 
