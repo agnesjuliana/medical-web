@@ -8,7 +8,7 @@
  */
 
 // Base URL — update this if the project moves to a different subdirectory
-define('BASE_URL', '/backbone-medweb');
+define('BASE_URL', '/medical-web');
 
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'backbone_medweb');
