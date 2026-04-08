@@ -31,21 +31,22 @@ $pageTitle = 'Modul 12';
     </nav>
 
     <!-- Module Header -->
-    <div class="mb-8">
+    <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Modul 12</h1>
-        <p class="text-gray-500 mt-1">This module is ready for development.</p>
+        <p class="text-gray-500 mt-1">HealthEdu — Platform Kesehatan & Nutrisi</p>
     </div>
 
-    <!-- Empty State -->
-    <?= component_empty_state(
-        'No content yet',
-        'This module is a blank canvas. Start building your features here.',
-        component_button('Back to Module Hub', [
-            'variant' => 'outline',
-            'href' => BASE_URL . '/index.php',
-            'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>'
-        ])
-    ) ?>
+    <!-- HealthEdu App Frame -->
+    <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm" style="height: 85vh;">
+        <iframe
+            src="<?= BASE_URL ?>/modules/modul_12/app/index.html"
+            title="HealthEdu App"
+            width="100%"
+            height="100%"
+            style="border: none; display: block;"
+            allow="fullscreen"
+        ></iframe>
+    </div>
 
 </main>
 
