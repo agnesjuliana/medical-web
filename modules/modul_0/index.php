@@ -244,6 +244,8 @@ $pageTitle = 'Modul 0 — Button Examples';
 
 </main>
 
+
+
 <!-- Example Modal -->
 <?= component_modal('exampleModal', [
     'title' => 'Example Modal',
