@@ -198,37 +198,6 @@ define('DB_PASS', '');           // Sesuaikan
 
 ---
 
-## 📸 Screenshot
-
-<table>
-  <tr>
-    <td align="center"><strong>Dashboard SIMRS-TB</strong></td>
-    <td align="center"><strong>Skrining AI Batuk</strong></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/dashboard.png" width="400"/></td>
-    <td><img src="docs/screenshots/screening.png" width="400"/></td>
-  </tr>
-  <tr>
-    <td align="center"><strong>Jadwal Kontrol</strong></td>
-    <td align="center"><strong>Farmasi & PMO</strong></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/jadwal.png" width="400"/></td>
-    <td><img src="docs/screenshots/farmasi.png" width="400"/></td>
-  </tr>
-  <tr>
-    <td align="center"><strong>Monitoring Kepatuhan</strong></td>
-    <td align="center"><strong>Module Hub</strong></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/monitoring.png" width="400"/></td>
-    <td><img src="docs/screenshots/module-hub.png" width="400"/></td>
-  </tr>
-</table>
-
----
-
 ## 🗄 Database Schema
 
 ### Backbone (SSO)
