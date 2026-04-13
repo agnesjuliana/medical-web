@@ -26,6 +26,21 @@ $isDev = !file_exists(__DIR__ . '/app/dist/manifest.json');
     <script>
         window.__USER__ = <?= json_encode($user) ?>;
         window.__BASE_URL__ = "<?= BASE_URL ?>";
+
+        function attemptFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {
+                    // Silent fail - browsers require user gesture
+                });
+            }
+        }
+
+        // Try on load
+        window.addEventListener('load', attemptFullscreen);
+
+        // Try on first click/interaction (this will satisfy the browser gesture requirement)
+        window.addEventListener('click', attemptFullscreen, { once: true });
+        window.addEventListener('keydown', attemptFullscreen, { once: true });
     </script>
     <?php if ($isDev): ?>
         <!-- Vite dev server (http://localhost:5173) -->
