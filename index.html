@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BioMedEng | Engineering the Future of Medicine</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#home" class="nav-logo">
+        <span class="logo-mark">⬡</span>
+        <span>BioMedEng</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#home" class="nav-link active">Home</a></li>
+        <li><a href="#problems" class="nav-link">Problems</a></li>
+        <li><a href="#projects" class="nav-link">Projects</a></li>
+        <li><a href="#methodology" class="nav-link">Methodology</a></li>
+        <li><a href="#impact" class="nav-link">Impact</a></li>
+        <li><a href="#team" class="nav-link">Team</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <ul>
+      <li><a href="#home" class="mob-link">Home</a></li>
+      <li><a href="#problems" class="mob-link">Problems</a></li>
+      <li><a href="#projects" class="mob-link">Projects</a></li>
+      <li><a href="#methodology" class="mob-link">Methodology</a></li>
+      <li><a href="#impact" class="mob-link">Impact</a></li>
+      <li><a href="#team" class="mob-link">Team</a></li>
+    </ul>
+  </div>
+
+  <!-- ===== HOME ===== -->
+  <section id="home" class="hero">
+    <div class="hero-bg">
+      <div class="grid-overlay"></div>
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Biomedical Engineering Research
+      </div>
+      <h1 class="hero-title">
+        We Don't Just<br/>
+        <em>Build Devices</em><br/>
+        We Solve Problems
+      </h1>
+      <p class="hero-sub">
+        Setiap proyek dimulai dari masalah medis nyata — bukan dari alat yang sudah ada.
+        Kami menganalisis, mentranslasikan ke parameter teknik, dan merancang solusi berbasis bukti.
+      </p>
+      <div class="hero-cta">
+        <a href="#projects" class="btn-primary">Lihat Studi Kasus</a>
+        <a href="#problems" class="btn-ghost">Masalah Medis →</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-num" data-target="8">0</span>
+          <span class="stat-label">Proyek Aktif</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num" data-target="12">0</span>
+          <span class="stat-label">Masalah Medis</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num" data-target="5">0</span>
+          <span class="stat-label">Anggota Tim</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hexa-grid">
+        <div class="hexa h1"><span>FEA</span></div>
+        <div class="hexa h2"><span>CAD</span></div>
+        <div class="hexa h3"><span>Bio<br/>mech</span></div>
+        <div class="hexa h4"><span>Sim</span></div>
+        <div class="hexa h5"><span>Proto</span></div>
+        <div class="hexa h6"><span>Data</span></div>
+      </div>
+    </div>
+    <div class="scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ===== PROBLEMS ===== -->
+  <section id="problems" class="section problems-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">// 01 — Clinical Problems</span>
+        <h2 class="section-title">Masalah Medis<br/><em>yang Kami Hadapi</em></h2>
+        <p class="section-desc">
+          Sebelum merancang apapun, kami memahami akar masalah.
+          Ini adalah masalah medis nyata yang menjadi titik awal setiap proyek kami.
+        </p>
+      </div>
+      <div class="problems-grid">
+
+        <div class="problem-card" data-index="01">
+          <div class="prob-tag">Ortopedi</div>
+          <h3>Kegagalan Fiksasi Fraktur Tulang Osteoporotik</h3>
+          <p>Sekitar 1.6 juta fraktur vertebra per tahun di seluruh dunia. Implan konvensional sering gagal pada tulang dengan densitas rendah.</p>
+          <div class="prob-impact">
+            <span class="impact-badge critical">Dampak Tinggi</span>
+            <span class="impact-num">↑ 40% failure rate</span>
+          </div>
+          <a href="#proj-1" class="prob-link">Lihat Solusi →</a>
+        </div>
+
+        <div class="problem-card" data-index="02">
+          <div class="prob-tag">Kardiovaskular</div>
+          <h3>Stenosis Arteri Koroner & Risiko Diseksi</h3>
+          <p>Pemasangan stent koroner berisiko diseksi arteri jika gaya radial tidak sesuai anatomi pembuluh darah pasien.</p>
+          <div class="prob-impact">
+            <span class="impact-badge critical">Dampak Kritis</span>
+            <span class="impact-num">↑ 2-6% komplikasi</span>
+          </div>
+          <a href="#proj-2" class="prob-link">Lihat Solusi →</a>
+        </div>
+
+        <div class="problem-card" data-index="03">
+          <div class="prob-tag">Rehabilitasi</div>
+          <h3>Atrofi Otot Pasca Stroke & Keterbatasan Mobilitas</h3>
+          <p>70% pasien stroke mengalami kelemahan ekstremitas atas. Alat rehabilitasi konvensional mahal dan tidak personalized.</p>
+          <div class="prob-impact">
+            <span class="impact-badge medium">Dampak Sedang</span>
+            <span class="impact-num">↑ 70% prevalensi</span>
+          </div>
+          <a href="#proj-3" class="prob-link">Lihat Solusi →</a>
+        </div>
+
+        <div class="problem-card" data-index="04">
+          <div class="prob-tag">Bedah Minimal Invasif</div>
+          <h3>Akurasi Pemotongan Jaringan pada Laparoskopi</h3>
+          <p>Keterbatasan haptik pada instrumen laparoskopik menyebabkan risiko perforasi yang tidak disengaja.</p>
+          <div class="prob-impact">
+            <span class="impact-badge medium">Dampak Sedang</span>
+            <span class="impact-num">↑ 3x error rate</span>
+          </div>
+          <a href="#proj-4" class="prob-link">Lihat Solusi →</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PROJECTS ===== -->
+  <section id="projects" class="section projects-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">// 02 — Case Studies</span>
+        <h2 class="section-title">Proyek & <em>Studi Kasus</em></h2>
+        <p class="section-desc">Setiap proyek adalah perjalanan dari masalah klinis ke solusi teknik yang terukur.</p>
+      </div>
+
+      <!-- PROJECT 1 -->
+      <article class="project-case" id="proj-1">
+        <div class="case-header">
+          <div class="case-meta">
+            <span class="case-num">Proyek 01</span>
+            <span class="case-status active">● Aktif</span>
+          </div>
+          <h3 class="case-title">Smart Pedicle Screw untuk Tulang Osteoporotik</h3>
+          <p class="case-subtitle">Optimasi fiksasi spinal dengan material gradient berbasis titanium alloy</p>
+        </div>
+
+        <div class="case-flow">
+          <!-- Step 1 -->
+          <div class="flow-step" data-step="1">
+            <div class="step-header">
+              <div class="step-icon">🩺</div>
+              <div class="step-meta">
+                <span class="step-num">01</span>
+                <span class="step-label">Clinical Problem</span>
+              </div>
+            </div>
+            <div class="step-content">
+              <h4>Fraktur Vertebra pada Pasien Osteoporosis</h4>
+              <p>Pasien usia >65 tahun dengan osteoporosis (BMD T-score < −2.5) membutuhkan fiksasi spinal. Pedicle screw konvensional memiliki pull-out strength rendah pada tulang osteoporotik, menyebabkan kegagalan implan pada 25-40% kasus dalam 2 tahun pertama.</p>
+              <div class="step-data">
+                <div class="data-chip">T-score < -2.5</div>
+                <div class="data-chip">40% failure rate</div>
+                <div class="data-chip">1.6M kasus/tahun</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-arrow">↓</div>
+
+          <!-- Step 2 -->
+          <div class="flow-step" data-step="2">
+            <div class="step-header">
+              <div class="step-icon">🔬</div>
+              <div class="step-meta">
+                <span class="step-num">02</span>
+                <span class="step-label">Insight</span>
+              </div>
+            </div>
+            <div class="step-content">
+              <h4>Literatur & Analisis Data</h4>
+              <p>Studi biomekanikal menunjukkan pull-out force sebanding dengan luas kontak screw-trabekula. Desain ulir ekspansif meningkatkan kontak 35% tanpa meningkatkan diameter. Material Ti-6Al-4V ELI memiliki modulus elastisitas mendekati tulang kortikal.</p>
+              <div class="step-data">
+                <div class="data-chip">+35% kontak area</div>
+                <div class="data-chip">E = 110 GPa</div>
+                <div class="data-chip">Yield: 880 MPa</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-arrow">↓</div>
+
+          <!-- Step 3 -->
+          <div class="flow-step" data-step="3">
+            <div class="step-header">
+              <div class="step-icon">⚙️</div>
+              <div class="step-meta">
+                <span class="step-num">03</span>
+                <span class="step-label">Engineering Translation</span>
+              </div>
+            </div>
+            <div class="step-content">
+              <h4>Parameter Teknik</h4>
+              <p>Masalah klinis diterjemahkan ke parameter desain: (1) Geometri ulir: pitch, lead angle, thread depth, (2) Material: modulus, biokompatibilitas, (3) Kriteria kegagalan: Von Mises stress < 0.7 × yield strength.</p>
+              <div class="step-data">
+                <div class="data-chip">Pitch: 1.75mm</div>
+                <div class="data-chip">σ_max < 616 MPa</div>
+                <div class="data-chip">SF > 1.5</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-arrow">↓</div>
+
+          <!-- Step 4 -->
+          <div class="flow-step" data-step="4">
+            <div class="step-header">
+              <div class="step-icon">✏️</div>
+              <div class="step-meta">
+                <span class="step-num">04</span>
+                <span class="step-label">Solution Design</span>
+              </div>
+            </div>
+            <div class="step-content">
+              <h4>Desain Ekspansif Pedicle Screw</h4>
+              <p>Desain screw dengan mekanisme ekspansi lateral berbasis SMA (Shape Memory Alloy) pada tip. Saat suhu tubuh, diameter efektif meningkat 1.5mm, meningkatkan fiksasi tanpa operasi tambahan.</p>
+              <div class="step-data">
+                <div class="data-chip">Ø 5.5→7.0mm</div>
+                <div class="data-chip">SMA NiTi</div>
+                <div class="data-chip">T_activ: 37°C</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-arrow">↓</div>
+
+          <!-- Step 5 -->
+          <div class="flow-step" data-step="5">
+            <div class="step-header">
+              <div class="step-icon">🖥️</div>
+              <div class="step-meta">
+                <span class="step-num">05</span>
+                <span class="step-label">Methodology</span>
+              </div>
+            </div>
+            <div class="step-content">
+              <h4>FEA + CAD + Prototyping</h4>
+              <p>CAD modeling di SolidWorks, FEA dengan ANSYS Mechanical (mesh tetrahedral, 286k elemen). Kondisi batas: gaya aksial 500N dan torsi 5Nm. Prototyping dengan SLA resin untuk validasi geometri, dilanjutkan machining Ti.</p>
+              <div class="step-data">
+                <div class="data-chip">286k elemen</div>
+                <div class="data-chip">ANSYS Static</div>
+                <div class="data-chip">SLA Proto</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-arrow">↓</div>
+
+          <!-- Step 6 -->
+          <div class="flow-step result-step" data-step="6">
+            <div class="step-header">
+              <div class="step-icon">📊</div>
+              <div class="step-meta">
+                <span class="step-num">06</span>
+                <span class="step-label">Results</span>
+              </div>
+            </div>
+            <div class="step-content">
+              <h4>Hasil Simulasi & Pengujian</h4>
+              <p>Desain baru menunjukkan peningkatan pull-out strength 52% dibanding screw konvensional pada model tulang osteoporotik. Von Mises stress maksimum 487 MPa (SF = 1.81). Validasi eksperimental dengan phantom tulang menunjukkan konsistensi dengan simulasi (error < 8%).</p>
+              <div class="results-grid">
+                <div class="result-metric">
+                  <span class="metric-val">+52%</span>
+                  <span class="metric-label">Pull-out Strength</span>
+                </div>
+                <div class="result-metric">
+                  <span class="metric-val">1.81</span>
+                  <span class="metric-label">Safety Factor</span>
+                </div>
+                <div class="result-metric">
+                  <span class="metric-val">&lt;8%</span>
+                  <span class="metric-label">Sim vs Exp Error</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- PROJECT 2 -->
+      <article class="project-case" id="proj-2">
+        <div class="case-header">
+          <div class="case-meta">
+            <span class="case-num">Proyek 02</span>
+            <span class="case-status ongoing">● Ongoing</span>
+          </div>
+          <h3 class="case-title">Patient-Specific Coronary Stent Optimization</h3>
+          <p class="case-subtitle">Personalisasi desain stent berdasarkan geometri arteri koronar pasien</p>
+        </div>
+
+        <div class="case-flow">
+          <div class="flow-step" data-step="1">
+            <div class="step-header">
+              <div class="step-icon">🩺</div>
+              <div class="step-meta"><span class="step-num">01</span><span class="step-label">Clinical Problem</span></div>
+            </div>
+            <div class="step-content">
+              <h4>Stenosis Koroner & Risiko Diseksi</h4>
+              <p>Stent koroner satu ukuran tidak sesuai untuk semua anatomi arteri. Perbedaan diameter, kelengkungan, dan plak menyebabkan over-expansion atau under-deployment yang memicu diseksi intima atau restenosis.</p>
+              <div class="step-data">
+                <div class="data-chip">2-6% diseksi</div>
+                <div class="data-chip">15% restenosis</div>
+                <div class="data-chip">AMI #1 penyebab kematian</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-arrow">↓</div>
+
+          <div class="flow-step" data-step="2">
+            <div class="step-header">
+              <div class="step-icon">🔬</div>
+              <div class="step-meta"><span class="step-num">02</span><span class="step-label">Insight</span></div>
+            </div>
+            <div class="step-content">
+              <h4>CFD & Wall Shear Stress Analysis</h4>
+              <p>Analisis CFD dari data CTA pasien menunjukkan wall shear stress (WSS) rendah di area stenosis mempercepat restenosis. Geometri stent mempengaruhi distribusi WSS secara signifikan.</p>
+              <div class="step-data">
+                <div class="data-chip">WSS < 0.4 Pa</div>
+                <div class="data-chip">Re: 200-300</div>
+                <div class="data-chip">Non-Newtonian flow</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-arrow">↓</div>
+
+          <div class="flow-step result-step" data-step="6">
+            <div class="step-header">
+              <div class="step-icon">📊</div>
+              <div class="step-meta"><span class="step-num">Progress</span><span class="step-label">Status Saat Ini</span></div>
+            </div>
+            <div class="step-content">
+              <h4>CFD Model Validated — Design Phase</h4>
+              <p>Model CFD berbasis CTA pasien telah divalidasi dengan data klinis. Sedang dalam fase optimasi geometri strut menggunakan pendekatan topology optimization.</p>
+              <div class="results-grid">
+                <div class="result-metric">
+                  <span class="metric-val">✓</span>
+                  <span class="metric-label">CFD Validated</span>
+                </div>
+                <div class="result-metric">
+                  <span class="metric-val">40%</span>
+                  <span class="metric-label">Progress</span>
+                </div>
+                <div class="result-metric">
+                  <span class="metric-val">Q3</span>
+                  <span class="metric-label">Target</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ===== METHODOLOGY ===== -->
+  <section id="methodology" class="section methodology-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">// 03 — Tools & Process</span>
+        <h2 class="section-title">Metodologi <em>Kami</em></h2>
+        <p class="section-desc">Pipeline teknik dari data klinis hingga validasi prototipe.</p>
+      </div>
+
+      <div class="method-pipeline">
+        <div class="pipeline-track">
+
+          <div class="pipe-node" data-cat="data">
+            <div class="pipe-icon">📐</div>
+            <div class="pipe-info">
+              <h4>CAD & Modeling</h4>
+              <ul>
+                <li>SolidWorks 2023</li>
+                <li>CATIA V5</li>
+                <li>3D Slicer (CT→STL)</li>
+                <li>Mimics Medical</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="pipe-connector"></div>
+
+          <div class="pipe-node" data-cat="sim">
+            <div class="pipe-icon">🖥️</div>
+            <div class="pipe-info">
+              <h4>Simulasi & FEA</h4>
+              <ul>
+                <li>ANSYS Mechanical</li>
+                <li>ANSYS Fluent (CFD)</li>
+                <li>Abaqus (Nonlinear)</li>
+                <li>OpenFOAM</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="pipe-connector"></div>
+
+          <div class="pipe-node" data-cat="proto">
+            <div class="pipe-icon">🔧</div>
+            <div class="pipe-info">
+              <h4>Prototyping</h4>
+              <ul>
+                <li>SLA/FDM 3D Printing</li>
+                <li>CNC Machining (Ti, SS)</li>
+                <li>Silicone Casting</li>
+                <li>Electrospinning</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="pipe-connector"></div>
+
+          <div class="pipe-node" data-cat="test">
+            <div class="pipe-icon">🧪</div>
+            <div class="pipe-info">
+              <h4>Pengujian</h4>
+              <ul>
+                <li>Universal Testing Machine</li>
+                <li>Fatigue Testing (R.R. Moore)</li>
+                <li>µCT Scanning</li>
+                <li>Cell Viability Assay</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="pipe-connector"></div>
+
+          <div class="pipe-node" data-cat="analysis">
+            <div class="pipe-icon">📊</div>
+            <div class="pipe-info">
+              <h4>Analisis Data</h4>
+              <ul>
+                <li>MATLAB & Python</li>
+                <li>Statistical Analysis (SPSS)</li>
+                <li>Signal Processing</li>
+                <li>Machine Learning</li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="standards-row">
+        <span class="std-label">Standar yang diikuti:</span>
+        <div class="std-chips">
+          <span class="std-chip">ISO 10993</span>
+          <span class="std-chip">ASTM F136</span>
+          <span class="std-chip">ISO 5832</span>
+          <span class="std-chip">FDA 510(k)</span>
+          <span class="std-chip">ASTM F2077</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== IMPACT ===== -->
+  <section id="impact" class="section impact-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">// 04 — Value & Contribution</span>
+        <h2 class="section-title">Dampak <em>Nyata</em></h2>
+        <p class="section-desc">Kontribusi terukur bagi pasien, klinisi, dan pengembangan ilmu pengetahuan.</p>
+      </div>
+
+      <div class="impact-grid">
+        <div class="impact-card patient">
+          <div class="imp-icon">👤</div>
+          <h3>Bagi Pasien</h3>
+          <ul class="impact-list">
+            <li>
+              <span class="imp-arrow">→</span>
+              <div>
+                <strong>Berkurangnya komplikasi implan</strong>
+                <p>Desain yang dioptimasi secara spesifik mengurangi risiko kegagalan jangka panjang</p>
+              </div>
+            </li>
+            <li>
+              <span class="imp-arrow">→</span>
+              <div>
+                <strong>Rehabilitasi lebih cepat</strong>
+                <p>Alat yang ergonomis dan personal meningkatkan kepatuhan terapi</p>
+              </div>
+            </li>
+            <li>
+              <span class="imp-arrow">→</span>
+              <div>
+                <strong>Biaya lebih terjangkau</strong>
+                <p>Optimasi proses manufaktur menurunkan biaya hingga 40%</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="impact-card clinician">
+          <div class="imp-icon">🏥</div>
+          <h3>Bagi Klinisi</h3>
+          <ul class="impact-list">
+            <li>
+              <span class="imp-arrow">→</span>
+              <div>
+                <strong>Decision support berbasis data</strong>
+                <p>Model simulasi membantu dokter memilih implan yang optimal</p>
+              </div>
+            </li>
+            <li>
+              <span class="imp-arrow">→</span>
+              <div>
+                <strong>Pengurangan waktu operasi</strong>
+                <p>Alat yang dirancang lebih intuitif mempercepat prosedur bedah</p>
+              </div>
+            </li>
+            <li>
+              <span class="imp-arrow">→</span>
+              <div>
+                <strong>Pre-operative planning tools</strong>
+                <p>Simulasi spesifik pasien sebelum operasi sesungguhnya</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="impact-card science">
+          <div class="imp-icon">🔬</div>
+          <h3>Bagi Ilmu Pengetahuan</h3>
+          <ul class="impact-list">
+            <li>
+              <span class="imp-arrow">→</span>
+              <div>
+                <strong>Database biomekanikal lokal</strong>
+                <p>Data anatomi dan mekanik populasi Indonesia yang langka</p>
+              </div>
+            </li>
+            <li>
+              <span class="imp-arrow">→</span>
+              <div>
+                <strong>Metodologi open-source</strong>
+                <p>Pipeline analisis yang dapat direplikasi oleh peneliti lain</p>
+              </div>
+            </li>
+            <li>
+              <span class="imp-arrow">→</span>
+              <div>
+                <strong>2 Publikasi Ilmiah</strong>
+                <p>Manuscript dalam proses review di jurnal terindeks Scopus</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="impact-bar-section">
+        <h3 class="bar-title">Estimasi Dampak Klinis (5 Tahun)</h3>
+        <div class="impact-bars">
+          <div class="ibar-row">
+            <span class="ibar-label">Pasien Terbantu</span>
+            <div class="ibar-track">
+              <div class="ibar-fill" data-width="75">
+                <span>~4,500 pasien</span>
+              </div>
+            </div>
+          </div>
+          <div class="ibar-row">
+            <span class="ibar-label">Reduksi Komplikasi</span>
+            <div class="ibar-track">
+              <div class="ibar-fill" data-width="52">
+                <span>52%</span>
+              </div>
+            </div>
+          </div>
+          <div class="ibar-row">
+            <span class="ibar-label">Efisiensi Biaya RS</span>
+            <div class="ibar-track">
+              <div class="ibar-fill" data-width="38">
+                <span>38%</span>
+              </div>
+            </div>
+          </div>
+          <div class="ibar-row">
+            <span class="ibar-label">Lama Rawat Inap</span>
+            <div class="ibar-track">
+              <div class="ibar-fill" data-width="30">
+                <span>-30%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TEAM ===== -->
+  <section id="team" class="section team-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">// 05 — About Team</span>
+        <h2 class="section-title">Tim <em>Kami</em></h2>
+        <p class="section-desc">Multidisiplin. Kolaboratif. Berorientasi solusi.</p>
+      </div>
+
+      <div class="team-grid">
+
+        <div class="team-card featured">
+          <div class="team-avatar" data-initials="AR">
+            <div class="avatar-ring"></div>
+          </div>
+          <div class="team-info">
+            <span class="team-role">Lead Researcher</span>
+            <h3>Ahmad Rizki, S.T.</h3>
+            <p>Spesialis FEA & Biomekanikal Komputasional. 3 tahun riset implan spinal. ANSYS Certified.</p>
+            <div class="team-skills">
+              <span>FEA</span>
+              <span>ANSYS</span>
+              <span>SolidWorks</span>
+              <span>MATLAB</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="team-card">
+          <div class="team-avatar" data-initials="DM">
+            <div class="avatar-ring"></div>
+          </div>
+          <div class="team-info">
+            <span class="team-role">CFD Specialist</span>
+            <h3>Dewi Maharani, S.T.</h3>
+            <p>Ahli komputasi fluida untuk aplikasi kardiovaskular. Pengalaman riset 2 tahun.</p>
+            <div class="team-skills">
+              <span>CFD</span>
+              <span>FLUENT</span>
+              <span>OpenFOAM</span>
+              <span>Python</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="team-card">
+          <div class="team-avatar" data-initials="BH">
+            <div class="avatar-ring"></div>
+          </div>
+          <div class="team-info">
+            <span class="team-role">Biomaterial Researcher</span>
+            <h3>Budi Hartono, S.T.</h3>
+            <p>Fokus pada karakterisasi material biokompatibel dan pengujian mekanik.</p>
+            <div class="team-skills">
+              <span>SEM</span>
+              <span>XRD</span>
+              <span>Abaqus</span>
+              <span>CATIA</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="team-card">
+          <div class="team-avatar" data-initials="SR">
+            <div class="avatar-ring"></div>
+          </div>
+          <div class="team-info">
+            <span class="team-role">Prototyping & Fabrication</span>
+            <h3>Sari Rahayu, S.T.</h3>
+            <p>Spesialis rapid prototyping dan manufaktur presisi untuk perangkat medis.</p>
+            <div class="team-skills">
+              <span>3D Print</span>
+              <span>CNC</span>
+              <span>GD&T</span>
+              <span>ISO 13485</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="team-card">
+          <div class="team-avatar" data-initials="YP">
+            <div class="avatar-ring"></div>
+          </div>
+          <div class="team-info">
+            <span class="team-role">Clinical Liaison</span>
+            <h3>dr. Yusuf Pratama</h3>
+            <p>Dokter muda spesialisasi ortopedi. Penghubung antara kebutuhan klinis dan pendekatan teknik.</p>
+            <div class="team-skills">
+              <span>Clinical</span>
+              <span>Anatomy</span>
+              <span>Research</span>
+              <span>Evidence-Based</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="collab-box">
+        <div class="collab-inner">
+          <span class="collab-label">Kolaborasi & Afiliasi</span>
+          <div class="collab-logos">
+            <div class="collab-item">Universitas Airlangga</div>
+            <div class="collab-item">RS Dr. Soetomo</div>
+            <div class="collab-item">BRIN</div>
+            <div class="collab-item">ITS Surabaya</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="logo-mark">⬡</span>
+        <span class="footer-name">BioMedEng</span>
+        <p>Engineering solutions for real medical problems.</p>
+      </div>
+      <div class="footer-links">
+        <a href="#home">Home</a>
+        <a href="#problems">Problems</a>
+        <a href="#projects">Projects</a>
+        <a href="#methodology">Methodology</a>
+        <a href="#impact">Impact</a>
+        <a href="#team">Team</a>
+      </div>
+      <div class="footer-contact">
+        <span>biomedeng.research@gmail.com</span>
+        <span>Surabaya, Indonesia</span>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 BioMedEng Team — All Rights Reserved</span>
+      <span class="footer-mono">v1.0.0 — Built with precision</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
