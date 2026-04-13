@@ -10,10 +10,10 @@
 // Base URL — update this if the project moves to a different subdirectory
 define('BASE_URL', '/medical-web');
 
-define('DB_HOST', 'localhost');
+define('DB_SOCKET', '/opt/lampp/var/mysql/mysql.sock');
 define('DB_NAME', 'backbone_medweb');
 define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_PASS', 'PHPpip');
 define('DB_CHARSET', 'utf8mb4');
 
 /**
@@ -27,7 +27,7 @@ function getDBConnection(): PDO
     static $pdo = null;
 
     if ($pdo === null) {
-        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+        $dsn = "mysql:unix_socket=" . DB_SOCKET . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
 
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -37,9 +37,9 @@ function getDBConnection(): PDO
 
         try {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
-        } catch (PDOException $e) {
-            error_log("Database connection failed: " . $e->getMessage());
-            die("Database connection failed. Please check your configuration.");
+            } catch (PDOException $e) {
+                error_log("Database connection failed: " . $e->getMessage());
+                die("Database connection failed. Please check your configuration.");
         }
     }
 

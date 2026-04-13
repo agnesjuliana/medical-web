@@ -1,0 +1,2 @@
+# Mengabaikan file kredensial lokal agar tidak ter-push ke GitHub
+config/config.local.php
