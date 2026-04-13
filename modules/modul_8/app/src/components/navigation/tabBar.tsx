@@ -1,4 +1,3 @@
-import React from "react";
 import { PanelLeft, Search } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -24,7 +23,7 @@ function MobileTabBar({
   onTabChange,
 }: Pick<TabBarProps, "tabs" | "activeTab" | "onTabChange">) {
   return (
-    <div className="inline-flex items-center gap-1 rounded-full bg-muted p-1.5">
+    <div className="inline-flex items-center gap-1 rounded-full bg-muted p-1.5 z-10 shadow-sm">
       {tabs.map((tab) => {
         const isActive = tab.id === activeTab;
         return (
@@ -35,12 +34,14 @@ function MobileTabBar({
             className={cn(
               "flex flex-col items-center justify-center gap-1 rounded-full px-5 py-2 transition-all duration-200",
               isActive
-                ? "bg-background text-primary shadow-sm"
-                : "text-foreground hover:text-foreground/80"
+                ? "bg-gray-200 text-primary shadow-sm"
+                : "text-foreground hover:text-foreground/80",
             )}
           >
             {tab.icon}
-            <span className="text-xs font-medium leading-none">{tab.label}</span>
+            <span className="text-xs font-medium leading-none">
+              {tab.label}
+            </span>
           </button>
         );
       })}
@@ -54,9 +55,12 @@ function DesktopTabBar({
   onTabChange,
   onSidebarToggle,
   onSearch,
-}: Pick<TabBarProps, "tabs" | "activeTab" | "onTabChange" | "onSidebarToggle" | "onSearch">) {
+}: Pick<
+  TabBarProps,
+  "tabs" | "activeTab" | "onTabChange" | "onSidebarToggle" | "onSearch"
+>) {
   return (
-    <div className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1.5">
+    <div className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1.5 z-10 shadow-md">
       <button
         type="button"
         onClick={onSidebarToggle}
@@ -74,10 +78,10 @@ function DesktopTabBar({
             type="button"
             onClick={() => onTabChange(tab.id)}
             className={cn(
-              "rounded-full px-3 py-1 text-sm font-medium transition-colors duration-150",
+              "rounded-full px-3 py-1 text-sm font-medium transition-colors duration-150 cursor-pointer",
               isActive
-                ? "text-primary"
-                : "text-foreground/60 hover:text-foreground"
+                ? "text-primary bg-gray-200"
+                : "text-foreground/60 hover:text-foreground",
             )}
           >
             {tab.label}

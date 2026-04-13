@@ -13,7 +13,8 @@ requireLogin();
 startSession();
 
 $user = getCurrentUser();
-$isDev = isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'development';
+// Use dev mode if manifest.json doesn't exist (production build not ready)
+$isDev = !file_exists(__DIR__ . '/app/dist/manifest.json');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -28,6 +29,13 @@ $isDev = isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'development';
     </script>
     <?php if ($isDev): ?>
         <!-- Vite dev server (http://localhost:5173) -->
+        <script type="module">
+            import RefreshRuntime from 'http://localhost:5173/@react-refresh'
+            RefreshRuntime.injectIntoGlobalHook(window)
+            window.$RefreshReg$ = () => {}
+            window.$RefreshSig$ = () => (type) => type
+            window.__vite_plugin_react_preamble_installed__ = true
+        </script>
         <script type="module" src="http://localhost:5173/@vite/client"></script>
         <script type="module" src="http://localhost:5173/src/main.tsx"></script>
     <?php else: ?>

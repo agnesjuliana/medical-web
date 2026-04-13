@@ -31,10 +31,10 @@ interface User {
 }
 
 const NAV_TABS: TabItem[] = [
-  { id: "home",     label: "Home",     icon: <Home size={20} /> },
-  { id: "profile",  label: "Profile",  icon: <User size={20} /> },
+  { id: "home", label: "Home", icon: <Home size={20} /> },
+  { id: "profile", label: "Profile", icon: <User size={20} /> },
   { id: "settings", label: "Settings", icon: <Settings size={20} /> },
-  { id: "alerts",   label: "Alerts",   icon: <Bell size={20} /> },
+  { id: "alerts", label: "Alerts", icon: <Bell size={20} /> },
 ];
 
 function App() {
@@ -50,7 +50,7 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4">
+    <div className="min-h-screen p-4">
       <div className="max-w-4xl mx-auto">
         {/* TabBar */}
         <div className="mb-8">

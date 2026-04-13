@@ -3,7 +3,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     tailwindcss(),
     react(),
@@ -13,7 +13,12 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  base: '/modules/modul_8/app/dist/',
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    cors: true,
+  },
+  base: command === 'build' ? '/modules/modul_8/app/dist/' : '/',
   build: {
     outDir: 'dist',
     manifest: true,
@@ -21,4 +26,4 @@ export default defineConfig({
       input: 'src/main.tsx',
     },
   },
-})
+}))
