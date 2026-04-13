@@ -1,24 +1,19 @@
+import path from 'path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [react()],
-  base: '/modules/modul_8/app/dist/',
-  server: {
-    port: 5173,
-    hmr: {
-      host: 'localhost',
-      port: 5173,
-    },
-    // Proxy PHP API calls to the main PHP server
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
+  plugins: [
+    tailwindcss(),
+    react(),
+  ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
     },
   },
+  base: '/modules/modul_8/app/dist/',
   build: {
     outDir: 'dist',
     manifest: true,
