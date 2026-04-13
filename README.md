@@ -10,9 +10,6 @@
 
 **MedWeb** adalah platform web modular untuk aplikasi kesehatan yang dibangun dengan arsitektur PHP native dan sistem autentikasi SSO (Single Sign-On) terpusat. Proyek ini dirancang sebagai kerangka kerja multi-modul di mana setiap modul bersifat independen namun berbagi autentikasi, layout, dan komponen UI yang sama.
 
-<p align="center">
-  <img src="docs/screenshots/module-hub.png" alt="Module Hub" width="700"/>
-</p>
 
 ---
 
@@ -23,7 +20,7 @@
 - [Struktur Proyek](#-struktur-proyek)
 - [Instalasi & Setup](#-instalasi--setup)
 - [Modul 9 — SIMRS-TB](#-modul-9--simrs-tb)
-- [Screenshot](#-screenshot)
+
 - [Database Schema](#-database-schema)
 - [Component Kit](#-component-kit)
 - [Kontributor](#-kontributor)
@@ -105,8 +102,7 @@ medical-web/
 │   │   └── analitik.php          # Analitik & SITB
 │   └── modul_10/ ~ modul_13/    # Modul lain (siap dikembangkan)
 │
-└── 📸 docs/
-    └── screenshots/              # Screenshot untuk dokumentasi
+└── 📸 docs/                      # Dokumentasi proyek
 ```
 
 ---
