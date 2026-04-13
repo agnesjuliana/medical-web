@@ -22,6 +22,13 @@ $pageTitle = 'Modul 1';
     body, body * {
         font-family: 'Poppins', sans-serif !important;
     }
+    @keyframes floating {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+    .animate-floating {
+        animation: floating 4s ease-in-out infinite;
+    }
 </style>
 
 <!-- Top Header -->
@@ -57,8 +64,12 @@ $pageTitle = 'Modul 1';
 
 <!-- Hero Section -->
 <section id="home" class="bg-[#F8FCFF] relative w-full min-h-[calc(100vh-140px)] flex flex-col justify-center px-8 pb-20 pt-28 z-10 overflow-hidden">
-    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center relative gap-8">
-        <div class="w-full md:w-1/2 space-y-8 text-center md:text-left">
+    <!-- Floating background elements -->
+    <div class="absolute top-20 left-10 w-96 h-96 bg-[#D1D9CA] rounded-full opacity-20 blur-[100px] pointer-events-none"></div>
+    <div class="absolute bottom-10 right-20 w-80 h-80 bg-[#B8C9DD] rounded-full opacity-20 blur-[100px] pointer-events-none"></div>
+    
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center relative gap-8 text-center md:text-left z-10">
+        <div class="w-full md:w-1/2 space-y-8 reveal-left opacity-0 -translate-x-16 transition-all duration-1000 ease-out">
             <h1 class="text-4xl md:text-5xl font-extrabold text-[#728BA9] leading-tight drop-shadow-sm">
                 Post-Op Recovery.<br>Safe And Monitored<br>From Home.
             </h1>
@@ -69,20 +80,23 @@ $pageTitle = 'Modul 1';
                 Pelajari Lebih Lanjut
             </a>
         </div>
-        <div class="w-full md:w-1/2 flex justify-center mt-12 md:mt-0">
-            <img src="assets/images/logo.png" alt="Hero Illustration" class="max-w-lg w-full drop-shadow-xl hover:scale-105 transition-transform duration-500">
+        <div class="w-full md:w-1/2 flex justify-center mt-12 md:mt-0 reveal-right opacity-0 translate-x-16 transition-all duration-1000 ease-out delay-200">
+            <img src="assets/images/logo.png" alt="Hero Illustration" class="max-w-lg w-full drop-shadow-xl animate-floating transition-transform duration-500 hover:scale-105">
         </div>
     </div>
 </section>
 
 <!-- About Us Section -->
-<section id="about" class="bg-[#ECF2E6] w-full min-h-screen flex flex-col justify-center py-24 px-8 relative">
-    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-16">
-        <div class="w-full md:w-1/3 flex flex-col items-center md:items-start text-center md:text-left space-y-6">
+<section id="about" class="bg-[#ECF2E6] w-full min-h-screen flex flex-col justify-center py-24 px-8 relative overflow-hidden">
+    <div class="absolute -top-32 -right-32 w-96 h-96 bg-[#D1D9CA] rounded-full opacity-30 blur-[80px] animate-pulse pointer-events-none"></div>
+    <div class="absolute -bottom-32 -left-32 w-[500px] h-[500px] bg-white rounded-full opacity-40 blur-[80px] pointer-events-none"></div>
+    
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-16 relative z-10">
+        <div class="w-full md:w-1/3 flex flex-col items-center md:items-start text-center md:text-left space-y-6 reveal-up opacity-0 translate-y-16 transition-all duration-1000">
             <h2 class="text-4xl font-extrabold text-[#A3ACA0]">Why Do We <br><span class="text-[#728BA9]">Exist?</span></h2>
-            <img src="assets/images/logo.png" alt="Heart Icon" class="w-48 mt-4 hover:scale-110 transition-transform duration-500">
+            <img src="assets/images/logo.png" alt="Heart Icon" class="w-48 mt-4 animate-floating">
         </div>
-        <div class="w-full md:w-2/3 border-l-4 border-[#B8C9DD] pl-8 py-6 relative">
+        <div class="w-full md:w-2/3 border-l-4 border-[#B8C9DD] pl-8 py-6 relative reveal-up opacity-0 translate-y-16 transition-all duration-1000 delay-300">
             <div class="absolute -top-4 left-4 text-[#BAC7B6] opacity-30 text-7xl font-serif">"</div>
             <p class="text-[#7F7F7F] text-xl leading-relaxed italic relative z-10 font-medium">
                 Untuk memberikan ruang aman dan langkah pemulihan yang mudah diakses bagi pasien dan keluarga. Karena setelah pulang dari RS, pasien sering merasa panik, kebingungan, dan khawatir saat menghadapi masa pemulihan tanpa pendampingan intensif dari tenaga medis. Kami hadir untuk menenangkan kecemasan akibat keterbatasan tenaga medis dengan pemantauan recovery yang lebih terstruktur. Kami membawa perawat di rumah, memandu dan membantu pemulihan agar pasien merasa lebih aman di masa transisi yang sulit.
@@ -92,14 +106,18 @@ $pageTitle = 'Modul 1';
 </section>
 
 <!-- Risky Section -->
-<section class="bg-white w-full min-h-screen flex flex-col justify-center py-24 px-8 text-center" id="problem">
-    <h2 class="text-4xl font-extrabold text-[#7F7F7F] mb-3">Why Is <span class="text-[#728BA9]">Home Recovery</span> Risky?</h2>
-    <p class="text-[#CDCDCD] font-bold mb-16 uppercase tracking-widest text-sm">Menurut Beberapa Studi Empiris</p>
+<section class="bg-white w-full min-h-screen flex flex-col justify-center py-24 px-8 text-center relative overflow-hidden" id="problem">
+    <div class="absolute right-0 top-1/4 w-[600px] h-[600px] bg-[#F8FCFF] rounded-full blur-[120px] opacity-70 pointer-events-none"></div>
     
-    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
+    <div class="reveal-up opacity-0 translate-y-16 transition-all duration-1000 relative z-10">
+        <h2 class="text-4xl font-extrabold text-[#7F7F7F] mb-3">Why Is <span class="text-[#728BA9]">Home Recovery</span> Risky?</h2>
+        <p class="text-[#CDCDCD] font-bold mb-16 uppercase tracking-widest text-sm">Menurut Beberapa Studi Empiris</p>
+    </div>
+    
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 reveal-stagger-parent relative z-10">
         <!-- Card 1 -->
-        <div class="bg-white shadow-sm rounded-2xl p-10 border border-[#F8FCFF] hover:-translate-y-2 transition-transform duration-300">
-            <div class="text-[#728BA9] mb-6 flex justify-center">
+        <div class="reveal-stagger-child opacity-0 translate-y-16 transition-all duration-700 bg-white shadow-sm hover:shadow-xl rounded-2xl p-10 border border-[#F8FCFF] hover:-translate-y-4">
+            <div class="text-[#728BA9] mb-6 flex justify-center transform transition-transform duration-500 hover:scale-110">
                 <div class="w-20 h-20 bg-[#F8FCFF] rounded-full flex items-center justify-center shadow-sm">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
@@ -108,8 +126,8 @@ $pageTitle = 'Modul 1';
             <p class="text-[#7F7F7F] leading-relaxed text-sm font-medium">Pasien dan pendamping sering bingung dan panik terkait langkah spesifik apa yang harus dilakukan jika terjadi kondisi tertentu.</p>
         </div>
         <!-- Card 2 -->
-        <div class="bg-white shadow-sm rounded-2xl p-10 border border-[#F8FCFF] hover:-translate-y-2 transition-transform duration-300">
-            <div class="text-[#728BA9] mb-6 flex justify-center">
+        <div class="reveal-stagger-child opacity-0 translate-y-16 transition-all duration-700 bg-white shadow-sm hover:shadow-xl rounded-2xl p-10 border border-[#F8FCFF] hover:-translate-y-4 pt-10 delay-100">
+            <div class="text-[#728BA9] mb-6 flex justify-center transform transition-transform duration-500 hover:scale-110">
                 <div class="w-20 h-20 bg-[#F8FCFF] rounded-full flex items-center justify-center shadow-sm">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                 </div>
@@ -118,8 +136,8 @@ $pageTitle = 'Modul 1';
             <p class="text-[#7F7F7F] leading-relaxed text-sm font-medium">Gejala kritis kadang terlihat seperti tidak berbahaya, dan sebaliknya. Perbedaan ini sering luput dari pengawasan orang awam.</p>
         </div>
         <!-- Card 3 -->
-        <div class="bg-white shadow-sm rounded-2xl p-10 border border-[#F8FCFF] hover:-translate-y-2 transition-transform duration-300">
-            <div class="text-[#728BA9] mb-6 flex justify-center">
+        <div class="reveal-stagger-child opacity-0 translate-y-16 transition-all duration-700 bg-white shadow-sm hover:shadow-xl rounded-2xl p-10 border border-[#F8FCFF] hover:-translate-y-4 delay-200">
+            <div class="text-[#728BA9] mb-6 flex justify-center transform transition-transform duration-500 hover:scale-110">
                 <div class="w-20 h-20 bg-[#F8FCFF] rounded-full flex items-center justify-center shadow-sm">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                 </div>
@@ -132,14 +150,14 @@ $pageTitle = 'Modul 1';
 
 <!-- Features Support Section -->
 <section id="services" class="w-full min-h-screen flex flex-col justify-center relative px-8 py-20">
-    <div class="bg-[#ECF2E6] mx-auto rounded-[2.5rem] max-w-6xl text-center py-20 px-8 relative z-0 shadow-sm border border-[#D1D9CA]">
+    <div class="bg-[#ECF2E6] mx-auto rounded-[2.5rem] max-w-6xl text-center py-20 px-8 relative z-0 shadow-sm border border-[#D1D9CA] reveal-scale opacity-0 scale-95 transition-all duration-1000">
         <h2 class="text-4xl font-extrabold text-[#7F7F7F] mb-3">How Will <span class="text-[#728BA9]">Ruang<span class="text-[#A3ACA0]">Pulih</span></span> Support You?</h2>
         <p class="text-[#A3ACA0] font-bold tracking-wider text-sm uppercase">Layanan Utama RuangPulih</p>
     </div>
     
-    <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 -mt-10 relative z-10 px-8">
-        <div class="bg-white shadow-sm rounded-2xl p-8 border border-gray-100/50 text-center hover:scale-105 transition-transform duration-300">
-            <div class="text-[#728BA9] mb-5 flex justify-center">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 -mt-10 relative z-10 px-8 reveal-stagger-parent">
+        <div class="reveal-stagger-child opacity-0 translate-y-16 transition-all duration-700 bg-white shadow-sm rounded-2xl p-8 border border-gray-100/50 text-center hover:scale-105 hover:shadow-lg transition-transform duration-300">
+            <div class="text-[#728BA9] mb-5 flex justify-center transform transition-transform duration-500 hover:-translate-y-2">
                 <div class="bg-[#F8FCFF] p-3 rounded-xl shadow-sm">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 </div>
@@ -147,8 +165,8 @@ $pageTitle = 'Modul 1';
             <h4 class="font-extrabold text-lg text-[#728BA9] mb-2 leading-tight">Daily Recovery Roadmap</h4>
             <p class="text-sm text-[#7F7F7F] font-medium leading-relaxed">Panduan pemulihan harian sesuai prosedur operasi.</p>
         </div>
-        <div class="bg-white shadow-sm rounded-2xl p-8 border border-gray-100/50 text-center hover:scale-105 transition-transform duration-300">
-            <div class="text-[#728BA9] mb-5 flex justify-center">
+        <div class="reveal-stagger-child opacity-0 translate-y-16 transition-all duration-700 bg-white shadow-sm rounded-2xl p-8 border border-gray-100/50 text-center hover:scale-105 hover:shadow-lg transition-transform duration-300 delay-100">
+            <div class="text-[#728BA9] mb-5 flex justify-center transform transition-transform duration-500 hover:-translate-y-2">
                 <div class="bg-[#F8FCFF] p-3 rounded-xl shadow-sm">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                 </div>
@@ -156,8 +174,8 @@ $pageTitle = 'Modul 1';
             <h4 class="font-extrabold text-lg text-[#728BA9] mb-2 leading-tight">Emergency Red Flag</h4>
             <p class="text-sm text-[#7F7F7F] font-medium leading-relaxed">Deteksi dini gejala kritis pasca bedah.</p>
         </div>
-        <div class="bg-white shadow-sm rounded-2xl p-8 border border-gray-100/50 text-center hover:scale-105 transition-transform duration-300">
-            <div class="text-[#728BA9] mb-5 flex justify-center">
+        <div class="reveal-stagger-child opacity-0 translate-y-16 transition-all duration-700 bg-white shadow-sm rounded-2xl p-8 border border-gray-100/50 text-center hover:scale-105 hover:shadow-lg transition-transform duration-300 delay-200">
+            <div class="text-[#728BA9] mb-5 flex justify-center transform transition-transform duration-500 hover:-translate-y-2">
                 <div class="bg-[#F8FCFF] p-3 rounded-xl shadow-sm">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 </div>
@@ -165,8 +183,8 @@ $pageTitle = 'Modul 1';
             <h4 class="font-extrabold text-lg text-[#728BA9] mb-2 leading-tight">Wound<br>Log</h4>
             <p class="text-sm text-[#7F7F7F] font-medium leading-relaxed">Pantau kondisi luka dan perkembangan jahitan.</p>
         </div>
-        <div class="bg-white shadow-sm rounded-2xl p-8 border border-gray-100/50 text-center hover:scale-105 transition-transform duration-300">
-            <div class="text-[#728BA9] mb-5 flex justify-center">
+        <div class="reveal-stagger-child opacity-0 translate-y-16 transition-all duration-700 bg-white shadow-sm rounded-2xl p-8 border border-gray-100/50 text-center hover:scale-105 hover:shadow-lg transition-transform duration-300 delay-300">
+            <div class="text-[#728BA9] mb-5 flex justify-center transform transition-transform duration-500 hover:-translate-y-2">
                 <div class="bg-[#F8FCFF] p-3 rounded-xl shadow-sm">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
                 </div>
@@ -178,75 +196,88 @@ $pageTitle = 'Modul 1';
 </section>
 
 <!-- How it works steps -->
-<section id="how-it-works" class="w-full min-h-screen flex flex-col justify-center py-20 px-8 relative">
-    <div class="max-w-6xl mx-auto text-center mb-16 w-full">
+<section id="how-it-works" class="w-full min-h-screen flex flex-col justify-center py-20 px-8 relative overflow-hidden">
+    <div class="absolute -right-32 top-1/4 w-[500px] h-[500px] bg-[#B8C9DD] rounded-full blur-[120px] opacity-20 pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto text-center mb-16 w-full reveal-up opacity-0 translate-y-16 transition-all duration-1000">
         <h2 class="text-4xl font-extrabold text-[#7F7F7F]">How Does <span class="text-[#728BA9]">Ruang<span class="text-[#A3ACA0]">Pulih</span></span> Work?</h2>
         <p class="text-lg text-[#CDCDCD] mt-4 font-bold">Langkah mudah menggunakan RuangPulih.</p>
     </div>
     
-    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-16 md:gap-20 w-full">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-16 md:gap-20 w-full reveal-stagger-parent">
         <div class="w-full md:w-1/2 space-y-8 text-left md:pr-12">
-            <div class="flex gap-6 group">
-                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#B8C9DD] text-white flex items-center justify-center text-xl font-bold group-hover:bg-[#728BA9] transition-colors shadow-md">1</div>
+            <div class="flex gap-6 group reveal-stagger-child opacity-0 -translate-x-16 transition-all duration-700">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#B8C9DD] text-white flex items-center justify-center text-xl font-bold group-hover:bg-[#728BA9] transition-all shadow-md group-hover:scale-110">1</div>
                 <div>
-                    <h4 class="font-extrabold text-xl text-[#728BA9] mb-2">Create Your Profile</h4>
+                    <h4 class="font-extrabold text-xl text-[#728BA9] mb-2 group-hover:text-[#A3ACA0] transition-colors">Create Your Profile</h4>
                     <p class="text-[#7F7F7F] leading-relaxed font-medium">Lengkapi data rekam medis sederhana mengenai riwayat penyakit, alergi, dan riwayat operasi sebelumnya untuk mendapatkan roadmap pemulihan yang dipersonalisasi.</p>
                 </div>
             </div>
-            <div class="flex gap-6 group">
-                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#B8C9DD] text-white flex items-center justify-center text-xl font-bold group-hover:bg-[#728BA9] transition-colors shadow-md">2</div>
+            <div class="flex gap-6 group reveal-stagger-child opacity-0 -translate-x-16 transition-all duration-700 delay-100">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#B8C9DD] text-white flex items-center justify-center text-xl font-bold group-hover:bg-[#728BA9] transition-all shadow-md group-hover:scale-110">2</div>
                 <div>
-                    <h4 class="font-extrabold text-xl text-[#728BA9] mb-2">Get Roadmap</h4>
+                    <h4 class="font-extrabold text-xl text-[#728BA9] mb-2 group-hover:text-[#A3ACA0] transition-colors">Get Roadmap</h4>
                     <p class="text-[#7F7F7F] leading-relaxed font-medium">Dapatkan panduan tahapan pemulihan setiap harinya, mulai dari pantangan makanan, tingkat aktivitas fisik, hingga tips merawat luka secara mandiri.</p>
                 </div>
             </div>
-            <div class="flex gap-6 group">
-                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#B8C9DD] text-white flex items-center justify-center text-xl font-bold group-hover:bg-[#728BA9] transition-colors shadow-md">3</div>
+            <div class="flex gap-6 group reveal-stagger-child opacity-0 -translate-x-16 transition-all duration-700 delay-200">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#B8C9DD] text-white flex items-center justify-center text-xl font-bold group-hover:bg-[#728BA9] transition-all shadow-md group-hover:scale-110">3</div>
                 <div>
-                    <h4 class="font-extrabold text-xl text-[#728BA9] mb-2">Monitor & Recover</h4>
+                    <h4 class="font-extrabold text-xl text-[#728BA9] mb-2 group-hover:text-[#A3ACA0] transition-colors">Monitor & Recover</h4>
                     <p class="text-[#7F7F7F] leading-relaxed font-medium">Ikuti instruksi harian dengan disiplin, laporkan keluhan melalui fitur log, dan manfaatkan fitur konsultasi jika ada kondisi di luar kendali.</p>
                 </div>
             </div>
         </div>
-    <div class="w-full md:w-1/2 flex justify-center relative mt-10 md:mt-0">
+    <div class="w-full md:w-1/2 flex justify-center relative mt-10 md:mt-0 reveal-right opacity-0 translate-x-16 transition-all duration-1000 delay-300">
         <div class="absolute inset-0 bg-[#F8FCFF] rounded-full blur-[80px] opacity-70 z-0 scale-90"></div>
-        <img src="assets/images/logo.png" alt="Heart graphic" class="w-80 relative z-10 drop-shadow-xl hover:scale-105 transition-transform duration-500">
+        <img src="assets/images/logo.png" alt="Heart graphic" class="w-80 relative z-10 drop-shadow-xl hover:scale-105 transition-transform duration-500 animate-floating">
     </div>
     </div>
 </section>
 
 <!-- Team Section -->
-<section id="team" class="bg-[#F8FCFF] w-full min-h-screen flex flex-col justify-center py-28 px-8 mt-12">
-    <div class="max-w-6xl mx-auto text-center">
+<section id="team" class="bg-[#F8FCFF] w-full min-h-screen flex flex-col justify-center py-28 px-8 mt-12 relative overflow-hidden">
+    <!-- Animated background elements for life/depth -->
+    <div class="absolute top-20 left-10 w-72 h-72 bg-[#B8C9DD] rounded-full opacity-10 blur-3xl animate-pulse"></div>
+    <div class="absolute bottom-20 right-10 w-80 h-80 bg-[#D1D9CA] rounded-full opacity-10 blur-3xl animate-pulse" style="animation-delay: 1.5s;"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white rounded-full opacity-40 blur-3xl"></div>
+
+    <div class="max-w-6xl mx-auto text-center relative z-10 w-full">
         <h2 class="text-4xl font-extrabold text-[#7F7F7F] mb-16">Get To Know <span class="text-[#728BA9]">Our Team</span></h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 perspective-1000">
             <!-- Team 1 -->
-            <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 text-center md:text-left border border-white hover:-translate-y-2 transition-transform duration-300">
-                <div class="w-full aspect-square bg-[#DAE3EC] rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
-                    <img src="assets/images/team-1.png" alt="Malfa Syakira Nauraliefia" class="w-full h-full object-cover">
+            <div class="team-card group bg-white/90 backdrop-blur-sm rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 text-center md:text-left border border-white hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden z-10" style="transform-style: preserve-3d;">
+                <!-- Subtle glare effect on hover -->
+                <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/50 to-white/0 opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none transform -translate-x-full group-hover:translate-x-full ease-in-out"></div>
+                <div class="w-full aspect-square bg-[#DAE3EC] rounded-2xl mb-6 flex items-center justify-center overflow-hidden transform-gpu" style="transform: translateZ(30px);">
+                    <img src="assets/images/team-1.png" alt="Malfa Syakira Nauraliefia" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                 </div>
-                <div class="inline-block px-4 py-1.5 rounded-full bg-[#ECF2E6] text-[#728BA9] text-[10px] tracking-widest font-bold mb-4 border border-[#D1D9CA]">Lead Developer</div>
-                <h4 class="font-extrabold text-xl text-[#728BA9] mb-1">Malfa Syakira Nauraliefia</h4>
-                <p class="text-[#CDCDCD] font-bold text-sm">5049231049</p>
+                <div class="inline-block px-4 py-1.5 rounded-full bg-[#ECF2E6] text-[#728BA9] text-[10px] tracking-widest font-bold mb-4 border border-[#D1D9CA]" style="transform: translateZ(20px);">Lead Developer</div>
+                <h4 class="font-extrabold text-xl text-[#728BA9] mb-1" style="transform: translateZ(25px);">Malfa Syakira Nauraliefia</h4>
+                <p class="text-[#CDCDCD] font-bold text-sm" style="transform: translateZ(15px);">5049231049</p>
             </div>
             <!-- Team 2 -->
-            <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 text-center md:text-left border border-white hover:-translate-y-2 transition-transform duration-300">
-                <div class="w-full aspect-square bg-[#DAE3EC] rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
-                    <img src="assets/images/team-2.png" alt="Intan Fitri Hardyanti" class="w-full h-full object-cover">
+            <div class="team-card group bg-white/90 backdrop-blur-sm rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 text-center md:text-left border border-white hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden z-10" style="transform-style: preserve-3d;">
+                <!-- Subtle glare effect on hover -->
+                <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/50 to-white/0 opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none transform -translate-x-full group-hover:translate-x-full ease-in-out"></div>
+                <div class="w-full aspect-square bg-[#DAE3EC] rounded-2xl mb-6 flex items-center justify-center overflow-hidden transform-gpu" style="transform: translateZ(30px);">
+                    <img src="assets/images/team-2.png" alt="Intan Fitri Hardyanti" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                 </div>
-                <div class="inline-block px-4 py-1.5 rounded-full bg-[#ECF2E6] text-[#728BA9] text-[10px] tracking-widest font-bold mb-4 border border-[#D1D9CA]">Lead Researcher</div>
-                <h4 class="font-extrabold text-xl text-[#728BA9] mb-1">Intan Fitri Hardyanti</h4>
-                <p class="text-[#CDCDCD] font-bold text-sm">5049231051</p>
+                <div class="inline-block px-4 py-1.5 rounded-full bg-[#ECF2E6] text-[#728BA9] text-[10px] tracking-widest font-bold mb-4 border border-[#D1D9CA]" style="transform: translateZ(20px);">Lead Researcher</div>
+                <h4 class="font-extrabold text-xl text-[#728BA9] mb-1" style="transform: translateZ(25px);">Intan Fitri Hardyanti</h4>
+                <p class="text-[#CDCDCD] font-bold text-sm" style="transform: translateZ(15px);">5049231051</p>
             </div>
             <!-- Team 3 -->
-            <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 text-center md:text-left border border-white hover:-translate-y-2 transition-transform duration-300">
-                <div class="w-full aspect-square bg-[#DAE3EC] rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
-                    <img src="assets/images/team-3.png" alt="Alya Puti Larasati" class="w-full h-full object-cover">
+            <div class="team-card group bg-white/90 backdrop-blur-sm rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 text-center md:text-left border border-white hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden z-10" style="transform-style: preserve-3d;">
+                <!-- Subtle glare effect on hover -->
+                <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/50 to-white/0 opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none transform -translate-x-full group-hover:translate-x-full ease-in-out"></div>
+                <div class="w-full aspect-square bg-[#DAE3EC] rounded-2xl mb-6 flex items-center justify-center overflow-hidden transform-gpu" style="transform: translateZ(30px);">
+                    <img src="assets/images/team-3.png" alt="Alya Puti Larasati" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                 </div>
-                <div class="inline-block px-4 py-1.5 rounded-full bg-[#ECF2E6] text-[#728BA9] text-[10px] tracking-widest font-bold mb-4 border border-[#D1D9CA]">Lead Analyst</div>
-                <h4 class="font-extrabold text-xl text-[#728BA9] mb-1">Alya Puti Larasati</h4>
-                <p class="text-[#CDCDCD] font-bold text-sm">5049231107</p>
+                <div class="inline-block px-4 py-1.5 rounded-full bg-[#ECF2E6] text-[#728BA9] text-[10px] tracking-widest font-bold mb-4 border border-[#D1D9CA]" style="transform: translateZ(20px);">Lead Analyst</div>
+                <h4 class="font-extrabold text-xl text-[#728BA9] mb-1" style="transform: translateZ(25px);">Alya Puti Larasati</h4>
+                <p class="text-[#CDCDCD] font-bold text-sm" style="transform: translateZ(15px);">5049231107</p>
             </div>
         </div>
     </div>
@@ -397,6 +428,98 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen for scroll events and also trigger once on load
     window.addEventListener('scroll', updateNav);
     updateNav();
+
+    // =============== GENERAL SCROLL REVEAL (FOR ALL SECTIONS) ===============
+    const scrollObserverOptions = { threshold: 0.1, rootMargin: '50px' };
+    const scrollObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                if (entry.target.classList.contains('reveal-stagger-parent')) {
+                    const children = entry.target.querySelectorAll('.reveal-stagger-child');
+                    children.forEach((child) => {
+                        child.classList.remove('opacity-0', 'translate-y-16', '-translate-x-16', 'translate-x-16', 'scale-95');
+                    });
+                } else {
+                    entry.target.classList.remove('opacity-0', 'translate-y-16', '-translate-x-16', 'translate-x-16', 'scale-95');
+                }
+                observer.unobserve(entry.target);
+            }
+        });
+    }, scrollObserverOptions);
+
+    const revealElements = document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right, .reveal-scale, .reveal-stagger-parent');
+    revealElements.forEach(el => scrollObserver.observe(el));
+
+    // =============== NEW FEATURE: INTERACTIVE TEAM CARDS ===============
+    const teamCards = document.querySelectorAll('.team-card');
+    
+    // 1. Scroll Reveal Animation for Team Cards
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '50px'
+    };
+
+    const teamObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                // Determine order index to stagger the animation
+                // (Using index property from entries array might not work if they appear sequentially over separate events, 
+                // but since they are side by side, they usually intersect grouped together)
+                setTimeout(() => {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-16');
+                }, index * 150);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    teamCards.forEach((card, index) => {
+        // Initial state for fade-up, using longer transition
+        card.classList.add('opacity-0', 'translate-y-16', 'duration-700');
+        teamObserver.observe(card);
+
+        // 2. 3D Hover Tilt Effect
+        let bounds;
+        
+        const rotateToMouse = (e) => {
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            const leftX = mouseX - bounds.x;
+            const topY = mouseY - bounds.y;
+            const center = {
+                x: leftX - bounds.width / 2,
+                y: topY - bounds.height / 2
+            };
+            
+            // Limit the maximum rotation degrees
+            const maxTilt = 8;
+            const tiltX = (center.y / (bounds.height / 2)) * -maxTilt;
+            const tiltY = (center.x / (bounds.width / 2)) * maxTilt;
+            
+            card.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale3d(1.02, 1.02, 1.02)`;
+        };
+
+        card.addEventListener('mouseenter', () => {
+            bounds = card.getBoundingClientRect();
+            // remove duration tailwind class during hover to avoid laggy feeling while tracking mouse
+            card.classList.remove('duration-300', 'duration-700');
+            card.style.transition = 'none'; 
+        });
+        
+        card.addEventListener('mousemove', rotateToMouse);
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.transition = 'transform 0.5s ease-out';
+            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+            
+            // restore standard duration class for other transitions
+            setTimeout(() => {
+                card.classList.add('duration-300');
+                card.style.transition = ''; // clear inline style to let CSS Classes take over next time
+            }, 500);
+        });
+    });
 });
 </script>
 
