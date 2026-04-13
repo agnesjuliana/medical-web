@@ -2,46 +2,40 @@
 
 Modern React application integrated with the PHP authentication system.
 
-## Setup
+## Quick Start
 
-### 1. Install dependencies
+### 1. Build React app
+
 ```bash
 cd modules/modul_8/app
 npm install
+npm run build
 ```
 
-### 2. Start development servers
+### 2. Start PHP server
 
-**Terminal 1: PHP server (port 8000)**
 ```bash
 php -S localhost:8000
 ```
 
-**Terminal 2: Vite dev server (port 5173)**
-```bash
-cd modules/modul_8/app
-npm run dev
-```
+### 3. Open in browser
 
-### 3. Access the application
 Visit: `http://localhost:8000/modules/modul_8/`
 
 ## How It Works
 
 - **PHP** (`index.php`): Handles authentication and passes user data to React via `window.__USER__`
 - **React** (`src/App.tsx`): Modern UI components with full TypeScript support
-- **Vite**: Lightning-fast dev server with HMR (Hot Module Reload)
+- **Vite**: Lightning-fast build tool with HMR support
 
 ## Development
 
 ### Available Scripts
 
-- `npm run dev` — Start Vite dev server with HMR
-- `npm run build` — Build for production (outputs to `dist/`)
-- `npm run preview` — Preview production build locally
+- `npm run build` — Build React app for production
 - `npm run lint` — Run ESLint
 
-### Structure
+### Project Structure
 
 ```
 app/
@@ -57,7 +51,7 @@ app/
 
 ## API Calls
 
-To call PHP APIs from React, use the `/api` prefix (proxied by Vite):
+To call PHP APIs from React:
 
 ```typescript
 const response = await fetch('/api/some-endpoint.php', {
@@ -66,14 +60,6 @@ const response = await fetch('/api/some-endpoint.php', {
   body: JSON.stringify({ data: 'value' })
 })
 ```
-
-## Production Build
-
-```bash
-npm run build
-```
-
-Files are built to `app/dist/`. The PHP `index.php` will automatically serve the built assets when `APP_ENV` is not set to `development`.
 
 ## Authentication
 
