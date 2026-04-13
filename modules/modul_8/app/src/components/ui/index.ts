@@ -31,3 +31,5 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuRadioGroup,
 } from './dropdown-menu'
+export { ThemeProvider } from '../theme/ThemeProvider'
+export { ThemeToggle } from '../theme/ThemeToggle'

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import TabBar from "@/components/navigation/tabBar";
+import Header from "@/components/header/Header";
 import type { TabItem } from "@/components/navigation/tabBar";
 import { Home, User, Settings, Bell } from "lucide-react";
 import {
@@ -50,9 +51,9 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-4 pb-24 md:pb-4">
       <div className="max-w-4xl mx-auto">
-        {/* TabBar */}
+        {/* TabBar — fixed bottom on mobile, top-centered on desktop */}
         <div className="mb-8">
           <TabBar
             tabs={NAV_TABS}
@@ -64,12 +65,10 @@ function App() {
         </div>
 
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Modul 8</h1>
-          <p className="text-slate-300">
-            React + Vite + TypeScript with shadcn/ui
-          </p>
-        </div>
+        <Header
+          title="Modul 8"
+          subtitle="React + Vite + TypeScript with shadcn/ui"
+        />
 
         {/* Grid Layout */}
         <div className="grid gap-6">
