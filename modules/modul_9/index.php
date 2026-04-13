@@ -1,9 +1,9 @@
 <?php
 /**
- * SIMRS-TB — Dashboard
+ * SIMRS-TB — Landing Page
  * 
- * Halaman utama modul SIMRS-TB dengan statistik,
- * grafik tren, dan alert pasien.
+ * Halaman informasi sebelum masuk ke dashboard utama
+ * Background: Vanta.js RINGS animation
  */
 
 require_once __DIR__ . '/../../core/auth.php';
@@ -13,246 +13,424 @@ requireLogin();
 startSession();
 
 $user = getCurrentUser();
-$pageTitle = 'SIMRS-TB — Dashboard';
-$activePage = 'dashboard';
-
-// ── Dummy Data ──
-$stats = [
-    ['label' => 'Pasien Aktif',       'value' => '248',   'trend' => '+12 bulan ini',  'trendDir' => 'up',   'color' => 'from-teal-500 to-emerald-500',  'iconPath' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
-    ['label' => 'Skrining Hari Ini',   'value' => '18',    'trend' => '+5 vs kemarin',  'trendDir' => 'up',   'color' => 'from-blue-500 to-cyan-500',     'iconPath' => 'M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z'],
-    ['label' => 'Tingkat Kepatuhan',   'value' => '87.3%', 'trend' => '+2.1% minggu ini','trendDir' => 'up',  'color' => 'from-violet-500 to-purple-500', 'iconPath' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-    ['label' => 'Risiko Drop-out',     'value' => '7',     'trend' => '-2 vs bulan lalu','trendDir' => 'down','color' => 'from-rose-500 to-red-500',      'iconPath' => 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'],
-];
-
-$alertPasien = [
-    ['nama' => 'Ahmad Fauzi',    'no_rm' => 'RM-2024-0142', 'masalah' => 'Tidak hadir kontrol 2x berturut',  'prioritas' => 'Tinggi',  'fase' => 'Intensif'],
-    ['nama' => 'Siti Aminah',    'no_rm' => 'RM-2024-0198', 'masalah' => 'Efek samping obat: mual persisten','prioritas' => 'Sedang',  'fase' => 'Intensif'],
-    ['nama' => 'Budi Santoso',   'no_rm' => 'RM-2024-0076', 'masalah' => 'Belum mengambil obat 5 hari',      'prioritas' => 'Tinggi',  'fase' => 'Lanjutan'],
-    ['nama' => 'Dewi Lestari',   'no_rm' => 'RM-2024-0213', 'masalah' => 'Hasil BTA bulan 2 masih positif',  'prioritas' => 'Kritis',  'fase' => 'Intensif'],
-    ['nama' => 'Riko Pratama',   'no_rm' => 'RM-2024-0167', 'masalah' => 'Terlambat kontrol bulanan',        'prioritas' => 'Rendah',  'fase' => 'Lanjutan'],
-];
-
-$jadwalHariIni = [
-    ['waktu' => '08:00', 'nama' => 'Rina Wijaya',    'jenis' => 'Kontrol Rutin'],
-    ['waktu' => '09:30', 'nama' => 'Ahmad Fauzi',    'jenis' => 'Evaluasi Fase'],
-    ['waktu' => '10:00', 'nama' => 'Dewi Lestari',   'jenis' => 'Pemeriksaan Lab'],
-    ['waktu' => '11:00', 'nama' => 'Hendra Gunawan', 'jenis' => 'Kontrol Rutin'],
-    ['waktu' => '13:30', 'nama' => 'Maya Sari',      'jenis' => 'Konsultasi'],
-];
+$pageTitle = 'SIMRS-TB — Sistem Informasi Manajemen RS Tuberkulosis';
 ?>
-<?php require_once __DIR__ . '/../../layout/header.php'; ?>
-<?php require_once __DIR__ . '/../../layout/navbar.php'; ?>
-<?php require_once __DIR__ . '/_sidebar.php'; ?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $pageTitle ?></title>
+    <meta name="description" content="Platform SIMRS-TB terintegrasi dengan AI Deep Learning untuk skrining batuk, manajemen pengobatan, dan sinkronisasi SITB Kemenkes.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
 
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+        /* Vanta container */
+        #vanta-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+        }
 
-<main class="lg:ml-64 min-h-[calc(100vh-4rem)] bg-gray-50">
-<div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        /* Glass card */
+        .glass {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .glass-strong {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
 
-    <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm text-gray-400 mb-5">
-        <a href="<?= BASE_URL ?>/index.php" class="hover:text-teal-600 transition-colors">Module Hub</a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <span class="text-gray-700 font-medium">SIMRS-TB</span>
-    </nav>
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        @keyframes slideLeft {
+            from { opacity: 0; transform: translateX(60px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideRight {
+            from { opacity: 0; transform: translateX(-60px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(20,184,166,0.3); }
+            50% { box-shadow: 0 0 40px rgba(20,184,166,0.6); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes count-up {
+            from { opacity: 0; transform: scale(0.5); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
 
-    <!-- Page Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">Dashboard SIMRS-TB</h1>
-            <p class="text-gray-500 text-sm mt-1">Ringkasan data tuberkulosis hari ini — <?= date('d F Y') ?></p>
-        </div>
-        <div class="flex items-center gap-2">
-            <?= component_button('Pasien Baru', [
-                'variant' => 'primary',
-                'href' => 'rekam-medis.php',
-                'class' => '!bg-teal-600 hover:!bg-teal-700 !shadow-teal-500/20',
-                'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>'
-            ]) ?>
-            <?= component_button('Skrining', [
-                'variant' => 'outline',
-                'href' => 'screening.php',
-                'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>'
-            ]) ?>
-        </div>
-    </div>
+        .animate-fade-up   { animation: fadeUp 0.8s ease-out forwards; }
+        .animate-fade-in   { animation: fadeIn 0.6s ease-out forwards; }
+        .animate-slide-left  { animation: slideLeft 0.8s ease-out forwards; }
+        .animate-slide-right { animation: slideRight 0.8s ease-out forwards; }
+        .animate-float      { animation: float 3s ease-in-out infinite; }
+        .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        .animate-count      { animation: count-up 0.6s ease-out forwards; }
 
-    <!-- Stat Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <?php foreach ($stats as $stat): ?>
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group">
-            <div class="flex items-start justify-between mb-3">
-                <div class="w-11 h-11 bg-gradient-to-br <?= $stat['color'] ?> rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+        .delay-600 { animation-delay: 0.6s; }
+        .delay-700 { animation-delay: 0.7s; }
+        .delay-800 { animation-delay: 0.8s; }
+
+        .start-hidden { opacity: 0; }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            animation: float 2s ease-in-out infinite;
+        }
+
+        /* Feature icon hover */
+        .feature-card:hover .feature-icon {
+            transform: scale(1.15) rotate(5deg);
+            box-shadow: 0 0 30px rgba(20,184,166,0.4);
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(20,184,166,0.3);
+        }
+
+        /* Workflow step connector */
+        .workflow-line {
+            background: linear-gradient(to bottom, rgba(20,184,166,0.5), rgba(52,211,153,0.2));
+        }
+
+        /* Stats shimmer */
+        .stat-shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+
+        /* Smooth scroll */
+        html { scroll-behavior: smooth; }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #14b8a6; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-white">
+
+<!-- Vanta.js Background -->
+<div id="vanta-bg"></div>
+
+<!-- Content Overlay -->
+<div class="relative z-10">
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- HERO SECTION -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="min-h-screen flex flex-col justify-center items-center px-6 relative">
+        <!-- Top Bar -->
+        <div class="absolute top-0 left-0 right-0 px-6 py-5 flex items-center justify-between animate-fade-in">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?= $stat['iconPath'] ?>"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                     </svg>
                 </div>
-                <span class="text-xs font-medium px-2 py-0.5 rounded-full <?= $stat['trendDir'] === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500' ?>">
-                    <?= $stat['trend'] ?>
-                </span>
+                <span class="text-white font-bold text-lg tracking-wide">SIMRS-TB</span>
             </div>
-            <p class="text-2xl font-bold text-gray-800"><?= $stat['value'] ?></p>
-            <p class="text-sm text-gray-500 mt-0.5"><?= $stat['label'] ?></p>
-        </div>
-        <?php endforeach; ?>
-    </div>
-
-    <!-- Charts Row -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <!-- Tren Kasus TB -->
-        <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h3 class="text-base font-semibold text-gray-800">Tren Kasus TB</h3>
-                    <p class="text-xs text-gray-400 mt-0.5">12 bulan terakhir</p>
-                </div>
-                <div class="flex items-center gap-4 text-xs text-gray-400">
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-teal-500 rounded-full"></span>Kasus Baru</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></span>Sembuh</span>
-                </div>
-            </div>
-            <div style="position:relative;height:280px;"><canvas id="trendChart"></canvas></div>
+            <a href="<?= BASE_URL ?>/index.php" class="text-sm text-slate-400 hover:text-teal-400 transition-colors flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Kembali ke Module Hub
+            </a>
         </div>
 
-        <!-- Distribusi Fase -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <h3 class="text-base font-semibold text-gray-800 mb-1">Distribusi Fase</h3>
-            <p class="text-xs text-gray-400 mb-4">Pengobatan aktif</p>
-            <div style="position:relative;height:200px;"><canvas id="phaseChart"></canvas></div>
-            <div class="grid grid-cols-2 gap-2 mt-4 text-xs">
-                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 bg-teal-500 rounded-full"></span><span class="text-gray-600">Intensif (98)</span></div>
-                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></span><span class="text-gray-600">Lanjutan (120)</span></div>
-                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 bg-amber-400 rounded-full"></span><span class="text-gray-600">Belum Mulai (15)</span></div>
-                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 bg-slate-300 rounded-full"></span><span class="text-gray-600">Selesai (15)</span></div>
+        <!-- Hero Content -->
+        <div class="text-center max-w-4xl mx-auto">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs font-medium text-teal-300 mb-6 start-hidden animate-fade-up">
+                <div class="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
+                Powered by Deep Learning & AI
+            </div>
+
+            <h1 class="text-4xl sm:text-5xl lg:text-7xl font-extrabold leading-tight mb-6 start-hidden animate-fade-up delay-100">
+                <span class="text-white">Sistem Informasi</span><br>
+                <span class="bg-gradient-to-r from-teal-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">Manajemen RS</span><br>
+                <span class="text-white">Tuberkulosis</span>
+            </h1>
+
+            <p class="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed start-hidden animate-fade-up delay-200">
+                Platform web terintegrasi yang memanfaatkan teknologi <strong class="text-teal-300">Deep Learning</strong> untuk analisis akustik suara batuk sebagai metode skrining awal yang <strong class="text-teal-300">instan dan non-invasif</strong>, serta mengotomasi seluruh alur pengobatan pasien TB.
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 start-hidden animate-fade-up delay-300">
+                <a href="dashboard.php" class="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-2xl text-white font-semibold text-base shadow-xl shadow-teal-500/25 hover:shadow-2xl hover:shadow-teal-500/40 hover:scale-105 active:scale-95 transition-all duration-300 animate-pulse-glow">
+                    Masuk ke Dashboard
+                    <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                </a>
+                <a href="#fitur" class="inline-flex items-center gap-2 px-8 py-4 glass rounded-2xl text-slate-300 font-medium text-base hover:bg-white/10 hover:text-white transition-all duration-300">
+                    Pelajari Fitur
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                </a>
             </div>
         </div>
-    </div>
 
-    <!-- Bottom Row: Alert + Jadwal -->
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <!-- Alert Pasien -->
-        <div class="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                <div>
-                    <h3 class="text-base font-semibold text-gray-800">⚠️ Alert Pasien</h3>
-                    <p class="text-xs text-gray-400 mt-0.5">Pasien memerlukan perhatian segera</p>
-                </div>
-                <?= component_badge(count($alertPasien) . ' pasien', 'warning') ?>
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 scroll-indicator">
+            <div class="w-6 h-10 border-2 border-slate-500 rounded-full flex items-start justify-center p-1.5">
+                <div class="w-1.5 h-3 bg-teal-400 rounded-full animate-bounce"></div>
             </div>
-            <div class="divide-y divide-gray-50">
-                <?php foreach ($alertPasien as $alert): 
-                    $prioColors = ['Kritis' => 'error', 'Tinggi' => 'warning', 'Sedang' => 'info', 'Rendah' => 'default'];
-                ?>
-                <div class="px-5 py-3.5 hover:bg-teal-50/30 transition-colors flex items-start gap-3 group cursor-pointer">
-                    <div class="w-9 h-9 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
-                        <span class="text-teal-700 text-xs font-bold"><?= strtoupper(substr($alert['nama'], 0, 2)) ?></span>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- STATISTIK SECTION -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="py-16 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <?php
+                $heroStats = [
+                    ['value' => '10.000+', 'label' => 'Pasien Terdata',  'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
+                    ['value' => '85.2%',   'label' => 'Tingkat Kesembuhan','icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+                    ['value' => '< 3 dtk', 'label' => 'Waktu Skrining AI', 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z'],
+                    ['value' => '24/7',    'label' => 'Monitoring Aktif',  'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ];
+                foreach ($heroStats as $i => $s): ?>
+                <div class="glass-strong rounded-2xl p-6 text-center group hover:bg-white/10 transition-all duration-500 start-hidden stat-shimmer" data-animate="count" data-delay="<?= $i * 100 ?>">
+                    <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-teal-500/15 flex items-center justify-center group-hover:bg-teal-500/25 transition-colors">
+                        <svg class="w-6 h-6 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="<?= $s['icon'] ?>"/>
+                        </svg>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <p class="text-sm font-semibold text-gray-800"><?= $alert['nama'] ?></p>
-                            <span class="text-xs text-gray-400"><?= $alert['no_rm'] ?></span>
-                            <?= component_badge($alert['prioritas'], $prioColors[$alert['prioritas']] ?? 'default') ?>
+                    <p class="text-2xl sm:text-3xl font-bold text-white mb-1"><?= $s['value'] ?></p>
+                    <p class="text-xs sm:text-sm text-slate-400"><?= $s['label'] ?></p>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- FITUR UTAMA SECTION -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section id="fitur" class="py-20 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <span class="inline-block px-3 py-1 rounded-full glass text-xs font-medium text-teal-300 mb-4">FITUR UTAMA</span>
+                <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Solusi Lengkap Manajemen TB</h2>
+                <p class="text-slate-400 max-w-xl mx-auto">Dari skrining AI hingga sinkronisasi nasional — satu platform untuk seluruh alur pengobatan tuberkulosis</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <?php
+                $features = [
+                    ['icon' => '🎙️', 'title' => 'Skrining AI Batuk', 'desc' => 'Analisis akustik suara batuk menggunakan model Deep Learning CNN untuk deteksi dini TB secara instan dan non-invasif.', 'color' => 'from-violet-500/20 to-purple-500/20', 'border' => 'hover:border-violet-400/30'],
+                    ['icon' => '📋', 'title' => 'Rekam Medis Digital', 'desc' => 'Catatan medis terintegrasi antara dokter dan laboratorium dengan timeline hasil pemeriksaan BTA, GeneXpert, dan Rontgen.', 'color' => 'from-blue-500/20 to-cyan-500/20', 'border' => 'hover:border-blue-400/30'],
+                    ['icon' => '💊', 'title' => 'Farmasi & PMO', 'desc' => 'Manajemen distribusi obat TB beserta pencatatan Pengawas Menelan Obat (PMO) untuk memastikan kepatuhan pasien.', 'color' => 'from-emerald-500/20 to-green-500/20', 'border' => 'hover:border-emerald-400/30'],
+                    ['icon' => '📅', 'title' => 'Jadwal Kontrol', 'desc' => 'Kalender interaktif dengan alarm peringatan terpusat untuk memantau jadwal kunjungan dan kontrol pasien.', 'color' => 'from-amber-500/20 to-orange-500/20', 'border' => 'hover:border-amber-400/30'],
+                    ['icon' => '✅', 'title' => 'Monitoring Kepatuhan', 'desc' => 'Heatmap kepatuhan 30 hari, klasifikasi risiko drop-out, dan alert otomatis untuk pasien dengan kepatuhan rendah.', 'color' => 'from-teal-500/20 to-emerald-500/20', 'border' => 'hover:border-teal-400/30'],
+                    ['icon' => '📊', 'title' => 'Analitik & SITB', 'desc' => 'Dashboard analitik komprehensif dengan visualisasi data dan sinkronisasi langsung ke SITB Kementerian Kesehatan.', 'color' => 'from-rose-500/20 to-pink-500/20', 'border' => 'hover:border-rose-400/30'],
+                ];
+                foreach ($features as $i => $f): ?>
+                <div class="feature-card glass rounded-2xl p-6 border border-transparent <?= $f['border'] ?> transition-all duration-500 cursor-default group" data-animate="slide" data-delay="<?= $i * 100 ?>">
+                    <div class="feature-icon w-14 h-14 rounded-2xl bg-gradient-to-br <?= $f['color'] ?> flex items-center justify-center text-2xl mb-4 transition-all duration-500">
+                        <?= $f['icon'] ?>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-2"><?= $f['title'] ?></h3>
+                    <p class="text-sm text-slate-400 leading-relaxed"><?= $f['desc'] ?></p>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- ALUR PENGOBATAN (WORKFLOW) SECTION -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="py-20 px-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16">
+                <span class="inline-block px-3 py-1 rounded-full glass text-xs font-medium text-emerald-300 mb-4">ALUR PENGOBATAN</span>
+                <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">User Journey Pasien TB</h2>
+                <p class="text-slate-400 max-w-xl mx-auto">Dari skrining awal hingga sembuh — setiap tahap terotomasi dan terpantau</p>
+            </div>
+
+            <div class="space-y-0 relative">
+                <!-- Vertical line -->
+                <div class="absolute left-6 sm:left-8 top-6 bottom-6 w-0.5 workflow-line hidden sm:block"></div>
+
+                <?php
+                $steps = [
+                    ['step' => '01', 'title' => 'Skrining Awal', 'desc' => 'Pasien merekam suara batuk → AI menganalisis pola akustik → Confidence score & rekomendasi rujukan', 'icon' => '🎤', 'color' => 'from-violet-500 to-purple-500'],
+                    ['step' => '02', 'title' => 'Diagnosis & Rekam Medis', 'desc' => 'Dokter melakukan pemeriksaan → Lab (BTA/GeneXpert) → Diagnosis pasti → Rekam medis digital', 'icon' => '🔬', 'color' => 'from-blue-500 to-cyan-500'],
+                    ['step' => '03', 'title' => 'Pengobatan & Farmasi', 'desc' => 'Resep OAT sesuai kategori → Distribusi obat dari farmasi → PMO mencatat kepatuhan harian', 'icon' => '💊', 'color' => 'from-teal-500 to-emerald-500'],
+                    ['step' => '04', 'title' => 'Monitoring Berkelanjutan', 'desc' => 'Kontrol rutin terjadwal → Evaluasi hasil lab → Heatmap kepatuhan → Alert drop-out otomatis', 'icon' => '📊', 'color' => 'from-amber-500 to-orange-500'],
+                    ['step' => '05', 'title' => 'Laporan & SITB', 'desc' => 'Data diolah menjadi dasbor analitik → Export laporan → Sinkronisasi otomatis ke SITB Kemenkes', 'icon' => '☁️', 'color' => 'from-rose-500 to-pink-500'],
+                ];
+                foreach ($steps as $i => $step): ?>
+                <div class="flex gap-4 sm:gap-6 mb-8 group" data-animate="workflow" data-delay="<?= $i * 150 ?>">
+                    <div class="shrink-0 relative z-10">
+                        <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br <?= $step['color'] ?> flex items-center justify-center text-xl sm:text-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <?= $step['icon'] ?>
                         </div>
-                        <p class="text-sm text-gray-500 mt-0.5"><?= $alert['masalah'] ?></p>
                     </div>
-                    <span class="text-xs text-gray-400 shrink-0"><?= $alert['fase'] ?></span>
+                    <div class="glass rounded-2xl p-5 flex-1 group-hover:bg-white/10 transition-all duration-300">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-xs font-bold text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded-full">STEP <?= $step['step'] ?></span>
+                            <h3 class="text-base sm:text-lg font-semibold text-white"><?= $step['title'] ?></h3>
+                        </div>
+                        <p class="text-sm text-slate-400 leading-relaxed"><?= $step['desc'] ?></p>
+                    </div>
                 </div>
                 <?php endforeach; ?>
             </div>
         </div>
+    </section>
 
-        <!-- Jadwal Hari Ini -->
-        <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                <div>
-                    <h3 class="text-base font-semibold text-gray-800">📅 Jadwal Hari Ini</h3>
-                    <p class="text-xs text-gray-400 mt-0.5"><?= date('l, d M Y') ?></p>
-                </div>
-                <a href="jadwal.php" class="text-xs text-teal-600 hover:text-teal-700 font-medium">Lihat Semua →</a>
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TECH STACK SECTION -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="py-16 px-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <span class="inline-block px-3 py-1 rounded-full glass text-xs font-medium text-cyan-300 mb-4">TECH STACK</span>
+                <h2 class="text-2xl sm:text-3xl font-bold text-white">Dibangun dengan Teknologi Modern</h2>
             </div>
-            <div class="divide-y divide-gray-50">
-                <?php foreach ($jadwalHariIni as $j): ?>
-                <div class="px-5 py-3.5 flex items-center gap-3 hover:bg-gray-50/50 transition-colors">
-                    <div class="text-center shrink-0 w-14">
-                        <p class="text-sm font-bold text-teal-600"><?= $j['waktu'] ?></p>
-                    </div>
-                    <div class="w-px h-8 bg-teal-200"></div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-800 truncate"><?= $j['nama'] ?></p>
-                        <p class="text-xs text-gray-400"><?= $j['jenis'] ?></p>
-                    </div>
-                </div>
+            <div class="flex flex-wrap justify-center gap-3">
+                <?php
+                $techs = [
+                    ['name' => 'PHP 8.x',       'color' => 'text-indigo-300 border-indigo-500/30 bg-indigo-500/10'],
+                    ['name' => 'MySQL',          'color' => 'text-blue-300 border-blue-500/30 bg-blue-500/10'],
+                    ['name' => 'TailwindCSS',    'color' => 'text-cyan-300 border-cyan-500/30 bg-cyan-500/10'],
+                    ['name' => 'Chart.js',       'color' => 'text-pink-300 border-pink-500/30 bg-pink-500/10'],
+                    ['name' => 'Three.js',       'color' => 'text-green-300 border-green-500/30 bg-green-500/10'],
+                    ['name' => 'Deep Learning',  'color' => 'text-amber-300 border-amber-500/30 bg-amber-500/10'],
+                    ['name' => 'CNN Model',      'color' => 'text-violet-300 border-violet-500/30 bg-violet-500/10'],
+                    ['name' => 'SITB API',       'color' => 'text-teal-300 border-teal-500/30 bg-teal-500/10'],
+                ];
+                foreach ($techs as $t): ?>
+                <span class="px-4 py-2 rounded-xl border text-sm font-medium <?= $t['color'] ?> hover:scale-105 transition-transform cursor-default"><?= $t['name'] ?></span>
                 <?php endforeach; ?>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- CTA FINAL SECTION -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="py-24 px-6">
+        <div class="max-w-3xl mx-auto text-center">
+            <div class="glass-strong rounded-3xl p-10 sm:p-14 relative overflow-hidden">
+                <!-- Glow effects -->
+                <div class="absolute -top-20 -right-20 w-60 h-60 bg-teal-500/10 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-20 -left-20 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl"></div>
+
+                <div class="relative z-10">
+                    <div class="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-teal-500/30 animate-float">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4">Siap Mengelola Data TB?</h2>
+                    <p class="text-slate-400 mb-8 max-w-lg mx-auto">Akses dashboard untuk mulai mengelola pasien, memantau pengobatan, dan mengoptimalkan alur kerja SIMRS-TB.</p>
+                    <a href="dashboard.php" class="inline-flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-2xl text-white font-semibold text-lg shadow-xl shadow-teal-500/25 hover:shadow-2xl hover:shadow-teal-500/40 hover:scale-105 active:scale-95 transition-all duration-300">
+                        Buka Dashboard
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-6 border-t border-white/5">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+            <p>© <?= date('Y') ?> SIMRS-TB — Modul 9 Medical Web</p>
+            <p>Built with PHP • TailwindCSS • Chart.js • Three.js</p>
+        </div>
+    </footer>
 
 </div>
-</main>
 
+<!-- ═══ Vanta.js Scripts ═══ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.waves.min.js"></script>
 <script>
-// ── Tren Kasus TB Chart ──
-const trendCtx = document.getElementById('trendChart').getContext('2d');
-new Chart(trendCtx, {
-    type: 'line',
-    data: {
-        labels: ['Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des','Jan','Feb','Mar'],
-        datasets: [{
-            label: 'Kasus Baru',
-            data: [22, 18, 25, 30, 28, 20, 26, 32, 24, 19, 22, 27],
-            borderColor: '#14b8a6',
-            backgroundColor: 'rgba(20,184,166,0.08)',
-            borderWidth: 2.5,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 3,
-            pointBackgroundColor: '#14b8a6'
-        },{
-            label: 'Sembuh',
-            data: [15, 12, 18, 20, 22, 16, 19, 24, 21, 17, 20, 23],
-            borderColor: '#34d399',
-            backgroundColor: 'rgba(52,211,153,0.05)',
-            borderWidth: 2.5,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 3,
-            pointBackgroundColor: '#34d399'
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11, family: 'Inter' }, color: '#94a3b8' } },
-            x: { grid: { display: false }, ticks: { font: { size: 11, family: 'Inter' }, color: '#94a3b8' } }
-        },
-        interaction: { intersect: false, mode: 'index' }
-    }
+VANTA.WAVES({
+    el: "#vanta-bg",
+    mouseControls: true,
+    touchControls: true,
+    gyroControls: false,
+    minHeight: 200.00,
+    minWidth: 200.00,
+    scale: 1.00,
+    scaleMobile: 1.00,
+    color: 0x1115
 });
 
-// ── Distribusi Fase Chart ──
-const phaseCtx = document.getElementById('phaseChart').getContext('2d');
-new Chart(phaseCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Intensif', 'Lanjutan', 'Belum Mulai', 'Selesai'],
-        datasets: [{
-            data: [98, 120, 15, 15],
-            backgroundColor: ['#14b8a6', '#34d399', '#fbbf24', '#cbd5e1'],
-            borderWidth: 0,
-            spacing: 2,
-            borderRadius: 4
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        cutout: '70%',
-        plugins: { legend: { display: false } }
-    }
+// ═══ Intersection Observer for Scroll Animations ═══
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const el = entry.target;
+            const delay = el.dataset.delay || 0;
+            const type = el.dataset.animate;
+
+            setTimeout(() => {
+                el.style.opacity = '1';
+                el.style.transform = 'none';
+
+                if (type === 'count') {
+                    el.classList.add('animate-count');
+                } else if (type === 'slide') {
+                    el.classList.add('animate-fade-up');
+                } else if (type === 'workflow') {
+                    el.classList.add('animate-slide-right');
+                }
+            }, delay);
+
+            observer.unobserve(el);
+        }
+    });
+}, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('[data-animate]').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(30px)';
+    observer.observe(el);
 });
 </script>
 
-<?php require_once __DIR__ . '/../../layout/footer.php'; ?>
+</body>
+</html>
