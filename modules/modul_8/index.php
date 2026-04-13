@@ -1,52 +1,53 @@
 <?php
 /**
- * Modul 8 — Landing Page
- * 
- * Initial page for Modul 8.
- * Each module uses the shared auth system (SSO)
- * and can define its own database schema.
+ * Modul 8 — React + Vite Application
+ *
+ * PHP serves authentication and passes user data to React.
+ * React app runs via Vite (dev) or built dist/ (production).
  */
 
 require_once __DIR__ . '/../../core/auth.php';
-require_once __DIR__ . '/../../components/components.php';
+require_once __DIR__ . '/../../config/database.php';
 
 requireLogin();
 startSession();
 
 $user = getCurrentUser();
-$pageTitle = 'Modul 8';
+$isDev = isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'development';
 ?>
-<?php require_once __DIR__ . '/../../layout/header.php'; ?>
-<?php require_once __DIR__ . '/../../layout/navbar.php'; ?>
-
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-    <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
-        <a href="<?= BASE_URL ?>/index.php" class="hover:text-cyan-600 transition-colors">Module Hub</a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-        <span class="text-gray-700 font-medium">Modul 8</span>
-    </nav>
-
-    <!-- Module Header -->
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-800">Modul 8</h1>
-        <p class="text-gray-500 mt-1">This module is ready for development.</p>
-    </div>
-
-    <!-- Empty State -->
-    <?= component_empty_state(
-        'No content yet',
-        'This module is a blank canvas. Start building your features here.',
-        component_button('Back to Module Hub', [
-            'variant' => 'outline',
-            'href' => BASE_URL . '/index.php',
-            'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>'
-        ])
-    ) ?>
-
-</main>
-
-<?php require_once __DIR__ . '/../../layout/footer.php'; ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modul 8</title>
+    <!-- Pass user data to React -->
+    <script>
+        window.__USER__ = <?= json_encode($user) ?>;
+        window.__BASE_URL__ = "<?= BASE_URL ?>";
+    </script>
+    <?php if ($isDev): ?>
+        <!-- Vite dev server (http://localhost:5173) -->
+        <script type="module" src="http://localhost:5173/@vite/client"></script>
+        <script type="module" src="http://localhost:5173/src/main.tsx"></script>
+    <?php else: ?>
+        <!-- Production build -->
+        <?php
+        $manifest = json_decode(file_get_contents(__DIR__ . '/app/dist/manifest.json'), true);
+        foreach ($manifest as $file => $entry):
+            if (isset($entry['file'])):
+                if (str_ends_with($file, '.css')):
+                    echo '<link rel="stylesheet" href="' . BASE_URL . '/modules/modul_8/app/dist/' . $entry['file'] . '">';
+                endif;
+            endif;
+        endforeach;
+        ?>
+        <script type="module">
+            import('./app/dist/<?= $manifest['src/main.tsx']['file'] ?>').catch(console.error);
+        </script>
+    <?php endif; ?>
+</head>
+<body>
+    <div id="root"></div>
+</body>
+</html>
