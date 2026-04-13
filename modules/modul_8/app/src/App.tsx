@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 import {
   Button,
   Card,
@@ -18,49 +18,55 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from './components/ui'
-import './App.css'
+} from "./components/ui";
+import "./App.css";
 
 interface User {
-  id: number
-  name: string
-  email: string
+  id: number;
+  name: string;
+  email: string;
 }
 
 function App() {
-  const [user, setUser] = useState<User | null>(null)
-  const [count, setCount] = useState(0)
-  const [message, setMessage] = useState('')
+  const [user, setUser] = useState<User | null>(null);
+  const [count, setCount] = useState(0);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     // Get user data passed from PHP
-    const userData = (window as any).__USER__ as User | null
-    setUser(userData)
-  }, [])
+    const userData = (window as any).__USER__ as User | null;
+    setUser(userData);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4">
       <div className="max-w-4xl mx-auto">
-
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Modul 8</h1>
-          <p className="text-slate-300">React + Vite + TypeScript with shadcn/ui</p>
+          <p className="text-slate-300">
+            React + Vite + TypeScript with shadcn/ui
+          </p>
         </div>
 
         {/* Grid Layout */}
         <div className="grid gap-6">
-
           {/* User Info Card */}
           {user && (
             <Card className="border-slate-700 bg-slate-800">
               <CardHeader>
-                <CardTitle className="text-white">Welcome, {user.name}!</CardTitle>
+                <CardTitle className="text-white">
+                  Welcome, {user.name}!
+                </CardTitle>
                 <CardDescription>Your account information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                <p className="text-slate-300"><span className="font-medium">ID:</span> {user.id}</p>
-                <p className="text-slate-300"><span className="font-medium">Email:</span> {user.email}</p>
+                <p className="text-slate-300">
+                  <span className="font-medium">ID:</span> {user.id}
+                </p>
+                <p className="text-slate-300">
+                  <span className="font-medium">Email:</span> {user.email}
+                </p>
               </CardContent>
             </Card>
           )}
@@ -72,10 +78,11 @@ function App() {
               <CardDescription>Interactive component examples</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-
               {/* Buttons */}
               <div className="space-y-2">
-                <Label className="text-white text-base font-semibold">Button Variants</Label>
+                <Label className="text-white text-base font-semibold">
+                  Button Variants
+                </Label>
                 <div className="flex gap-2 flex-wrap">
                   <Button variant="default">Default</Button>
                   <Button variant="secondary">Secondary</Button>
@@ -87,7 +94,9 @@ function App() {
 
               {/* Input */}
               <div className="space-y-2">
-                <Label htmlFor="message" className="text-white">Message</Label>
+                <Label htmlFor="message" className="text-white">
+                  Message
+                </Label>
                 <Input
                   id="message"
                   placeholder="Type a message..."
@@ -99,7 +108,9 @@ function App() {
 
               {/* Counter with Button */}
               <div className="space-y-2">
-                <Label className="text-white text-base font-semibold">Counter</Label>
+                <Label className="text-white text-base font-semibold">
+                  Counter
+                </Label>
                 <Button
                   onClick={() => setCount((c) => c + 1)}
                   className="w-full"
@@ -117,13 +128,16 @@ function App() {
                 </DialogTrigger>
                 <DialogContent className="bg-slate-800 border-slate-700">
                   <DialogHeader>
-                    <DialogTitle className="text-white">Dialog Example</DialogTitle>
+                    <DialogTitle className="text-white">
+                      Dialog Example
+                    </DialogTitle>
                     <DialogDescription>
                       This is a shadcn/ui dialog component
                     </DialogDescription>
                   </DialogHeader>
                   <p className="text-slate-300">
-                    This dialog demonstrates the shadcn/ui Dialog component with Radix UI.
+                    This dialog demonstrates the shadcn/ui Dialog component with
+                    Radix UI.
                   </p>
                 </DialogContent>
               </Dialog>
@@ -147,14 +161,15 @@ function App() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-
             </CardContent>
           </Card>
 
           {/* Info Card */}
           <Card className="border-blue-700 bg-blue-900/20">
             <CardHeader>
-              <CardTitle className="text-blue-300">shadcn/ui Setup Complete</CardTitle>
+              <CardTitle className="text-blue-300">
+                shadcn/ui Setup Complete
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-blue-200 space-y-2 text-sm">
               <p>✓ Installed Radix UI and dependencies</p>
@@ -163,11 +178,10 @@ function App() {
               <p>✓ Full TypeScript support with Tailwind CSS</p>
             </CardContent>
           </Card>
-
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
