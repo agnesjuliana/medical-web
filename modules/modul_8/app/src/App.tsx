@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import TabBar from "@/components/navigation/tabBar";
+import type { TabItem } from "@/components/navigation/tabBar";
+import { Home, User, Settings, Bell } from "lucide-react";
 import {
   Button,
   Card,
@@ -27,10 +30,18 @@ interface User {
   email: string;
 }
 
+const NAV_TABS: TabItem[] = [
+  { id: "home",     label: "Home",     icon: <Home size={20} /> },
+  { id: "profile",  label: "Profile",  icon: <User size={20} /> },
+  { id: "settings", label: "Settings", icon: <Settings size={20} /> },
+  { id: "alerts",   label: "Alerts",   icon: <Bell size={20} /> },
+];
+
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [count, setCount] = useState(0);
   const [message, setMessage] = useState("");
+  const [activeTab, setActiveTab] = useState("home");
 
   useEffect(() => {
     // Get user data passed from PHP
@@ -41,6 +52,17 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4">
       <div className="max-w-4xl mx-auto">
+        {/* TabBar */}
+        <div className="mb-8">
+          <TabBar
+            tabs={NAV_TABS}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            onSidebarToggle={() => console.log("sidebar toggled")}
+            onSearch={() => console.log("search clicked")}
+          />
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Modul 8</h1>
