@@ -1,0 +1,12 @@
+# Environment / secrets — never commit real credentials
+.env
+
+# Editor / OS artefacts
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# PHP dependency manager
+/vendor/
+composer.lock
