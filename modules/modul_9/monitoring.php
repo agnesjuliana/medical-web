@@ -49,7 +49,7 @@ $summaryStats = [
     </nav>
 
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">✅ Monitoring Kepatuhan</h1>
+        <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2"><svg class="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Monitoring Kepatuhan</h1>
         <p class="text-gray-500 text-sm mt-1">Pantau kepatuhan minum obat dan identifikasi pasien risiko drop-out</p>
     </div>
 

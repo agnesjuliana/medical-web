@@ -42,7 +42,7 @@ $riwayat = [
     </nav>
 
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">🎙️ Skrining AI Batuk</h1>
+        <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2"><svg class="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>Skrining AI Batuk</h1>
         <p class="text-gray-500 text-sm mt-1">Analisis akustik suara batuk menggunakan Deep Learning untuk deteksi dini TB</p>
     </div>
 
@@ -99,7 +99,7 @@ $riwayat = [
 
                 <!-- Analyze Button -->
                 <div class="text-center">
-                    <?= component_button('🔬 Analisis Suara Batuk', [
+                    <?= component_button('Analisis Suara Batuk', [
                         'variant' => 'primary',
                         'size' => 'lg',
                         'fullWidth' => true,
@@ -218,7 +218,7 @@ $riwayat = [
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <div>
-                <h3 class="text-base font-semibold text-gray-800">📋 Riwayat Skrining</h3>
+                <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2"><svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>Riwayat Skrining</h3>
                 <p class="text-xs text-gray-400 mt-0.5">Data skrining batuk terbaru</p>
             </div>
             <div class="flex items-center gap-2">

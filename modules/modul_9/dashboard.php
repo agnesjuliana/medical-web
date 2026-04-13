@@ -135,7 +135,7 @@ $jadwalHariIni = [
         <div class="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div>
-                    <h3 class="text-base font-semibold text-gray-800">⚠️ Alert Pasien</h3>
+                    <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2"><svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>Alert Pasien</h3>
                     <p class="text-xs text-gray-400 mt-0.5">Pasien memerlukan perhatian segera</p>
                 </div>
                 <?= component_badge(count($alertPasien) . ' pasien', 'warning') ?>
@@ -166,7 +166,7 @@ $jadwalHariIni = [
         <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div>
-                    <h3 class="text-base font-semibold text-gray-800">📅 Jadwal Hari Ini</h3>
+                    <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2"><svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Jadwal Hari Ini</h3>
                     <p class="text-xs text-gray-400 mt-0.5"><?= date('l, d M Y') ?></p>
                 </div>
                 <a href="jadwal.php" class="text-xs text-teal-600 hover:text-teal-700 font-medium">Lihat Semua →</a>
