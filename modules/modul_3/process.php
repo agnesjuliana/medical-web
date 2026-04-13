@@ -14,6 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mkdir($uploadDir, 0777, true);
         }
 
+        // aisar
+        
         $fileTmpPath = $_FILES['thorax_image']['tmp_name'];
         $fileName = time() . '_' . basename($_FILES['thorax_image']['name']);
         $destination = $uploadDir . $fileName;
