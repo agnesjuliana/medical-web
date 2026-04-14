@@ -240,7 +240,7 @@ $riwayat_pasien = $stmt->fetchAll();
 </div>
 
 <section class="hero-section">
-    <div class="corner-text ct-tl">Modul 11<br>Sefalometri</div>
+    <div class="corner-text ct-tl">Modul 11<br>Cephalo AI</div>
     <div class="corner-text ct-tr">Web Programming<br>Project 2026</div>
     <div class="corner-text ct-bl">Concept For A Modern<br>Orthodontic Diagnostic Tool</div>
     <div class="corner-text ct-br">
