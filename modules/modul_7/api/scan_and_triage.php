@@ -7,7 +7,7 @@
  */
 
 require_once __DIR__ . '/../../../core/auth.php';
-require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../database.php';
 
 // Only accept POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -46,18 +46,38 @@ if ($severity === 'Mild') {
 // For this mock, we just use a placeholder image path.
 $imagePath = 'assets/uploaded_mock_' . time() . '.jpg'; 
 
-// 2. Triage Logic
-$status = ($severity === 'Severe') ? 'pending_doctor_review' : 'completed_by_ml';
+// 2. Triage Logic (Patient Only Route)
+$status = 'completed_by_ml'; // No longer using pending_doctor_review
 
-// 3. Database Insertion
+// 3. Generate Recommendations
+$recommendations = [];
+if ($severity === 'Mild') {
+    $recommendations = [
+        'ingredients' => ['Salicylic Acid (BHA)', 'Azelaic Acid'],
+        'advice' => 'Kondisi jerawat ringan. Sangat disarankan untuk menggunakan eksfolian kimia lembut seperti BHA untuk membersihkan pori-pori.',
+        'prescription' => 'Pertimbangkan serum Salicylic Acid 2% atau krim Azelaic Acid 10% (bebas)'
+    ];
+} elseif ($severity === 'Moderate') {
+    $recommendations = [
+        'ingredients' => ['Benzoyl Peroxide', 'Topical Retinoids', 'Niacinamide'],
+        'advice' => 'Kondisi jerawat sedang. Kombinasi anti-bakteri dan percepatan pergantian sel kulit diperlukan.',
+        'prescription' => 'Gunakan Benzoyl Peroxide 2.5% - 5% (spot treatment) dan Retinoid topikal di malam hari.'
+    ];
+} else {
+    $recommendations = [
+        'ingredients' => ['Isotretinoin Oral', 'Antibiotik Oral', 'Spironolactone'],
+        'advice' => 'Kondisi jerawat tingkat parah. Intervensi medis profesional diperlukan untuk mencegah jaringan parut permanen.',
+        'prescription' => 'Segera konsultasikan dengan dokter spesialis kulit (Dermatovenerologi) untuk resep obat oral sistemik.'
+    ];
+}
+
+// 4. Database Insertion
 try {
-    $db = getDBConnection();
+    $db = getModul7DBConnection();
     
-    // Check if table exists
     $checkTable = $db->query("SHOW TABLES LIKE 'modul7_screenings'");
     if ($checkTable->rowCount() == 0) {
-        // Automatically throw an error to run init.php if it doesn't exist
-        throw new Exception("Database table not initialized. Please run init.php");
+        require_once __DIR__ . '/init.php';
     }
 
     $stmt = $db->prepare("
@@ -81,7 +101,8 @@ try {
         'success' => true,
         'result' => [
             'severity' => $severity,
-            'counts' => $counts
+            'counts' => $counts,
+            'recommendations' => $recommendations
         ],
         'triage_status' => $status
     ];

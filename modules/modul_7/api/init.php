@@ -5,10 +5,10 @@
  * Creates the required tables for Modul 7 if they don't exist.
  */
 
-require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../database.php';
 
 try {
-    $db = getDBConnection();
+    $db = getModul7DBConnection();
 
     // Create screenings table
     $query = "
