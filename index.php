@@ -25,7 +25,7 @@ $modules = [
     6  => ['name' => 'Modul 6',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>', 'color' => 'from-amber-500 to-amber-600'],
     7  => ['name' => 'Modul 7',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>', 'color' => 'from-indigo-500 to-indigo-600'],
     8  => ['name' => 'Modul 8',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>', 'color' => 'from-teal-500 to-teal-600'],
-    9  => ['name' => 'SIMRS-TB',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>', 'color' => 'from-teal-500 to-emerald-600'],
+    9  => ['name' => 'SIMRS-TB',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>', 'color' => 'from-teal-500 to-emerald-600', 'logo' => 'logo.png'],
     10 => ['name' => 'Modul 10', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>', 'color' => 'from-orange-500 to-orange-600'],
     11 => ['name' => 'Modul 11', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>', 'color' => 'from-slate-500 to-slate-600'],
     12 => ['name' => 'Modul 12', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>', 'color' => 'from-sky-500 to-sky-600'],
@@ -46,6 +46,42 @@ $modules = [
     <!-- Module Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
         <?php foreach ($modules as $id => $module): ?>
+        
+        <?php if (!empty($module['logo'])): ?>
+        <!-- ═══ SIMRS-TB Special Card with Vanta HALO ═══ -->
+        <a href="<?= BASE_URL ?>/modules/modul_<?= $id ?>/index.php" 
+           id="vanta-card-<?= $id ?>"
+           class="group relative rounded-2xl border border-purple-500/30 shadow-sm p-6 hover:shadow-xl hover:shadow-purple-500/15 hover:-translate-y-1 transition-all duration-300 block overflow-hidden"
+           style="min-height: 180px;">
+            
+            <!-- Vanta container (absolute, behind content) -->
+            <div id="vanta-bg-<?= $id ?>" class="absolute inset-0 z-0 rounded-2xl overflow-hidden"></div>
+            
+            <!-- Content overlay -->
+            <div class="relative z-10">
+                <!-- Logo -->
+                <div class="w-12 h-12 rounded-xl overflow-hidden shadow-lg shadow-purple-500/20 mb-4 group-hover:scale-110 transition-transform duration-300 border border-white/20">
+                    <img src="<?= BASE_URL ?>/modules/modul_<?= $id ?>/<?= $module['logo'] ?>" alt="<?= htmlspecialchars($module['name']) ?>" class="w-full h-full object-cover">
+                </div>
+
+                <!-- Label -->
+                <h3 class="text-base font-semibold text-white group-hover:text-purple-200 transition-colors">
+                    <?= htmlspecialchars($module['name']) ?>
+                </h3>
+                <p class="text-sm text-white/60 mt-1">Click to open module</p>
+
+                <!-- Arrow -->
+                <div class="mt-4 flex items-center text-sm text-white/50 group-hover:text-purple-300 transition-colors">
+                    <span class="font-medium">Open</span>
+                    <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </div>
+        </a>
+        
+        <?php else: ?>
+        <!-- ═══ Standard Module Card ═══ -->
         <a href="<?= BASE_URL ?>/modules/modul_<?= $id ?>/index.php" 
            class="group bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 block">
             
@@ -70,6 +106,8 @@ $modules = [
                 </svg>
             </div>
         </a>
+        <?php endif; ?>
+        
         <?php endforeach; ?>
     </div>
 
@@ -86,4 +124,26 @@ $modules = [
 
 </main>
 
+<!-- Vanta.js HALO for SIMRS-TB card -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.halo.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const vantaEl = document.getElementById('vanta-bg-9');
+    if (vantaEl) {
+        VANTA.HALO({
+            el: vantaEl,
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            baseColor: 0x8f0090,
+            size: 0.30
+        });
+    }
+});
+</script>
+
 <?php require_once __DIR__ . '/layout/footer.php'; ?>
+
