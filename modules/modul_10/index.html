@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriCheck - Platform Edukasi Gizi Seimbang</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        /* Navigation */
+        nav {
+            background: #fff;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        
+        .nav-menu a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-menu a:hover {
+            color: #27ae60;
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 80px 20px 20px;
+        }
+        
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        
+        .hero-text h1 {
+            font-size: 3rem;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+        
+        .hero-text p {
+            font-size: 1.2rem;
+            color: #f0f0f0;
+            margin-bottom: 2rem;
+        }
+        
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+            padding: 15px 35px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+            text-decoration: none;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .hero-image {
+            position: relative;
+        }
+        
+        .hero-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 80px 20px;
+            background: #f8f9fa;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #2c3e50;
+        }
+        
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        
+        /* Calculator Section */
+        .calculator {
+            padding: 80px 20px;
+            background: white;
+        }
+        
+        .calculator-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .calculator-form {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            color: white;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group select {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .calc-result {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            display: none;
+        }
+        
+        .calc-result.show {
+            display: block;
+        }
+        
+        /* Food Database Section */
+        .food-database {
+            padding: 80px 20px;
+            background: #f8f9fa;
+        }
+        
+        .food-grid {
+            max-width: 1200px;
+            margin: 2rem auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .food-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+        }
+        
+        .food-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .food-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .nutrition-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .nutrition-item {
+            text-align: center;
+        }
+        
+        .nutrition-value {
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .nutrition-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        /* Search Box */
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #27ae60;
+        }
+        
+        /* CTA Section */
+        .cta {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            padding: 80px 20px;
+            text-align: center;
+            color: white;
+        }
+        
+        .cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .cta p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .btn-white {
+            background: white;
+            color: #27ae60;
+            padding: 15px 35px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
+            display: inline-block;
+            text-decoration: none;
+        }
+        
+        .btn-white:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Footer */
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .hero-text h1 {
+                font-size: 2rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .food-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">🥗 NutriCheck</div>
+            <ul class="nav-menu">
+                <li><a href="#home">Beranda</a></li>
+                <li><a href="#features">Fitur</a></li>
+                <li><a href="#calculator">Kalkulator</a></li>
+                <li><a href="#food-database">Database Makanan</a></li>
+                <li><a href="#contact">Kontak</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>Wujudkan Hidup Sehat dengan Gizi Seimbang</h1>
+                <p>Platform edukasi kesehatan yang membantu Anda memahami dan memenuhi kebutuhan gizi harian untuk hidup yang lebih sehat dan seimbang.</p>
+                <a href="#calculator" class="btn-primary">Mulai Sekarang</a>
+            </div>
+            <div class="hero-image">
+                <div class="hero-card">
+                    <h3 style="color: #2c3e50; margin-bottom: 1rem;">Tahukah Anda?</h3>
+                    <p style="color: #666; margin-bottom: 1rem;">Kebutuhan kalori setiap orang berbeda-beda berdasarkan usia, berat badan, dan tingkat aktivitas.</p>
+                    <div style="display: flex; justify-content: space-around; margin-top: 1.5rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold; color: #27ae60;">2000</div>
+                            <div style="color: #666; font-size: 0.9rem;">Kalori/hari</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold; color: #e74c3c;">50g</div>
+                            <div style="color: #666; font-size: 0.9rem;">Protein</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold; color: #3498db;">300g</div>
+                            <div style="color: #666; font-size: 0.9rem;">Karbohidrat</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <h2 class="section-title">Fitur Unggulan NutriCheck</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📚</div>
+                <h3 class="feature-title">Informasi Nutrisi</h3>
+                <p>Pelajari dasar-dasar nutrisi dan pentingnya gizi seimbang untuk kesehatan tubuh Anda.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🧮</div>
+                <h3 class="feature-title">Kalkulator Kalori</h3>
+                <p>Hitung kebutuhan kalori harian Anda berdasarkan berat badan, tinggi badan, usia, dan aktivitas.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🍎</div>
+                <h3 class="feature-title">Database Makanan</h3>
+                <p>Akses informasi lengkap kandungan gizi dari berbagai jenis makanan.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title">Analisis Gizi</h3>
+                <p>Bandingkan asupan makanan dengan kebutuhan gizi harian Anda.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💡</div>
+                <h3 class="feature-title">Rekomendasi Menu</h3>
+                <p>Dapatkan saran menu makanan sehat sesuai kebutuhan gizi Anda.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3 class="feature-title">Tracking Progress</h3>
+                <p>Pantau perkembangan pola makan dan kesehatan Anda dari waktu ke waktu.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Calculator Section -->
+    <section class="calculator" id="calculator">
+        <h2 class="section-title">Kalkulator Kebutuhan Kalori Harian</h2>
+        <div class="calculator-container">
+            <form class="calculator-form" id="calorieForm">
+                <div class="form-group">
+                    <label for="age">Usia (tahun)</label>
+                    <input type="number" id="age" required min="1" max="120">
+                </div>
+                <div class="form-group">
+                    <label for="gender">Jenis Kelamin</label>
+                    <select id="gender" required>
+                        <option value="">Pilih jenis kelamin</option>
+                        <option value="male">Laki-laki</option>
+                        <option value="female">Perempuan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="weight">Berat Badan (kg)</label>
+                    <input type="number" id="weight" required min="20" max="300">
+                </div>
+                <div class="form-group">
+                    <label for="height">Tinggi Badan (cm)</label>
+                    <input type="number" id="height" required min="100" max="250">
+                </div>
+                <div class="form-group">
+                    <label for="activity">Tingkat Aktivitas</label>
+                    <select id="activity" required>
+                        <option value="">Pilih tingkat aktivitas</option>
+                        <option value="1.2">Tidak aktif (jarang olahraga)</option>
+                        <option value="1.375">Sedikit aktif (olahraga 1-3x/minggu)</option>
+                        <option value="1.55">Cukup aktif (olahraga 3-5x/minggu)</option>
+                        <option value="1.725">Sangat aktif (olahraga 6-7x/minggu)</option>
+                        <option value="1.9">Ekstra aktif (atlet/pekerja fisik)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Hitung Kebutuhan Kalori</button>
+            </form>
+            <div class="calc-result" id="result">
+                <h3 style="color: #2c3e50; margin-bottom: 1rem;">Hasil Perhitungan</h3>
+                <p style="font-size: 1.1rem; color: #666;">Kebutuhan kalori harian Anda:</p>
+                <div style="font-size: 3rem; font-weight: bold; color: #27ae60; text-align: center; margin: 1rem 0;">
+                    <span id="calorieResult">0</span> kkal/hari
+                </div>
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e0e0e0;">
+                    <p style="font-weight: bold; margin-bottom: 0.5rem;">Rekomendasi Nutrisi:</p>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem;">
+                        <div style="text-align: center;">
+                            <div style="color: #e74c3c; font-size: 1.5rem; font-weight: bold;" id="proteinResult">0g</div>
+                            <div style="color: #666; font-size: 0.9rem;">Protein</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #3498db; font-size: 1.5rem; font-weight: bold;" id="carbResult">0g</div>
+                            <div style="color: #666; font-size: 0.9rem;">Karbohidrat</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #f39c12; font-size: 1.5rem; font-weight: bold;" id="fatResult">0g</div>
+                            <div style="color: #666; font-size: 0.9rem;">Lemak</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Food Database Section -->
+    <section class="food-database" id="food-database">
+        <h2 class="section-title">Database Makanan & Kandungan Gizi</h2>
+        <div class="search-container">
+            <input type="text" class="search-box" id="foodSearch" placeholder="Cari makanan...">
+        </div>
+        <div class="food-grid" id="foodGrid">
+            <div class="food-card">
+                <div class="food-name">Nasi Putih</div>
+                <div style="color: #666; font-size: 0.9rem;">Per 100 gram</div>
+                <div class="nutrition-info">
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">130</div>
+                        <div class="nutrition-label">Kalori</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">2.7g</div>
+                        <div class="nutrition-label">Protein</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">28g</div>
+                        <div class="nutrition-label">Karbo</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">0.3g</div>
+                        <div class="nutrition-label">Lemak</div>
+                    </div>
+                </div>
+            </div>
+            <div class="food-card">
+                <div class="food-name">Ayam Goreng</div>
+                <div style="color: #666; font-size: 0.9rem;">Per 100 gram</div>
+                <div class="nutrition-info">
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">246</div>
+                        <div class="nutrition-label">Kalori</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">27g</div>
+                        <div class="nutrition-label">Protein</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">0g</div>
+                        <div class="nutrition-label">Karbo</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">15g</div>
+                        <div class="nutrition-label">Lemak</div>
+                    </div>
+                </div>
+            </div>
+            <div class="food-card">
+                <div class="food-name">Telur Rebus</div>
+                <div style="color: #666; font-size: 0.9rem;">Per 100 gram</div>
+                <div class="nutrition-info">
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">155</div>
+                        <div class="nutrition-label">Kalori</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">13g</div>
+                        <div class="nutrition-label">Protein</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">1.1g</div>
+                        <div class="nutrition-label">Karbo</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">11g</div>
+                        <div class="nutrition-label">Lemak</div>
+                    </div>
+                </div>
+            </div>
+            <div class="food-card">
+                <div class="food-name">Brokoli</div>
+                <div style="color: #666; font-size: 0.9rem;">Per 100 gram</div>
+                <div class="nutrition-info">
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">34</div>
+                        <div class="nutrition-label">Kalori</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">2.8g</div>
+                        <div class="nutrition-label">Protein</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">7g</div>
+                        <div class="nutrition-label">Karbo</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">0.4g</div>
+                        <div class="nutrition-label">Lemak</div>
+                    </div>
+                </div>
+            </div>
+            <div class="food-card">
+                <div class="food-name">Apel</div>
+                <div style="color: #666; font-size: 0.9rem;">Per 100 gram</div>
+                <div class="nutrition-info">
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">52</div>
+                        <div class="nutrition-label">Kalori</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">0.3g</div>
+                        <div class="nutrition-label">Protein</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">14g</div>
+                        <div class="nutrition-label">Karbo</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">0.2g</div>
+                        <div class="nutrition-label">Lemak</div>
+                    </div>
+                </div>
+            </div>
+            <div class="food-card">
+                <div class="food-name">Tempe Goreng</div>
+                <div style="color: #666; font-size: 0.9rem;">Per 100 gram</div>
+                <div class="nutrition-info">
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">192</div>
+                        <div class="nutrition-label">Kalori</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">19g</div>
+                        <div class="nutrition-label">Protein</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">9g</div>
+                        <div class="nutrition-label">Karbo</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">11g</div>
+                        <div class="nutrition-label">Lemak</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <h2>Mulai Perjalanan Hidup Sehat Anda</h2>
+        <p>Bergabunglah dengan ribuan pengguna yang telah merasakan manfaat dari pola makan seimbang dan gizi yang tepat.</p>
+        <a href="#" class="btn-white">Daftar Gratis Sekarang</a>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 NutriCheck. All rights reserved.</p>
+        <p style="margin-top: 1rem; opacity: 0.8;">Platform Edukasi Kesehatan untuk Indonesia Sehat</p>
+    </footer>
+
+    <script>
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Calorie Calculator
+        document.getElementById('calorieForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const age = parseFloat(document.getElementById('age').value);
+            const gender = document.getElementById('gender').value;
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const activity = parseFloat(document.getElementById('activity').value);
+            
+            // Harris-Benedict Formula
+            let bmr;
+            if (gender === 'male') {
+                bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+            } else {
+                bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+            }
+            
+            const totalCalories = Math.round(bmr * activity);
+            
+            // Calculate macronutrients (example distribution)
+            const protein = Math.round((totalCalories * 0.25) / 4); // 25% of calories, 4 cal/g
+            const carbs = Math.round((totalCalories * 0.50) / 4); // 50% of calories, 4 cal/g
+            const fat = Math.round((totalCalories * 0.25) / 9); // 25% of calories, 9 cal/g
+            
+            // Display results
+            document.getElementById('calorieResult').textContent = totalCalories;
+            document.getElementById('proteinResult').textContent = protein + 'g';
+            document.getElementById('carbResult').textContent = carbs + 'g';
+            document.getElementById('fatResult').textContent = fat + 'g';
+            
+            document.getElementById('result').classList.add('show');
+            
+            // Scroll to result
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        // Food Search
+        document.getElementById('foodSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const foodCards = document.querySelectorAll('.food-card');
+            
+            foodCards.forEach(card => {
+                const foodName = card.querySelector('.food-name').textContent.toLowerCase();
+                if (foodName.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Add animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.6s ease forwards';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .food-card').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+
+    <style>
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+    <script src="script.js"></script>
+</body>
+</html>
