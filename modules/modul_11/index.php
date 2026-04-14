@@ -12,7 +12,7 @@ $sql = "SELECT p.nama_pasien, p.nik, p.usia, p.jenis_kelamin, s.foto_rontgen, s.
         FROM modul_11_pasien p 
         JOIN modul_11_sefalometri s ON p.id_pasien = s.id_pasien 
         ORDER BY s.waktu_upload DESC";
-$stmt = $pdo->query($sql);
+$stmt = $pdo->query($sql);  
 $riwayat_pasien = $stmt->fetchAll();
 ?>
 
