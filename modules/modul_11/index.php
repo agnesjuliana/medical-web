@@ -309,5 +309,69 @@ $riwayat_pasien = $stmt->fetchAll();
     });
 </script>
 
+<!-- EFEK AIR BERGERAK (LIQUID CURSOR) -->
+<style>
+.water-droplet {
+    position: absolute;
+    width: 45px; height: 45px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(56,189,248,0.9) 0%, rgba(3,105,161,0.5) 100%);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 25px rgba(14, 165, 233, 0.4);
+}
+.liquid-filter {
+    filter: url(#goo);
+    position: fixed; top:0; left:0; width:100vw; height:100vh; pointer-events: none; z-index: -1;
+    overflow: hidden;
+}
+</style>
+
+<svg style="visibility: hidden; position: absolute;" width="0" height="0" xmlns="http://www.w3.org/2000/svg" version="1.1">
+    <defs>
+        <filter id="goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" result="goo" />
+            <feBlend in="SourceGraphic" in2="goo" />
+        </filter>
+    </defs>
+</svg>
+<div class="liquid-filter" id="blob-container"></div>
+
+<script>
+    const containerBlob = document.getElementById('blob-container');
+    const blobstores = [];
+    const BLOB_COUNT = 15;
+    for(let i=0; i<BLOB_COUNT; i++) {
+        let b = document.createElement('div');
+        b.className = 'water-droplet';
+        containerBlob.appendChild(b);
+        blobstores.push({el: b, x: window.innerWidth/2, y: window.innerHeight/2});
+    }
+
+    let tX = window.innerWidth/2;
+    let tY = window.innerHeight/2;
+
+    document.addEventListener('mousemove', (e) => {
+        tX = e.clientX;
+        tY = e.clientY;
+    });
+
+    function animateBlobs() {
+        let prevX = tX;
+        let prevY = tY;
+        for(let i=0; i<BLOB_COUNT; i++) {
+            let blob = blobstores[i];
+            blob.x += (prevX - blob.x) * 0.35;
+            blob.y += (prevY - blob.y) * 0.35;
+            blob.el.style.transform = `translate(${blob.x}px, ${blob.y}px) scale(${1 - (i/BLOB_COUNT)})`;
+            prevX = blob.x;
+            prevY = blob.y;
+        }
+        requestAnimationFrame(animateBlobs);
+    }
+    animateBlobs();
+</script>
+
 </body>
 </html>
