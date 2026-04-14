@@ -98,9 +98,10 @@ $modules = [
 
 </main>
 
-<!-- Vanta.js NET for SIMRS-TB card -->
+<!-- Vanta.js NET for SIMRS-TB card and WAVES for Modul 11 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.waves.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var el9 = document.getElementById('vanta-bg-9');
@@ -123,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var el11 = document.getElementById('vanta-bg-11');
     if (el11) {
-        VANTA.NET({
+        VANTA.WAVES({
             el: el11,
             mouseControls: true,
             touchControls: true,
@@ -132,10 +133,11 @@ document.addEventListener('DOMContentLoaded', function() {
             minWidth: 200.00,
             scale: 1.00,
             scaleMobile: 1.00,
-            color: 0x38bdf8,
-            backgroundColor: 0x020617,
-            points: 12.00,
-            spacing: 16.00
+            color: 0x094a96,
+            shininess: 65.00,
+            waveHeight: 20.00,
+            waveSpeed: 0.90,
+            zoom: 0.85
         });
     }
 });
