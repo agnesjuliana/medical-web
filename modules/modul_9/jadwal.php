@@ -56,7 +56,7 @@ $jadwalPerTanggal = [3 => 2, 5 => 1, 8 => 3, 10 => 1, 13 => 7, 14 => 2, 15 => 1,
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         <a href="index.php" class="hover:text-teal-600 transition-colors">SIMRS-TB</a>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <span class="text-gray-700 font-medium">Jadwal Kontrol</span>
+        <span class="text-gray-700 font-medium">Jadwal Kontroll</span>
     </nav>
 
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
