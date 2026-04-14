@@ -1,165 +1,69 @@
-<?php
-/**
- * Modul 4 — CalorieCare: Health & Calorie Calculator
- * 
- * Calorie calculator with dark mode, bilingual (EN/ID),
- * and personalized health recommendations.
- * Combined from: proyek web-4.html, proyek web-4.css, proyek web-4.js
- */
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
 
-require_once __DIR__ . '/../../core/auth.php';
-require_once __DIR__ . '/../../components/components.php';
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalorieCare - Health & Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-requireLogin();
-startSession();
-
-$user = getCurrentUser();
-$pageTitle = 'CalorieCare - Modul 4';
-?>
-<?php require_once __DIR__ . '/../../layout/header.php'; ?>
-
-<!-- CalorieCare: Additional fonts & Tailwind dark mode config -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script>
-    // Extend Tailwind config for dark mode support
-    tailwind.config = {
-        darkMode: 'class',
-        theme: {
-            extend: {
-                colors: {
-                    primary: {
-                        DEFAULT: '#0891b2',
-                        hover: '#0e7490',
-                        50: '#ecfeff',
-                        100: '#cffafe',
-                        200: '#a5f3fc',
-                        300: '#67e8f9',
-                        400: '#22d3ee',
-                        500: '#06b6d4',
-                        600: '#0891b2',
-                        700: '#0e7490',
-                        800: '#155e75',
-                        900: '#164e63',
-                    }
-                },
-                fontFamily: {
-                    sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-                }
-            }
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {} }
         }
-    }
-</script>
+    </script>
+    <link rel="stylesheet" href="styles.css">
+</head>
 
-<!-- CalorieCare: Inline CSS -->
-<style>
-    /* CalorieCare Styles */
-    .cc-section {
-        font-family: 'Poppins', 'Inter', sans-serif;
-    }
+<body class="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+    <nav
+        class="fixed top-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur z-50 border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 
-    /* Scroll Animations */
-    .fade-in {
-        animation: fadeIn 0.8s ease-out forwards;
-        opacity: 0;
-    }
+            <div class="flex items-center gap-2">
+                <div
+                    class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                        </path>
+                    </svg>
+                </div>
+                <span class="font-semibold text-xl text-gray-900 dark:text-white translatable" data-en="CalorieCare"
+                    data-id="CalorieCare">CalorieCare</span>
+            </div>
 
-    .slide-up {
-        animation: slideUp 0.8s ease-out forwards;
-        opacity: 0;
-        transform: translateY(30px);
-    }
+            <div class="flex items-center gap-4 md:gap-8">
+                <div
+                    class="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-1.5 rounded-full border border-gray-200 dark:border-gray-700">
+                    <button id="themeToggle"
+                        class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-yellow-400">
+                        <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                            </path>
+                        </svg>
+                    </button>
+                    <button id="langToggle"
+                        class="px-3 py-1 text-sm font-bold text-gray-700 dark:text-white hover:text-green-600 transition-colors">
+                        EN
+                    </button>
+                </div>
 
-    .scale-in {
-        animation: scaleIn 0.8s ease-out forwards;
-        opacity: 0;
-        transform: scale(0.9);
-    }
+                <a href="#calculator"
+                    class="hidden md:inline-block bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition-colors interactive-pop translatable"
+                    data-en="Try Calculator" data-id="Coba Kalkulator">
+                    Try Calculator
+                </a>
+            </div>
+        </div>
+    </nav>
 
-    @keyframes fadeIn {
-        to {
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideUp {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes scaleIn {
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-
-    /* Micro-interactions */
-    .hover-lift {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .hover-lift:focus-within,
-    .hover-lift:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-    }
-
-    .interactive-pop {
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .interactive-pop:hover {
-        transform: scale(1.03) translateY(-2px);
-    }
-
-    .interactive-pop:active {
-        transform: scale(0.97);
-    }
-
-    /* Floating Animation */
-    .interactive-float {
-        animation: floating 6s ease-in-out infinite;
-    }
-
-    @keyframes floating {
-        0% {
-            transform: translateY(0px);
-        }
-
-        50% {
-            transform: translateY(-15px);
-        }
-
-        100% {
-            transform: translateY(0px);
-        }
-    }
-
-    .backdrop-blur-custom {
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-    }
-</style>
-
-<?php require_once __DIR__ . '/../../layout/navbar.php'; ?>
-
-<main class="cc-section">
-
-    <!-- Breadcrumb -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
-            <a href="<?= BASE_URL ?>/index.php" class="hover:text-cyan-600 transition-colors">Module Hub</a>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-            <span class="text-gray-700 font-medium">CalorieCare</span>
-        </nav>
-    </div>
-
-    <!-- ===== HERO SECTION ===== -->
-    <section id="home" class="pt-8 pb-20 px-6 fade-in">
+    <section id="home" class="pt-32 pb-20 px-6 fade-in">
         <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
             <div class="slide-up">
                 <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-6 translatable"
@@ -188,7 +92,6 @@ $pageTitle = 'CalorieCare - Modul 4';
         </div>
     </section>
 
-    <!-- ===== WHY CHOOSE SECTION ===== -->
     <section class="py-20 px-6 bg-gray-50 dark:bg-gray-800 transition-colors duration-300">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16 fade-in">
@@ -262,7 +165,6 @@ $pageTitle = 'CalorieCare - Modul 4';
         </div>
     </section>
 
-    <!-- ===== CALCULATOR SECTION ===== -->
     <section id="calculator" class="py-20 px-6 bg-white dark:bg-gray-900 transition-colors duration-300">
         <div class="max-w-5xl mx-auto">
             <div class="text-center mb-12 fade-in">
@@ -385,7 +287,6 @@ $pageTitle = 'CalorieCare - Modul 4';
         </div>
     </section>
 
-    <!-- ===== INSIGHTS SECTION ===== -->
     <section class="py-20 px-6 bg-gray-50 dark:bg-gray-800 transition-colors duration-300">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16 fade-in">
@@ -474,8 +375,7 @@ $pageTitle = 'CalorieCare - Modul 4';
         </div>
     </section>
 
-    <!-- ===== CALORIECARE FOOTER (inside main) ===== -->
-    <section class="bg-gray-900 text-white py-12 px-6">
+    <footer class="bg-gray-900 text-white py-12 px-6">
         <div class="max-w-7xl mx-auto text-center">
             <div class="flex items-center justify-center gap-2 mb-4">
                 <div
@@ -496,158 +396,9 @@ $pageTitle = 'CalorieCare - Modul 4';
                 wellness
                 journey.</p>
         </div>
-    </section>
+    </footer>
 
-</main>
+    <script src="script.js"></script>
+</body>
 
-<!-- CalorieCare: Inline JavaScript -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-
-    // --- 1. FITUR MODE GELAP / TERANG ---
-    // Create a theme toggle button dynamically (since Navbar doesn't have one)
-    const themeToggleContainer = document.createElement('div');
-    themeToggleContainer.className = 'fixed bottom-6 right-6 z-50 flex flex-col gap-2';
-    themeToggleContainer.innerHTML = `
-        <button id="themeToggle" class="w-12 h-12 bg-white dark:bg-gray-800 shadow-lg rounded-full flex items-center justify-center hover:shadow-xl transition-all border border-gray-200 dark:border-gray-700" title="Toggle Dark Mode">
-            <svg id="themeIcon" class="w-5 h-5 text-gray-700 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
-                </path>
-            </svg>
-        </button>
-        <button id="langToggle" class="w-12 h-12 bg-white dark:bg-gray-800 shadow-lg rounded-full flex items-center justify-center hover:shadow-xl transition-all border border-gray-200 dark:border-gray-700 text-sm font-bold text-gray-700 dark:text-white" title="Toggle Language">
-            ID
-        </button>
-    `;
-    document.body.appendChild(themeToggleContainer);
-
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = document.getElementById('themeIcon');
-
-    // Cek preferensi sebelumnya
-    if (localStorage.getItem('cc-theme') === 'dark' || (!('cc-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-        themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
-    } else {
-        document.documentElement.classList.remove('dark');
-    }
-
-    themeToggle.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-        if (document.documentElement.classList.contains('dark')) {
-            localStorage.setItem('cc-theme', 'dark');
-            themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
-        } else {
-            localStorage.setItem('cc-theme', 'light');
-            themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
-        }
-    });
-
-
-    // --- 2. FITUR UBAH BAHASA (EN / ID) ---
-    let currentLang = 'en';
-    const langToggle = document.getElementById('langToggle');
-    const translatableElements = document.querySelectorAll('.translatable');
-
-    function updateLanguage() {
-        translatableElements.forEach(el => {
-            if (currentLang === 'en') {
-                el.innerHTML = el.getAttribute('data-en');
-            } else {
-                el.innerHTML = el.getAttribute('data-id');
-            }
-        });
-        langToggle.innerText = currentLang === 'en' ? 'ID' : 'EN';
-    }
-
-    langToggle.addEventListener('click', () => {
-        currentLang = currentLang === 'en' ? 'id' : 'en';
-        updateLanguage();
-        document.getElementById('resultBox').classList.add('hidden');
-    });
-
-
-    // --- 3. ANIMASI SCROLL (UI) ---
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = entry.target.classList.contains('scale-in') ? 'scale(1)' : 'translateY(0)';
-            }
-        });
-    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-
-    document.querySelectorAll('.slide-up, .scale-in, .fade-in').forEach(el => observer.observe(el));
-
-
-    // --- 4. LOGIKA KALKULATOR KALORI ---
-    const form = document.getElementById('calcForm');
-    const resultBox = document.getElementById('resultBox');
-    const btnReset = document.getElementById('btnReset');
-
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        const weight = parseFloat(document.getElementById('weight').value);
-        const duration = parseFloat(document.getElementById('duration').value);
-        const activitySelect = document.getElementById('activity');
-        const metValue = parseFloat(activitySelect.value);
-
-        const activityOption = activitySelect.options[activitySelect.selectedIndex];
-        const activityName = currentLang === 'en' ? activityOption.getAttribute('data-en') : activityOption.getAttribute('data-id');
-
-        const goalValue = document.getElementById('goal').value;
-
-        const burnedCalories = Math.round(((metValue * 3.5 * weight) / 200) * duration);
-        const waterNeeded = Math.round((duration / 30) * 250);
-
-        let recommendation = "";
-        if (currentLang === 'en') {
-            if (goalValue === 'lose') {
-                recommendation = `This creates a solid caloric deficit to help your weight loss journey! Pair this with a protein-rich meal to maintain muscle.`;
-            } else if (goalValue === 'bulk') {
-                recommendation = `Great cardio session! Since you are bulking, make sure to eat an extra <b>${burnedCalories + 300} kcal</b> today to stay in a caloric surplus for muscle growth.`;
-            } else {
-                recommendation = `Excellent work keeping your body active! Consistent activity like this is perfect for maintaining your healthy lifestyle.`;
-            }
-
-            document.getElementById('narrativeResult').innerHTML = `
-          You just burned approximately <span class="text-4xl font-bold block my-3 text-green-200">${burnedCalories} kcal</span> 
-          from <b>${duration} minutes</b> of ${activityName.toLowerCase()}. <br><br>
-          ${recommendation}
-        `;
-            document.getElementById('hydrationTip').innerText = `Recovery Tip: Drink ~${waterNeeded}ml of water to replenish lost fluids.`;
-        } else {
-            if (goalValue === 'lose') {
-                recommendation = `Aktivitas ini menciptakan defisit kalori yang bagus untuk program dietmu! Imbangi dengan makanan tinggi protein untuk menjaga massa otot.`;
-            } else if (goalValue === 'bulk') {
-                recommendation = `Kardio yang mantap! Karena kamu sedang bulking, pastikan kamu makan ekstra <b>${burnedCalories + 300} kkal</b> hari ini agar tetap surplus kalori untuk ototmu.`;
-            } else {
-                recommendation = `Kerja bagus! Aktivitas fisik yang konsisten seperti ini sangat sempurna untuk menjaga pola hidup sehat dan berat badan idealmu.`;
-            }
-
-            document.getElementById('narrativeResult').innerHTML = `
-          Kamu berhasil membakar sekitar <span class="text-4xl font-bold block my-3 text-green-200">${burnedCalories} kkal</span> 
-          dari <b>${duration} menit</b> melakukan ${activityName.toLowerCase()}. <br><br>
-          ${recommendation}
-        `;
-            document.getElementById('hydrationTip').innerText = `Tips Pemulihan: Minum sekitar ${waterNeeded}ml air putih untuk mengganti cairan tubuh.`;
-        }
-
-        resultBox.classList.remove('hidden');
-        resultBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-
-    // Fitur Tombol Reset
-    btnReset.addEventListener('click', () => {
-        form.reset();
-        resultBox.classList.add('hidden');
-    });
-
-    // Setel bahasa awal
-    updateLanguage();
-});
-</script>
-
-<?php require_once __DIR__ . '/../../layout/footer.php'; ?>
+</html>
