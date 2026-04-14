@@ -1,8 +1,7 @@
 <?php
 /**
  * Modul 4 — CalorieCare: Health & Calorie Calculator
- * 
- * Calorie calculator with dark mode, bilingual (EN/ID),
+ * * Calorie calculator with dark mode, bilingual (EN/ID),
  * and personalized health recommendations.
  * Combined from: proyek web-4.html, proyek web-4.css, proyek web-4.js
  */
@@ -18,7 +17,6 @@ $pageTitle = 'CalorieCare - Modul 4';
 ?>
 <?php require_once __DIR__ . '/../../layout/header.php'; ?>
 
-<!-- CalorieCare: Additional fonts & Tailwind dark mode config -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>
     // Extend Tailwind config for dark mode support
@@ -50,7 +48,6 @@ $pageTitle = 'CalorieCare - Modul 4';
     }
 </script>
 
-<!-- CalorieCare: Inline CSS -->
 <style>
     /* CalorieCare Styles */
     .cc-section {
@@ -147,19 +144,17 @@ $pageTitle = 'CalorieCare - Modul 4';
 
 <main class="cc-section">
 
-    <!-- Breadcrumb -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
-            <a href="<?= BASE_URL ?>/index.php" class="hover:text-cyan-600 transition-colors">Module Hub</a>
+        <nav class="flex items-center gap-2 text-sm text-gray-400 dark:text-gray-500 mb-6">
+            <a href="<?= BASE_URL ?>/index.php" class="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">Module Hub</a>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            <span class="text-gray-700 font-medium">CalorieCare</span>
+            <span class="text-gray-700 dark:text-gray-300 font-medium">CalorieCare</span>
         </nav>
     </div>
 
-    <!-- ===== HERO SECTION ===== -->
-    <section id="home" class="pt-8 pb-20 px-6 fade-in">
+    <section id="home" class="pt-8 pb-20 px-6 fade-in bg-white dark:bg-gray-900 transition-colors duration-300">
         <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
             <div class="slide-up">
                 <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-6 translatable"
@@ -188,12 +183,12 @@ $pageTitle = 'CalorieCare - Modul 4';
         </div>
     </section>
 
-    <!-- ===== WHY CHOOSE SECTION ===== -->
     <section class="py-20 px-6 bg-gray-50 dark:bg-gray-800 transition-colors duration-300">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16 fade-in">
                 <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4 translatable"
-                    data-en="Why Choose CalorieCare?" data-id="Mengapa Pilih CalorieCare?">Why Choose CalorieCare?</h2>
+                    data-en="Why Choose CalorieCare?"
+                    data-id="Mengapa Pilih CalorieCare?">Why Choose CalorieCare?</h2>
                 <p class="text-lg text-gray-600 dark:text-gray-400 translatable"
                     data-en="Everything you need to track and improve your health"
                     data-id="Segala yang Anda butuhkan untuk melacak dan meningkatkan kesehatan Anda">Everything you
@@ -262,7 +257,6 @@ $pageTitle = 'CalorieCare - Modul 4';
         </div>
     </section>
 
-    <!-- ===== CALCULATOR SECTION ===== -->
     <section id="calculator" class="py-20 px-6 bg-white dark:bg-gray-900 transition-colors duration-300">
         <div class="max-w-5xl mx-auto">
             <div class="text-center mb-12 fade-in">
@@ -283,7 +277,8 @@ $pageTitle = 'CalorieCare - Modul 4';
                         <div class="md:col-span-2">
                             <label
                                 class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 translatable"
-                                data-en="What is your primary goal?" data-id="Apa tujuan utama Anda?">What is your
+                                data-en="What is your primary goal?"
+                                data-id="Apa tujuan utama Anda?">What is your
                                 primary goal?</label>
                             <select id="goal"
                                 class="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/50 transition-all cursor-pointer hover-lift"
@@ -385,7 +380,6 @@ $pageTitle = 'CalorieCare - Modul 4';
         </div>
     </section>
 
-    <!-- ===== INSIGHTS SECTION ===== -->
     <section class="py-20 px-6 bg-gray-50 dark:bg-gray-800 transition-colors duration-300">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16 fade-in">
@@ -474,7 +468,6 @@ $pageTitle = 'CalorieCare - Modul 4';
         </div>
     </section>
 
-    <!-- ===== CALORIECARE FOOTER (inside main) ===== -->
     <section class="bg-gray-900 text-white py-12 px-6">
         <div class="max-w-7xl mx-auto text-center">
             <div class="flex items-center justify-center gap-2 mb-4">
@@ -500,7 +493,6 @@ $pageTitle = 'CalorieCare - Modul 4';
 
 </main>
 
-<!-- CalorieCare: Inline JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -544,7 +536,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-
     // --- 2. FITUR UBAH BAHASA (EN / ID) ---
     let currentLang = 'en';
     const langToggle = document.getElementById('langToggle');
@@ -567,7 +558,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('resultBox').classList.add('hidden');
     });
 
-
     // --- 3. ANIMASI SCROLL (UI) ---
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -579,7 +569,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
     document.querySelectorAll('.slide-up, .scale-in, .fade-in').forEach(el => observer.observe(el));
-
 
     // --- 4. LOGIKA KALKULATOR KALORI ---
     const form = document.getElementById('calcForm');
@@ -637,6 +626,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         resultBox.classList.remove('hidden');
         resultBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // =====> KODE FETCH DITARUH DI SINI <=====
+        fetch('simpan_riwayat.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tujuan: goalValue,
+                aktivitas: activityName,
+                durasi: duration,
+                kalori: burnedCalories
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                console.log("Mantap! Data berhasil masuk database.");
+            } else {
+                console.error("Gagal simpan:", data.pesan);
+            }
+        })
+        .catch(error => console.error('Error pengiriman:', error));
+        // =====> AKHIR KODE FETCH <=====
+
     });
 
     // Fitur Tombol Reset
