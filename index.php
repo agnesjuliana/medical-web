@@ -46,21 +46,51 @@ $modules = [
     <!-- Module Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
         <?php foreach ($modules as $id => $module): ?>
+        
+        <?php if (!empty($module['logo'])): ?>
+        <!-- ═══ SIMRS-TB Special Card with Vanta HALO ═══ -->
+        <a href="<?= BASE_URL ?>/modules/modul_<?= $id ?>/index.php" 
+           id="vanta-card-<?= $id ?>"
+           class="group relative rounded-2xl border border-purple-500/30 shadow-sm p-6 hover:shadow-xl hover:shadow-purple-500/15 hover:-translate-y-1 transition-all duration-300 block overflow-hidden"
+           style="min-height: 180px;">
+            
+            <!-- Vanta container (absolute, behind content) -->
+            <div id="vanta-bg-<?= $id ?>" class="absolute inset-0 z-0 rounded-2xl overflow-hidden"></div>
+            
+            <!-- Content overlay -->
+            <div class="relative z-10">
+                <!-- Logo -->
+                <div class="w-12 h-12 rounded-xl overflow-hidden shadow-lg shadow-purple-500/20 mb-4 group-hover:scale-110 transition-transform duration-300 border border-white/20">
+                    <img src="<?= BASE_URL ?>/modules/modul_<?= $id ?>/<?= $module['logo'] ?>" alt="<?= htmlspecialchars($module['name']) ?>" class="w-full h-full object-cover">
+                </div>
+
+                <!-- Label -->
+                <h3 class="text-base font-semibold text-white group-hover:text-purple-200 transition-colors">
+                    <?= htmlspecialchars($module['name']) ?>
+                </h3>
+                <p class="text-sm text-white/60 mt-1">Click to open module</p>
+
+                <!-- Arrow -->
+                <div class="mt-4 flex items-center text-sm text-white/50 group-hover:text-purple-300 transition-colors">
+                    <span class="font-medium">Open</span>
+                    <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </div>
+        </a>
+        
+        <?php else: ?>
+        <!-- ═══ Standard Module Card ═══ -->
         <a href="<?= BASE_URL ?>/modules/modul_<?= $id ?>/index.php" 
            class="group bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 block">
             
             <!-- Icon -->
-            <?php if (!empty($module['logo'])): ?>
-            <div class="w-12 h-12 rounded-xl overflow-hidden shadow-sm mb-4 group-hover:scale-110 transition-transform duration-300">
-                <img src="<?= BASE_URL ?>/modules/modul_<?= $id ?>/<?= $module['logo'] ?>" alt="<?= htmlspecialchars($module['name']) ?>" class="w-full h-full object-cover">
-            </div>
-            <?php else: ?>
             <div class="w-12 h-12 bg-gradient-to-br <?= $module['color'] ?> rounded-xl flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition-transform duration-300">
                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <?= $module['icon'] ?>
                 </svg>
             </div>
-            <?php endif; ?>
 
             <!-- Label -->
             <h3 class="text-base font-semibold text-gray-800 group-hover:text-cyan-600 transition-colors">
@@ -76,6 +106,8 @@ $modules = [
                 </svg>
             </div>
         </a>
+        <?php endif; ?>
+        
         <?php endforeach; ?>
     </div>
 
@@ -92,4 +124,26 @@ $modules = [
 
 </main>
 
+<!-- Vanta.js HALO for SIMRS-TB card -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.halo.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const vantaEl = document.getElementById('vanta-bg-9');
+    if (vantaEl) {
+        VANTA.HALO({
+            el: vantaEl,
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            baseColor: 0x8f0090,
+            size: 0.30
+        });
+    }
+});
+</script>
+
 <?php require_once __DIR__ . '/layout/footer.php'; ?>
+
