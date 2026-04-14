@@ -59,4 +59,6 @@ require_once __DIR__ . '/../../layout/navbar.php';
     ?>
 </main>
 
+
+*blalalallalal
 <?php require_once __DIR__ . '/../../layout/footer.php'; ?>
