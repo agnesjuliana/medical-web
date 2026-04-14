@@ -4,41 +4,28 @@
  */
 require_once __DIR__ . '/../../../config/database.php';
 
-// Dummy Data System (No DB Table Required)
+$db = getDBConnection();
 
-// Mock Pending Cases
-$pendingCases = [
-    [
-        'id' => 1,
-        'patient_name' => 'Budi Santoso',
-        'patient_email' => 'budi@example.com',
-        'created_at' => date('Y-m-d H:i:s', strtotime('-1 hours')),
-        'ml_papule_count' => 12,
-        'ml_pustule_count' => 5,
-        'ml_blackhead_count' => 15,
-        'status' => 'pending_doctor_review'
-    ],
-    [
-        'id' => 2,
-        'patient_name' => 'Siti Aminah',
-        'patient_email' => 'siti@example.com',
-        'created_at' => date('Y-m-d H:i:s', strtotime('-2 hours')),
-        'ml_papule_count' => 8,
-        'ml_pustule_count' => 3,
-        'ml_blackhead_count' => 10,
-        'status' => 'pending_doctor_review'
-    ]
-];
+// Fetch pending reviews
+$stmt = $db->query("
+    SELECT s.*, u.name as patient_name, u.email as patient_email 
+    FROM modul7_screenings s
+    JOIN users u ON s.patient_id = u.id
+    WHERE s.status = 'pending_doctor_review'
+    ORDER BY s.created_at ASC
+");
+$pendingCases = $stmt->fetchAll();
 
-// Mock Reviewed Cases
-$reviewedCases = [
-    [
-        'id' => 3,
-        'patient_name' => 'Andi Wijaya',
-        'created_at' => date('Y-m-d H:i:s', strtotime('-1 days')),
-        'status' => 'reviewed_by_doctor'
-    ]
-];
+// Fetch recently reviewed (for context)
+$stmt = $db->prepare("
+    SELECT s.*, u.name as patient_name 
+    FROM modul7_screenings s
+    JOIN users u ON s.patient_id = u.id
+    WHERE s.status = 'reviewed_by_doctor' AND s.doctor_id = :did
+    ORDER BY s.created_at DESC LIMIT 5
+");
+$stmt->execute(['did' => $user['id']]);
+$reviewedCases = $stmt->fetchAll();
 ?>
 
 <!-- Interface for Doctor -->
