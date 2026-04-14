@@ -1,7 +1,6 @@
 <?php
 /**
  * Modul 7 — Skrining Jerawat
- * Router based on User Role (Patient, Doctor, Admin)
  */
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../components/components.php';
@@ -10,16 +9,7 @@ requireLogin();
 startSession();
 
 $user = getCurrentUser();
-$role = $user['role'] ?? 'patient';
 $pageTitle = 'Modul 7 - Skrining Jerawat';
-
-// --- DEBUG ROLE SWITCHER (For Testing Only) ---
-if (isset($_GET['switch_role'])) {
-    $_SESSION['user_role'] = $_GET['switch_role'];
-    header("Location: " . BASE_URL . "/modules/modul_7/index.php");
-    exit;
-}
-// ----------------------------------------------
 
 require_once __DIR__ . '/../../layout/header.php';
 require_once __DIR__ . '/../../layout/navbar.php';
@@ -34,31 +24,10 @@ require_once __DIR__ . '/../../layout/navbar.php';
         </svg>
         <span class="text-gray-700 font-medium">Skrining Jerawat</span>
     </nav>
-    
-    <!-- DEBUG ROLE SWITCHER UI -->
-    <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl flex items-center justify-between">
-        <div class="text-sm text-yellow-800">
-            <strong>Mode Uji Coba:</strong> Peran simulasi Anda saat ini adalah <span class="uppercase font-bold"><?= htmlspecialchars($role) ?></span>.
-        </div>
-        <div class="flex gap-2">
-            <a href="?switch_role=patient" class="text-xs px-3 py-1.5 <?= $role=='patient' ? 'bg-cyan-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' ?> rounded-lg text-decoration-none shadow-sm transition">Pasien</a>
-            <a href="?switch_role=doctor" class="text-xs px-3 py-1.5 <?= $role=='doctor' ? 'bg-cyan-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' ?> rounded-lg text-decoration-none shadow-sm transition">Dokter</a>
-            <a href="?switch_role=admin" class="text-xs px-3 py-1.5 <?= $role=='admin' ? 'bg-cyan-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' ?> rounded-lg text-decoration-none shadow-sm transition">Admin</a>
-        </div>
-    </div>
 
     <?php
-    // Router Logic
-    if ($role === 'doctor') {
-        require_once __DIR__ . '/views/doctor_view.php';
-    } elseif ($role === 'admin') {
-        require_once __DIR__ . '/views/admin_view.php';
-    } else {
-        require_once __DIR__ . '/views/patient_view.php';
-    }
+    require_once __DIR__ . '/views/patient_view.php';
     ?>
 </main>
 
-
-*blalalallalal
 <?php require_once __DIR__ . '/../../layout/footer.php'; ?>
