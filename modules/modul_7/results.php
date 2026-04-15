@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['photo'])) {
         
         // Setelah simpan, redirect ke diri sendiri via GET untuk nampilin hasilnya
         $new_id = $db->lastInsertId();
-        header("Location: result.php?id=" . $new_id . "&notif=success");
+        header("Location: results.php?id=" . $new_id . "&notif=success");
         exit;
     }
 }

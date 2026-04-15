@@ -101,7 +101,7 @@ require_once __DIR__ . '/../../layout/navbar.php';
     function resetApp(newId = null) {
         if (newId) {
             // Jika ada ID baru, langsung ke halaman hasil detail
-            window.location.href = 'result.php?id=' + newId;
+            window.location.href = 'results.php?id=' + newId;
         } else {
             // Jika tidak ada ID (misal user klik cancel), balik ke dashboard
             window.location.href = 'index.php';

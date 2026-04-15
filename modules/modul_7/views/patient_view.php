@@ -581,35 +581,25 @@
         }, 800);
 
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append('photo', file);
 
         setTimeout(() => {
-            fetch('api/scan_and_triage.php', { method: 'POST', body: formData })
-                .then(async res => {
-                    const text = await res.text();
-                    try {
-                        return JSON.parse(text);
-                    } catch (e) {
-                        const match = text.match(/\{.*\}/);
-                        if (match) return JSON.parse(match[0]);
-                        throw new Error("Invalid format");
-                    }
-                })
-                .then(data => {
+            fetch('results.php', { method: 'POST', body: formData })
+                .then(response => {
                     clearInterval(interval);
                     overlay.style.display = 'none';
-                    if (data.success) {
-                        showResults(data.result);
+                    if (response.ok) {
+                        window.location.href = response.url; 
                     } else {
-                        alert('Gagal: ' + (data.message || 'Error API'));
-                        hardResetApp();
+                        alert("Gagal menyimpan data ke database.");
+                        window.location.reload();
                     }
                 })
                 .catch(err => {
                     clearInterval(interval);
                     overlay.style.display = 'none';
                     console.error(err);
-                    alert('Terjadi kesalahan memproses input (Cek DB / Session).');
+                    alert('Terjadi kesalahan koneksi.');
                     hardResetApp();
                 });
         }, 3000);
