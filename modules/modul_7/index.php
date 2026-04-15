@@ -19,23 +19,8 @@ require_once __DIR__ . '/../../layout/header.php';
 require_once __DIR__ . '/../../layout/navbar.php';
 ?>
 
-<!-- Custom font integration for premium look -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(15, 23, 42, 0.85);
-        backdrop-filter: blur(8px);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-    }
-
     .dashboard-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -52,7 +37,6 @@ require_once __DIR__ . '/../../layout/navbar.php';
 </style>
 
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style="font-family: 'Inter', sans-serif;">
-    <!-- Top Breadcrumb/Info -->
     <nav class="flex items-center justify-between mb-8">
         <div class="flex items-center gap-2 text-sm text-gray-500 font-medium">
             <a href="<?= BASE_URL ?>/index.php"
@@ -66,14 +50,18 @@ require_once __DIR__ . '/../../layout/navbar.php';
             </svg>
             <span class="text-cyan-600 font-bold">Dermalyze.AI Dashboard</span>
         </div>
-        <button
-            class="bg-cyan-50 text-cyan-700 px-6 py-2 rounded-full font-semibold border border-cyan-100 hover:bg-cyan-100 transition shadow-sm">Konsultasi
-            Ahli</button>
+
+        <a href="history.php"
+            class="bg-cyan-50 text-cyan-700 px-6 py-2 rounded-full font-semibold border border-cyan-100 hover:bg-cyan-100 transition shadow-sm inline-flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Riwayat Analisis
+        </a>
     </nav>
 
-    <!-- Two-Column Layout -->
     <div class="dashboard-grid">
-        <!-- LEFT COLUMN: Typography & Action -->
         <div style="display: flex; flex-direction: column; justify-content: center;">
             <h1
                 style="font-size: 4rem; font-weight: 800; color: #0f172a; line-height: 1.1; margin-bottom: 24px; letter-spacing: -0.02em;">
@@ -92,23 +80,8 @@ require_once __DIR__ . '/../../layout/navbar.php';
                     Mulai Analisis
                 </button>
             </div>
-
-            <div
-                style="margin-top: 80px; background: #ffffff; padding: 24px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); display:flex; align-items:center; gap:20px; border: 1px solid #f1f5f9;">
-                <div style="background: rgba(0, 210, 255, 0.1); padding: 16px; border-radius: 16px;">
-                    <svg width="32" height="32" fill="none" stroke="#3a7bd5" stroke-width="2">
-                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
-                </div>
-                <div>
-                    <div style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 4px;">Tingkat
-                        Akurasi 94.8%</div>
-                    <div style="font-size:0.95rem; color:#64748b; font-weight: 500;">Model CNN Arsitektur Khusus</div>
-                </div>
-            </div>
         </div>
 
-        <!-- RIGHT COLUMN: Beauty Portrait Image -->
         <div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 500px;">
             <div
                 style="width: 100%; height: 100%; border-radius: 32px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); position: relative;">
