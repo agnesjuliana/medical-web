@@ -5,14 +5,14 @@
  * Creates the required tables for Modul 7 if they don't exist.
  */
 
-require_once __DIR__ . '/../database.php';
+require_once __DIR__ . '/../config/database.php';
 
 try {
     $db = getModul7DBConnection();
 
     // Create screenings table
     $query = "
-        CREATE TABLE IF NOT EXISTS modul7_screenings (
+        CREATE TABLE IF NOT EXISTS screening_results (
             id INT AUTO_INCREMENT PRIMARY KEY,
             patient_id INT NOT NULL,
             image_path VARCHAR(255) NOT NULL,
@@ -28,7 +28,7 @@ try {
     ";
 
     $db->exec($query);
-    echo "Tabel modul7_screenings berhasil diciptakan/diverifikasi.";
+    echo "Tabel screening_results berhasil diciptakan/diverifikasi.";
 
 } catch (PDOException $e) {
     die("Error creating table: " . $e->getMessage());

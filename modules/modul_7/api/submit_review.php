@@ -4,7 +4,7 @@
  */
 
 require_once __DIR__ . '/../../../core/auth.php';
-require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../config/database.php';
 
 // Only accept POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -29,10 +29,10 @@ if (!$screening_id || empty($doctor_notes)) {
 }
 
 try {
-    $db = getDBConnection();
+    $db = getModul7DBConnection();
     
     $stmt = $db->prepare("
-        UPDATE modul7_screenings 
+        UPDATE screening_results 
         SET status = 'reviewed_by_doctor', 
             doctor_id = :did, 
             doctor_notes = :notes 

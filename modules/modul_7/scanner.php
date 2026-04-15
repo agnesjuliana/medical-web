@@ -4,7 +4,7 @@
  */
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../components/components.php';
-require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/config/database.php';
 
 requireLogin();
 startSession();
@@ -23,6 +23,7 @@ require_once __DIR__ . '/../../layout/navbar.php';
         background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
         font-family: 'Inter', sans-serif;
     }
+
     .scanner-wrapper {
         min-height: 80vh;
         display: flex;
@@ -31,6 +32,7 @@ require_once __DIR__ . '/../../layout/navbar.php';
         justify-content: center;
         padding: 40px 20px;
     }
+
     .welcome-text {
         color: #1e293b;
         font-size: 1.8rem;
@@ -38,6 +40,7 @@ require_once __DIR__ . '/../../layout/navbar.php';
         margin-bottom: 30px;
         text-align: center;
     }
+
     .welcome-text span {
         color: #3a7bd5;
         font-weight: 800;
@@ -54,10 +57,10 @@ require_once __DIR__ . '/../../layout/navbar.php';
 </div>
 
 <script>
-// Override the resetApp function so it redirects back to dashboard when done
-function resetApp() {
-    window.location.href = 'index.php';
-}
+    // Override the resetApp function so it redirects back to dashboard when done
+    function resetApp() {
+        window.location.href = 'index.php';
+    }
 </script>
 
 <?php require_once __DIR__ . '/../../layout/footer.php'; ?>

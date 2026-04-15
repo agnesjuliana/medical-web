@@ -7,7 +7,7 @@
  */
 
 require_once __DIR__ . '/../../../core/auth.php';
-require_once __DIR__ . '/../database.php';
+require_once __DIR__ . '/../config/database.php';
 
 // Only accept POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -75,13 +75,13 @@ if ($severity === 'Mild') {
 try {
     $db = getModul7DBConnection();
     
-    $checkTable = $db->query("SHOW TABLES LIKE 'modul7_screenings'");
+    $checkTable = $db->query("SHOW TABLES LIKE 'screening_results'");
     if ($checkTable->rowCount() == 0) {
         require_once __DIR__ . '/init.php';
     }
 
     $stmt = $db->prepare("
-        INSERT INTO modul7_screenings 
+        INSERT INTO screening_results 
         (patient_id, image_path, ml_severity_level, ml_papule_count, ml_pustule_count, ml_blackhead_count, status)
         VALUES (:pid, :img, :sev, :pap, :pus, :bla, :status)
     ");

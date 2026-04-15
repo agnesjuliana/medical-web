@@ -20,22 +20,26 @@ require_once __DIR__ . '/../../layout/navbar.php';
         background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
         font-family: 'Inter', sans-serif;
     }
+
     .profile-container {
         max-width: 500px;
         margin: 50px auto;
         background: #ffffff;
         border-radius: 32px;
         padding: 50px 40px;
-        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
         text-align: center;
         position: relative;
         overflow: hidden;
     }
-    
+
     .profile-container::before {
         content: '';
         position: absolute;
-        top: 0; left: 0; right: 0; height: 8px;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
         background: linear-gradient(135deg, #00d2ff, #3a7bd5);
     }
 
@@ -68,7 +72,8 @@ require_once __DIR__ . '/../../layout/navbar.php';
         font-family: 'Inter', sans-serif;
         color: #334155;
         transition: all 0.3s;
-        text-align: center; /* Mengikuti referensi gambar */
+        text-align: center;
+        /* Mengikuti referensi gambar */
     }
 
     .custom-input:focus {
@@ -77,7 +82,7 @@ require_once __DIR__ . '/../../layout/navbar.php';
         background: #ffffff;
         box-shadow: 0 0 0 4px rgba(58, 123, 213, 0.1);
     }
-    
+
     .custom-input::placeholder {
         color: #94a3b8;
     }
@@ -134,16 +139,19 @@ require_once __DIR__ . '/../../layout/navbar.php';
         margin-top: 25px;
         margin-bottom: 10px;
     }
+
     .terms-text {
         font-size: 0.85rem;
         color: #64748b;
         line-height: 1.5;
     }
+
     .terms-text a {
         color: #3a7bd5;
         font-weight: 600;
         text-decoration: none;
     }
+
     .custom-checkbox {
         width: 20px;
         height: 20px;
@@ -156,19 +164,21 @@ require_once __DIR__ . '/../../layout/navbar.php';
         flex-shrink: 0;
         margin-top: 2px;
     }
+
     .custom-checkbox:checked {
         background: #3a7bd5;
         border-color: #3a7bd5;
     }
+
     .custom-checkbox:checked::after {
         content: '✓';
         position: absolute;
         color: white;
         font-size: 14px;
-        top: 50%; left: 50%;
+        top: 50%;
+        left: 50%;
         transform: translate(-50%, -50%);
     }
-
 </style>
 
 <div class="profile-container">
@@ -179,7 +189,7 @@ require_once __DIR__ . '/../../layout/navbar.php';
         <div class="input-group">
             <input type="text" name="name" class="custom-input" placeholder="Name" required autofocus>
         </div>
-        
+
         <div class="input-group">
             <input type="email" name="email" class="custom-input" placeholder="Email" required>
         </div>
@@ -187,7 +197,8 @@ require_once __DIR__ . '/../../layout/navbar.php';
         <div class="terms-box">
             <input type="checkbox" id="terms" name="terms" class="custom-checkbox" required>
             <label for="terms" class="terms-text">
-                I have read and agree to Dermalyze.AI's Terms of Use and consent to the processing of my personal data in accordance with <a href="#">[Privacy Policy]</a>.
+                I have read and agree to Dermalyze.AI's Terms of Use and consent to the processing of my personal data
+                in accordance with <a href="#">[Privacy Policy]</a>.
             </label>
         </div>
 

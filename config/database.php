@@ -37,13 +37,13 @@ function getDBConnection(): PDO
             // Connect to MySQL server first without selecting DB
             $temp_dsn = "mysql:host=" . DB_HOST . ";charset=" . DB_CHARSET;
             $pdo = new PDO($temp_dsn, DB_USER, DB_PASS, $options);
-            
+
             // Create database if it doesn't exist
             $pdo->exec("CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "`");
-            
+
             // Select the database and re-connect with the proper DSN
             $pdo->exec("USE `" . DB_NAME . "`");
-            
+
         } catch (PDOException $e) {
             error_log("Database connection failed: " . $e->getMessage());
             die("Database connection failed. Please check your configuration (Pastikan Apache & MySQL menyala di XAMPP). Detail: " . $e->getMessage());

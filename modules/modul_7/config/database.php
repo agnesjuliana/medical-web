@@ -4,7 +4,8 @@
  * Menangani koneksi ke database spesifik: dermalyzeai
  */
 
-function getModul7DBConnection(): PDO {
+function getModul7DBConnection(): PDO
+{
     static $pdo = null;
 
     if ($pdo === null) {
@@ -24,7 +25,7 @@ function getModul7DBConnection(): PDO {
             // Check Server Connection
             $temp_dsn = "mysql:host=$db_host;charset=$db_charset";
             $pdo = new PDO($temp_dsn, $db_user, $db_pass, $options);
-            
+
             // Auto Create DB if missing
             $pdo->exec("CREATE DATABASE IF NOT EXISTS `$db_name`");
             $pdo->exec("USE `$db_name`");
@@ -37,15 +38,17 @@ function getModul7DBConnection(): PDO {
     return $pdo;
 }
 
-function getPatientScreeningsHistory($patient_id) {
+function getPatientScreeningsHistory($patient_id)
+{
     try {
         $db = getModul7DBConnection();
-        
-        $check = $db->query("SHOW TABLES LIKE 'modul7_screenings'");
-        if($check->rowCount() == 0) return [];
+
+        $check = $db->query("SHOW TABLES LIKE 'screening_results'");
+        if ($check->rowCount() == 0)
+            return [];
 
         $stmt = $db->prepare("
-            SELECT * FROM modul7_screenings 
+            SELECT * FROM screening_results 
             WHERE patient_id = :pid 
             ORDER BY created_at DESC
         ");

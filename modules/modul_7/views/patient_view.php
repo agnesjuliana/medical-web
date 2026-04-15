@@ -44,7 +44,9 @@
     }
 
     @keyframes rotateBg {
-        100% { transform: rotate(360deg); }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 
     .derm-header {
@@ -78,7 +80,7 @@
         position: relative;
         z-index: 10;
     }
-    
+
     .mode-tab {
         padding: 12px 30px;
         border-radius: 30px;
@@ -89,12 +91,12 @@
         border: 2px solid transparent;
         transition: all 0.3s;
     }
-    
+
     .mode-tab.active {
         background: #eff6ff;
         color: var(--derm-secondary);
         border-color: var(--derm-secondary);
-        box-shadow: 0 10px 20px rgba(58,123,213,0.15);
+        box-shadow: 0 10px 20px rgba(58, 123, 213, 0.15);
     }
 
     /* Upload Area */
@@ -122,7 +124,7 @@
         color: var(--derm-secondary);
         margin-bottom: 15px;
     }
-    
+
     .upload-area h3 {
         color: #1e293b;
         margin-bottom: 10px;
@@ -130,14 +132,15 @@
 
     /* Camera Area */
     .camera-area {
-        display: none; /* hidden by default */
+        display: none;
+        /* hidden by default */
         position: relative;
         z-index: 10;
         background: #0f172a;
         border-radius: 24px;
         overflow: hidden;
         text-align: center;
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
         padding-bottom: 20px;
     }
 
@@ -146,7 +149,8 @@
         max-height: 400px;
         object-fit: cover;
         background: #000;
-        transform: scaleX(-1); /* mirror effect */
+        transform: scaleX(-1);
+        /* mirror effect */
     }
 
     .capture-btn {
@@ -169,7 +173,7 @@
     .capture-btn:hover {
         transform: scale(1.05);
     }
-    
+
     .cam-error {
         color: #ef4444;
         padding: 30px;
@@ -183,7 +187,10 @@
     .scanner-overlay {
         display: none;
         position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         background: rgba(255, 255, 255, 0.85);
         z-index: 30;
         border-radius: 20px;
@@ -204,9 +211,19 @@
     }
 
     @keyframes scanAnim {
-        0% { transform: translateY(-60px); opacity: 0.3; }
-        50% { opacity: 1; }
-        100% { transform: translateY(60px); opacity: 0.3; }
+        0% {
+            transform: translateY(-60px);
+            opacity: 0.3;
+        }
+
+        50% {
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateY(60px);
+            opacity: 0.3;
+        }
     }
 
     .scan-text {
@@ -218,8 +235,15 @@
     }
 
     @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.6; }
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.6;
+        }
     }
 
     /* Results Dashboard */
@@ -232,8 +256,15 @@
     }
 
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .derm-glass-card {
@@ -241,7 +272,7 @@
         border: 1px solid var(--derm-glass-border);
         border-radius: 20px;
         padding: 24px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
         margin-bottom: 24px;
     }
 
@@ -255,9 +286,20 @@
         font-size: 0.85rem;
     }
 
-    .severity-Mild { background: #ecfdf5; color: #10b981; }
-    .severity-Moderate { background: #fffbeb; color: #f59e0b; }
-    .severity-Severe { background: #fef2f2; color: #ef4444; }
+    .severity-Mild {
+        background: #ecfdf5;
+        color: #10b981;
+    }
+
+    .severity-Moderate {
+        background: #fffbeb;
+        color: #f59e0b;
+    }
+
+    .severity-Severe {
+        background: #fef2f2;
+        color: #ef4444;
+    }
 
     .stats-grid {
         display: grid;
@@ -334,7 +376,12 @@
         <!-- Upload Section -->
         <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
             <div class="upload-icon">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
             </div>
             <h3>Pilih Foto Wajah</h3>
             <p style="color: #64748b;">Klik panel ini untuk memilih foto dari perangkat Anda.</p>
@@ -346,11 +393,16 @@
             <video id="webcamVideo" autoplay playsinline></video>
             <canvas id="cameraCanvas" style="display:none;"></canvas>
             <button class="capture-btn" onclick="capturePhoto()">
-                <svg style="display:inline-block; vertical-align:middle; margin-right:5px; margin-bottom:3px;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
-                AMBIL FOTO 
+                <svg style="display:inline-block; vertical-align:middle; margin-right:5px; margin-bottom:3px;"
+                    width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                AMBIL FOTO
             </button>
             <div id="camErrorMsg" class="cam-error">
-                <strong>Kamera tidak dapat diakses!</strong> Pastikan Anda telah memberikan izin (Allow) keamanan di browser ini.
+                <strong>Kamera tidak dapat diakses!</strong> Pastikan Anda telah memberikan izin (Allow) keamanan di
+                browser ini.
             </div>
         </div>
 
@@ -374,7 +426,9 @@
         </div>
 
         <div class="derm-glass-card">
-            <h3 style="font-size: 1.2rem; margin-bottom: 15px; border-bottom: 1px solid var(--derm-glass-border); padding-bottom: 10px; color: #1e293b;">Deteksi Lesi</h3>
+            <h3
+                style="font-size: 1.2rem; margin-bottom: 15px; border-bottom: 1px solid var(--derm-glass-border); padding-bottom: 10px; color: #1e293b;">
+                Deteksi Lesi</h3>
             <div class="stats-grid">
                 <div class="stat-box">
                     <div class="stat-value" id="resPapule">0</div>
@@ -392,18 +446,25 @@
         </div>
 
         <div class="derm-glass-card" style="background: rgba(0, 210, 255, 0.03); border-color: rgba(0, 210, 255, 0.1);">
-            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; color: var(--derm-secondary); display: flex; align-items: center; gap: 8px;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <h3
+                style="font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; color: var(--derm-secondary); display: flex; align-items: center; gap: 8px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
                 Rekomendasi Bahan Aktif
             </h3>
-            
+
             <div id="resIngredients" style="margin-bottom: 20px;"></div>
-            
+
             <p id="resAdvice" style="color: #475569; line-height: 1.7; margin-bottom: 20px; font-size: 1.05rem;"></p>
-            
-            <div style="background: #eff6ff; padding: 20px; border-radius: 12px; border-left: 5px solid var(--derm-secondary);">
-                <strong style="color: #3a7bd5; font-size: 0.9rem; text-transform: uppercase; font-weight: 800;">SARAN RESEP:</strong>
-                <p id="resPrescription" style="margin-top: 8px; color: #0f172a; font-weight: 500; line-height: 1.5;"></p>
+
+            <div
+                style="background: #eff6ff; padding: 20px; border-radius: 12px; border-left: 5px solid var(--derm-secondary);">
+                <strong style="color: #3a7bd5; font-size: 0.9rem; text-transform: uppercase; font-weight: 800;">SARAN
+                    RESEP:</strong>
+                <p id="resPrescription" style="margin-top: 8px; color: #0f172a; font-weight: 500; line-height: 1.5;">
+                </p>
             </div>
         </div>
 
@@ -417,12 +478,12 @@
     function switchMode(mode) {
         document.getElementById('modeTabs').children[0].className = (mode === 'upload') ? 'mode-tab active' : 'mode-tab';
         document.getElementById('modeTabs').children[1].className = (mode === 'camera') ? 'mode-tab active' : 'mode-tab';
-        
+
         const uploadArea = document.getElementById('uploadArea');
         const cameraArea = document.getElementById('cameraArea');
         const errorMsg = document.getElementById('camErrorMsg');
 
-        if(mode === 'upload') {
+        if (mode === 'upload') {
             cameraArea.style.display = 'none';
             uploadArea.style.display = 'block';
             stopCamera();
@@ -452,7 +513,7 @@
     }
 
     function stopCamera() {
-        if(currentStream) {
+        if (currentStream) {
             currentStream.getTracks().forEach(track => track.stop());
             currentStream = null;
         }
@@ -460,17 +521,17 @@
 
     function handleFileUpload() {
         const fileInput = document.getElementById('fileInput');
-        if(!fileInput.files || fileInput.files.length === 0) return;
-        
+        if (!fileInput.files || fileInput.files.length === 0) return;
+
         const file = fileInput.files[0];
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             // Visual feedback
             const uploadIcon = document.querySelector('.upload-icon');
             document.querySelector('#uploadArea h3').style.display = 'none';
             document.querySelector('#uploadArea p').style.display = 'none';
             uploadIcon.innerHTML = `<img src="${e.target.result}" style="max-width: 100%; max-height: 250px; border-radius: 12px; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">`;
-            
+
             triggerScanProcess(file);
         }
         reader.readAsDataURL(file);
@@ -479,7 +540,7 @@
     function capturePhoto() {
         const video = document.getElementById('webcamVideo');
         const canvas = document.getElementById('cameraCanvas');
-        
+
         if (!currentStream) return alert("Kamera mati atau tidak diizinkan.");
 
         // Visual flash effect
@@ -503,17 +564,17 @@
 
     function triggerScanProcess(file) {
         document.getElementById('modeTabs').style.display = 'none';
-        
+
         const overlay = document.getElementById('scannerOverlay');
         const scanText = document.getElementById('scanText');
         overlay.style.display = 'flex';
         overlay.style.borderRadius = "24px";
-        
+
         let steps = ['Menganalisis tekstur kulit...', 'Mendeteksi inflamasi...', 'Mengkalkulasi tingkat keparahan...'];
         let currentStep = 0;
-        
+
         const interval = setInterval(() => {
-            if(currentStep < steps.length) {
+            if (currentStep < steps.length) {
                 scanText.innerText = steps[currentStep];
                 currentStep++;
             }
@@ -524,39 +585,39 @@
 
         setTimeout(() => {
             fetch('api/scan_and_triage.php', { method: 'POST', body: formData })
-            .then(async res => {
-                const text = await res.text();
-                try {
-                    return JSON.parse(text);
-                } catch(e) {
-                    const match = text.match(/\{.*\}/);
-                    if(match) return JSON.parse(match[0]);
-                    throw new Error("Invalid format");
-                }
-            })
-            .then(data => {
-                clearInterval(interval);
-                overlay.style.display = 'none';
-                if(data.success) {
-                    showResults(data.result);
-                } else {
-                    alert('Gagal: ' + (data.message || 'Error API'));
+                .then(async res => {
+                    const text = await res.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        const match = text.match(/\{.*\}/);
+                        if (match) return JSON.parse(match[0]);
+                        throw new Error("Invalid format");
+                    }
+                })
+                .then(data => {
+                    clearInterval(interval);
+                    overlay.style.display = 'none';
+                    if (data.success) {
+                        showResults(data.result);
+                    } else {
+                        alert('Gagal: ' + (data.message || 'Error API'));
+                        hardResetApp();
+                    }
+                })
+                .catch(err => {
+                    clearInterval(interval);
+                    overlay.style.display = 'none';
+                    console.error(err);
+                    alert('Terjadi kesalahan memproses input (Cek DB / Session).');
                     hardResetApp();
-                }
-            })
-            .catch(err => {
-                clearInterval(interval);
-                overlay.style.display = 'none';
-                console.error(err);
-                alert('Terjadi kesalahan memproses input (Cek DB / Session).');
-                hardResetApp();
-            });
+                });
         }, 3000);
     }
 
     function showResults(result) {
         document.getElementById('interfaceWrapper').style.display = 'none';
-        
+
         const severityEl = document.getElementById('resSeverity');
         severityEl.className = 'severity-badge severity-' + result.severity;
         severityEl.innerText = result.severity;
@@ -585,7 +646,7 @@
         // Stop any feed if lingering
         stopCamera();
         // Uses the redirect reset function from scanner.php outer file usually
-        if(typeof resetApp === 'function') resetApp();
+        if (typeof resetApp === 'function') resetApp();
         else window.location.reload();
     }
 </script>
