@@ -9,6 +9,7 @@
 
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../components/components.php';
+require_once __DIR__ . '/../../config/database.php';
 
 requireLogin();
 startSession();
@@ -19,33 +20,41 @@ $pageTitle = 'Modul 5';
 <?php require_once __DIR__ . '/../../layout/header.php'; ?>
 <?php require_once __DIR__ . '/../../layout/navbar.php'; ?>
 
+<?php
+
+try {
+    $pdo = getAppDBConnection();
+
+    $stmt = $pdo->query("
+        SELECT id, problem, title, methodology, skills, result, impact, documentation
+        FROM projects
+        ORDER BY id DESC
+    ");
+    $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Konversi methodology dan skills menjadi array
+    foreach ($projects as &$project) {
+        $project['methodology'] = !empty($project['methodology'])
+            ? array_map('trim', preg_split('/[\n,→]+/', $project['methodology']))
+            : [];
+
+        $project['skills'] = !empty($project['skills'])
+            ? array_map('trim', preg_split('/[\n,•]+/', $project['skills']))
+            : [];
+
+        // Nilai default jika kolom tidak tersedia
+        $project['icon'] = "🔬";
+        $project['title'] = $project['title'] ?? 'Untitled Project';
+        $project['question'] = $project['question'] ?? $project['problem'];
+    }
+    unset($project);
+} catch (Exception $e) {
+    die("Koneksi database gagal: " . $e->getMessage());
+}
+?>
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
-        <a href="<?= BASE_URL ?>/index.php" class="hover:text-cyan-600 transition-colors">Module Hub</a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-        <span class="text-gray-700 font-medium">Modul 5</span>
-    </nav>
 
-    <!-- Module Header -->
-    <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-800">Modul 5</h1>
-        <p class="text-gray-500 mt-1">This module is ready for development.</p>
-    </div>
-
-    <!-- Empty State -->
-    <?= component_empty_state(
-        'No content yet',
-        'This module is a blank canvas. Start building your features here.',
-        component_button('Back to Module Hub', [
-            'variant' => 'outline',
-            'href' => BASE_URL . '/index.php',
-            'icon' => '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>'
-        ])
-    ) ?>
 
 </main>
 
