@@ -9,7 +9,7 @@ require_once __DIR__ . '/config/database.php';
 requireLogin();
 startSession();
 
-// Tangkap nama dari login (dummy/contoh)
+// Tangkap nama dari login
 $userName = $_GET['name'] ?? getCurrentUser()['name'] ?? 'Pasien';
 
 $pageTitle = 'Scanner Dermalyze.AI';
@@ -41,9 +41,39 @@ require_once __DIR__ . '/../../layout/navbar.php';
         text-align: center;
     }
 
+    /* Polish: Gradient Text for Name */
     .welcome-text span {
-        color: #3a7bd5;
+        background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         font-weight: 800;
+    }
+
+    .history-link-wrapper {
+        margin-bottom: 40px;
+    }
+
+    .history-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #6b7280;
+        font-weight: 500;
+        font-size: 0.95rem;
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(8px);
+        padding: 10px 24px;
+        border-radius: 9999px;
+        border: 1px solid #e5e7eb;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .history-link:hover {
+        color: #0891b2;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-color: #cffafe;
+        transform: translateY(-2px);
     }
 </style>
 
@@ -51,16 +81,34 @@ require_once __DIR__ . '/../../layout/navbar.php';
     <div class="welcome-text">
         Halo, <span><?= htmlspecialchars($userName) ?></span>. Siap untuk menganalisis wajah Anda?
     </div>
+
+    <div class="history-link-wrapper">
+        <a href="history.php" class="history-link">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            Lihat riwayat scan sebelumnya
+        </a>
+    </div>
+
     <div style="width: 100%; max-width: 1000px;">
         <?php require_once __DIR__ . '/views/patient_view.php'; ?>
     </div>
 </div>
 
 <script>
-    // Override the resetApp function so it redirects back to dashboard when done
-    function resetApp() {
-        window.location.href = 'index.php';
+   
+    function resetApp(newId = null) {
+        if (newId) {
+            // Jika ada ID baru, langsung ke halaman hasil detail
+            window.location.href = 'result.php?id=' + newId;
+        } else {
+            // Jika tidak ada ID (misal user klik cancel), balik ke dashboard
+            window.location.href = 'index.php';
+        }
     }
+
+
 </script>
 
 <?php require_once __DIR__ . '/../../layout/footer.php'; ?>
