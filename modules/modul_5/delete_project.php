@@ -6,27 +6,41 @@ header('Content-Type: application/json');
 $data = json_decode(file_get_contents("php://input"), true);
 $id = $data['id'] ?? 0;
 
-$pdo = getAppDBConnection();
-
 try {
-    // Ambil semua file dulu
-    $stmt = $pdo->prepare("SELECT file_path FROM project_files WHERE project_id = ?");
-    $stmt->execute([$id]);
-    $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $pdo = getAppDBConnection();
 
-    // Hapus file dari folder
-    foreach ($files as $file) {
-        $path = __DIR__ . '/' . $file['file_path'];
-        if (file_exists($path)) {
-            unlink($path);
+    if (!$id) {
+        throw new Exception("ID project tidak valid");
+    }
+
+    // ambil gambar
+    $stmt = $pdo->prepare("SELECT documentation FROM projects WHERE id = ?");
+    $stmt->execute([$id]);
+    $doc = $stmt->fetchColumn();
+
+    if ($doc) {
+        $images = json_decode($doc, true);
+
+        if (is_array($images)) {
+            foreach ($images as $img) {
+                $path = __DIR__ . '/../../' . $img;
+
+                if (file_exists($path)) {
+                    unlink($path);
+                }
+            }
         }
     }
 
-    // Hapus dari DB
-    $pdo->prepare("DELETE FROM project_files WHERE project_id = ?")->execute([$id]);
+    // hapus project
     $pdo->prepare("DELETE FROM projects WHERE id = ?")->execute([$id]);
 
     echo json_encode(['success' => true]);
+
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
 }

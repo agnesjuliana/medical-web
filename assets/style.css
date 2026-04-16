@@ -114,11 +114,6 @@ em { font-family: 'Lora', Georgia, serif; font-style: italic; }
 }
 
 
-.docs-grid img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
 
 .doc-item {
   width: 100%;
@@ -291,42 +286,26 @@ em { font-family: 'Lora', Georgia, serif; font-style: italic; }
 }
 
 /* Upload circle button */
+
+
+
 .btn-upload-circle {
-  position: relative;
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
   background: var(--blue-dark);
+
+  color: var(--white);
   border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: var(--shadow);
-}
-.btn-upload-circle:hover { transform: scale(1.08); box-shadow: var(--shadow-hover); }
-.upload-icon { font-size: 1.6rem; }
-.upload-ring-text {
-  position: absolute;
-  width: 130px;
-  height: 130px;
-  top: -21px; left: -21px;
-  font-size: 0.58rem;
-  letter-spacing: 0.18em;
-  color: var(--blue-dark);
-  font-weight: 600;
-  animation: spin 18s linear infinite;
-  /* Pure CSS circular text approximation */
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  pointer-events: none;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  padding-top: 4px;
-  /* We'll use SVG text via pseudo-element */
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow);
+  transition: background 0.2s, transform 0.15s;
 }
+.btn-upload-circle:hover { background: #122650; transform: scale(1.07); }
+
+.upload-icon { font-size: 1.1rem; }
 
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
@@ -686,25 +665,22 @@ em { font-family: 'Lora', Georgia, serif; font-style: italic; }
 }
 .btn-upload-submit { padding: 0.85rem 3.5rem; font-size: 1rem; letter-spacing: 0.15em; }
 
-.doc-item {
-  width: 100%;
-  height: 140px;
-  overflow: hidden;
-  border-radius: 12px;
-}
-
-.doc-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
 
 .img-preview-item-wrapper {
   position: relative;
   width: 90px;
   height: 90px;
 }
-
+.projects-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+}
+.projects-actions .btn-home {
+  align-self: center;
+  flex-shrink: 0;
+}
 .img-delete-btn {
   position: absolute;
   top: -6px;
@@ -778,4 +754,35 @@ em { font-family: 'Lora', Georgia, serif; font-style: italic; }
 @media (max-width: 500px) {
   .projects-grid { grid-template-columns: 1fr; }
   .docs-grid { grid-template-columns: 1fr; }
+}
+
+.projects-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+
+
+/* BARU */
+.btn-upload-wrapper {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.upload-ring-svg {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  width: 90px;   /* boleh lebih besar dari button */
+  height: 90px;
+  transform: translate(-50%, -50%);
+  animation: spin 18s linear infinite;
+  pointer-events: none;
 }

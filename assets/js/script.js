@@ -82,7 +82,7 @@ images.forEach(img => {
       div.className = 'img-preview-item-wrapper';
 
       div.innerHTML = `
-        <img src="./${img}" class="img-preview-item">
+        <img src="/medical-web/${img}" class="img-preview-item">
         <button class="img-delete-btn" onclick="deleteImage('${img}', this)">✖</button>
       `;
 
@@ -106,19 +106,30 @@ function renderProjects() {
 
     let firstImage = null;
 
-    if (p.documentation) {
-      try {
-        const imgs = JSON.parse(p.documentation);
-        firstImage = imgs[0];
-      } catch {
-        firstImage = p.documentation.split(',')[0];
-      }
+if (p.documentation) {
+  let imgs = [];
+
+  if (typeof p.documentation === 'string') {
+    try {
+      imgs = JSON.parse(p.documentation);
+    } catch {
+      imgs = [p.documentation];
     }
+  } else if (Array.isArray(p.documentation)) {
+    imgs = p.documentation;
+  }
+
+  if (imgs.length > 0) {
+    firstImage = imgs[0];
+    firstImage = firstImage.replace('modules/modul_5/', '');
+
+  }
+}
 
     card.innerHTML = `
       <div class="card-img">
         ${firstImage 
-          ? `<img src="./${firstImage}" class="card-img-photo">`
+  ? `<img src="/medical-web/${firstImage}" class="card-img-photo">`
           : `<span class="card-img-icon">${p.icon}</span>`}
       </div>
       <div class="card-body">
@@ -266,35 +277,36 @@ function handleUpload() {
   formData.append('id', currentProjectId);
   formData.append('editMode', editMode);
 
-  const imageInput = document.getElementById('img-upload');
-  Array.from(imageInput.files).forEach(file => {
-    formData.append('images[]', file);
-  });
+  const input = document.getElementById('img-upload');
+
+// ❌ HAPUS VALIDASI INI
+
+// ✅ tetap kirim kalau ada file
+if (input.files.length > 0) {
+  for (let i = 0; i < input.files.length; i++) {
+    formData.append('images[]', input.files[i]);
+  }
+  }
 
   fetch('/medical-web/modules/modul_5/upload_project.php', {
-    method: 'POST',
-    body: formData
-  })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-  showToast('Project berhasil disimpan!', 'success');
+  method: 'POST',
+  body: formData
+})
+.then(res => res.json())
+.then(data => {
+  if (data.success) {
+    showToast('Project berhasil disimpan!', 'success');
 
-  const id = data.projectId;
-
-  setTimeout(() => {
-    currentProjectId = id;
-
-    // reload data dulu (opsional tapi bagus)
-    localStorage.setItem('openProjectAfterReload', id);
-    location.reload();
-  }, 800);
-}
-    })
-    .catch(error => {
-      console.error(error);
-      showToast('Upload failed.', 'warn');
-    });
+    setTimeout(() => {
+  localStorage.setItem('openProjectAfterReload', data.projectId);
+  location.reload();
+}, 800);
+  }
+})
+.catch(error => {
+  console.error(error);
+  showToast('Upload failed.', 'warn');
+});
 }
 
 // ─── INIT ─────────────────────────────────────
@@ -331,6 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.head.appendChild(style);
   }
   const openId = localStorage.getItem('openProjectAfterReload');
+const goToProjects = localStorage.getItem('goToProjects');
 
 if (openId) {
   localStorage.removeItem('openProjectAfterReload');
@@ -338,8 +351,13 @@ if (openId) {
   setTimeout(() => {
     openDetail(openId);
   }, 300);
+
+} else if (goToProjects) {
+  localStorage.removeItem('goToProjects');
+  showSection('projects');
 }
-});
+}
+);
 
 function handleImageUpload(input) {
   const preview = document.getElementById('img-preview-row');
@@ -395,7 +413,7 @@ function removeFileFromInput(fileToRemove) {
 function deleteProject() {
   if (!confirm("Yakin mau hapus project ini?")) return;
 
-  fetch('/medical-web/modules/modul_5/delete_image.php', {
+  fetch('/medical-web/modules/modul_5/delete_project.php', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -405,20 +423,19 @@ function deleteProject() {
     })
   })
   .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      showToast('Project berhasil dihapus', 'success');
+.then(data => {
+  console.log("DELETE RESPONSE:", data); // 🔥 TAMBAH INI
 
-      // balik ke halaman project
-      setTimeout(() => {
-        location.reload();
-      }, 1000);
-    } else {
-      showToast('Gagal hapus project', 'warn');
-    }
-  })
-  .catch(err => {
-    console.error(err);
-    showToast('Error delete project', 'warn');
-  });
+  if (data.success) {
+    showToast('Project berhasil dihapus', 'success');
+
+    setTimeout(() => {
+  localStorage.setItem('goToProjects', 'true');
+  location.reload();
+}, 1000);
+  } else {
+    alert("ERROR: " + data.message); // 🔥 TAMBAH INI
+    showToast('Gagal hapus project', 'warn');
+  }
+})
 }

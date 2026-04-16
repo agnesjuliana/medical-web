@@ -64,35 +64,62 @@ try {
     // ======================
     // UPLOAD IMAGES (SIMPLE)
     // ======================
-    $uploadDir = __DIR__ . '/uploads/';
+    $uploadDir = '../../uploads/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0777, true);
     }
 
-    $images = [];
+    
+    // ======================
+// AMBIL GAMBAR LAMA
+// ======================
+$stmt = $pdo->prepare("SELECT documentation FROM projects WHERE id = ?");
+$stmt->execute([$projectId]);
+$oldData = $stmt->fetchColumn();
 
-    if (!empty($_FILES['images']['name'][0])) {
+$oldImages = [];
 
-        foreach ($_FILES['images']['tmp_name'] as $i => $tmpName) {
-
-            $fileName = time() . '_' . basename($_FILES['images']['name'][$i]);
-            $filePath = $uploadDir . $fileName;
-
-            if (move_uploaded_file($tmpName, $filePath)) {
-                $images[] = $fileName;
-            }
-        }
-
-        // simpan semua gambar ke DB (JSON)
-        $pdo->prepare("
-            UPDATE projects 
-            SET documentation = ?
-            WHERE id = ?
-        ")->execute([
-            json_encode($images),
-            $projectId
-        ]);
+if ($oldData) {
+    $decoded = json_decode($oldData, true);
+    if (is_array($decoded)) {
+        $oldImages = $decoded;
     }
+}
+
+// ======================
+// UPLOAD GAMBAR BARU
+// ======================
+$newImages = [];
+
+if (!empty($_FILES['images']['name'][0])) {
+
+    foreach ($_FILES['images']['tmp_name'] as $i => $tmpName) {
+
+        $fileName = time() . '_' . str_replace(' ', '_', basename($_FILES['images']['name'][$i]));
+        $filePath = $uploadDir . $fileName;
+
+        if (move_uploaded_file($tmpName, $filePath)) {
+            $newImages[] = 'uploads/' . $fileName;
+        }
+    }
+}
+
+// ======================
+// GABUNG LAMA + BARU
+// ======================
+if (!empty($newImages)) {
+    $allImages = array_merge($oldImages, $newImages);
+
+    $pdo->prepare("
+        UPDATE projects 
+        SET documentation = ?
+        WHERE id = ?
+    ")->execute([
+        json_encode($allImages),
+        $projectId
+    ]);
+}
+
 
     echo json_encode([
         'success' => true,

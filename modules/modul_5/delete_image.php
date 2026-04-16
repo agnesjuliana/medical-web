@@ -13,52 +13,50 @@ try {
         throw new Exception("Path kosong");
     }
 
-    // Ambil project_id dari gambar yang dihapus
-$stmt = $pdo->prepare("SELECT project_id FROM project_files WHERE file_path = ?");
-$stmt->execute([$imagePath]);
-$project = $stmt->fetch(PDO::FETCH_ASSOC);
+    // ======================
+    // AMBIL SEMUA PROJECT
+    // ======================
+    $stmt = $pdo->query("SELECT id, documentation FROM projects");
 
-$projectId = $project['project_id'] ?? null;
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-// Hapus dari database
-$pdo->prepare("DELETE FROM project_files WHERE file_path = ?")->execute([$imagePath]);
+        $images = json_decode($row['documentation'], true);
 
-// Hapus file dari folder
-$fullPath = __DIR__ . '/' . $imagePath;
-if (file_exists($fullPath)) {
-    unlink($fullPath);
-}
+        if (!is_array($images)) continue;
 
-// 🔥 AMBIL GAMBAR PERTAMA YANG MASIH ADA
-$stmt = $pdo->prepare("
-    SELECT id, file_path FROM project_files
-    WHERE project_id = ?
-    ORDER BY id ASC
-    LIMIT 1
-");
-$stmt->execute([$projectId]);
+        // cek apakah gambar ada di project ini
+        if (in_array($imagePath, $images)) {
 
-$newImage = $stmt->fetch(PDO::FETCH_ASSOC);
+            // hapus gambar dari array
+            $images = array_values(array_filter($images, function($img) use ($imagePath) {
+                return $img !== $imagePath;
+            }));
 
-// reset semua preview dulu
-$pdo->prepare("UPDATE project_files SET is_preview = 0 WHERE project_id = ?")
-    ->execute([$projectId]);
+            // update DB
+            $pdo->prepare("
+                UPDATE projects 
+                SET documentation = ?
+                WHERE id = ?
+            ")->execute([
+                count($images) > 0 ? json_encode($images) : null,
+                $row['id']
+            ]);
 
-if ($newImage) {
-    // set gambar pertama jadi preview
-    $pdo->prepare("UPDATE project_files SET is_preview = 1 WHERE id = ?")
-        ->execute([$newImage['id']]);
+            break;
+        }
+    }
 
-    // update ke tabel projects
-    $pdo->prepare("UPDATE projects SET documentation = ? WHERE id = ?")
-        ->execute([$newImage['file_path'], $projectId]);
-} else {
-    // kalau sudah tidak ada gambar
-    $pdo->prepare("UPDATE projects SET documentation = NULL WHERE id = ?")
-        ->execute([$projectId]);
-}
+    // ======================
+    // HAPUS FILE FISIK
+    // ======================
+    $fullPath = __DIR__ . '/../../' . $imagePath;
+
+    if (file_exists($fullPath)) {
+        unlink($fullPath);
+    }
 
     echo json_encode(['success' => true]);
+
 } catch (Exception $e) {
     echo json_encode([
         'success' => false,
