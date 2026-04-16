@@ -357,7 +357,7 @@ $riwayat_pasien = $stmt->fetchAll();
                 <img src="../../assets/img/rakha_web.JPG" alt="Ghaly Rakha Okusara">
             </div>
             <h3 class="member-name">Ghaly Rakha Okusara</h3>
-            <div class="member-role">Lead Developer</div>
+            <div class="member-role">UI/UX Designer</div>
             <div class="member-dept">
                 5049241026<br>
                 Teknologi Kedokteran<br>
@@ -367,12 +367,12 @@ $riwayat_pasien = $stmt->fetchAll();
 
         <div class="team-card">
             <div class="member-photo">
-                <img src="../../assets/img/ica_web.jpeg" alt="Ghaly Rakha Okusara">
+                <img src="../../assets/img/ica_web.jpeg" alt="Aisyah Rahmi Nadjib">
             </div>
-            <h3 class="member-name">Ghaly Rakha Okusara</h3>
-            <div class="member-role">Lead Developer</div>
+            <h3 class="member-name">Aisyah Rahmi Nadjib</h3>
+            <div class="member-role">AI Engineer</div>
             <div class="member-dept">
-                5049241026<br>
+                5049241030<br>
                 Teknologi Kedokteran<br>
                 Institut Teknologi Sepuluh Nopember (ITS)
             </div>
