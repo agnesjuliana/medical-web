@@ -354,7 +354,7 @@ $riwayat_pasien = $stmt->fetchAll();
         
         <div class="team-card">
             <div class="member-photo">
-                <img src="https://ui-avatars.com/api/?name=Ghaly+Rakha&background=0ea5e9&color=fff" alt="Ghaly Rakha Okusara">
+                <img src="../../assets/img/rakha_web.JPG" alt="Ghaly Rakha Okusara">
             </div>
             <h3 class="member-name">Ghaly Rakha Okusara</h3>
             <div class="member-role">Lead Developer</div>
@@ -367,12 +367,12 @@ $riwayat_pasien = $stmt->fetchAll();
 
         <div class="team-card">
             <div class="member-photo">
-                <img src="https://ui-avatars.com/api/?name=Aisyah+Rahmi&background=4f46e5&color=fff" alt="Aisyah Rahmi Nadjib">
+                <img src="../../assets/img/ica_web.jpeg" alt="Ghaly Rakha Okusara">
             </div>
-            <h3 class="member-name">Aisyah Rahmi Nadjib</h3>
-            <div class="member-role">UI/UX Designer</div>
+            <h3 class="member-name">Ghaly Rakha Okusara</h3>
+            <div class="member-role">Lead Developer</div>
             <div class="member-dept">
-                5049241030<br>
+                5049241026<br>
                 Teknologi Kedokteran<br>
                 Institut Teknologi Sepuluh Nopember (ITS)
             </div>
@@ -380,7 +380,7 @@ $riwayat_pasien = $stmt->fetchAll();
 
         <div class="team-card">
             <div class="member-photo">
-                <img src="https://ui-avatars.com/api/?name=Arya+Muhammad&background=10b981&color=fff" alt="Arya Muhammad Duta Syafinda">
+                <img src="../../assets/img/arya_web.jpeg" alt="Arya Muhammad Duta Syafinda">
             </div>
             <h3 class="member-name">Arya Muhammad Duta Syafinda</h3>
             <div class="member-role">Data & Backend</div>
