@@ -25,12 +25,13 @@ require_once __DIR__ . '/../../layout/navbar.php';
         max-width: 500px;
         margin: 50px auto;
         background: #ffffff;
-        border-radius: 32px;
+        border-radius: 40px; 
         padding: 50px 40px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 25px 50px -12px rgba(255, 183, 206, 0.25); /* Shadow Pink */
         text-align: center;
         position: relative;
         overflow: hidden;
+        border: none;
     }
 
     .profile-container::before {
@@ -40,19 +41,19 @@ require_once __DIR__ . '/../../layout/navbar.php';
         left: 0;
         right: 0;
         height: 8px;
-        background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+        background: linear-gradient(135deg, #FFB7CE, #FFD1DC);
     }
 
     .form-title {
-        font-size: 2.2rem;
+       font-size: 2.2rem;
         font-weight: 800;
-        color: #0f172a;
+        color: #7D6E7D; 
         margin-bottom: 10px;
         line-height: 1.2;
     }
 
     .form-subtitle {
-        color: #64748b;
+        color: #A79BA7;
         font-size: 1rem;
         margin-bottom: 40px;
     }
@@ -63,14 +64,13 @@ require_once __DIR__ . '/../../layout/navbar.php';
     }
 
     .custom-input {
-        width: 100%;
+       width: 100%;
         padding: 18px 24px;
         border-radius: 40px;
-        border: 2px solid #e2e8f0;
-        background: #f8fafc;
+        border: 2px solid #FFF0F5; /* Border pink muda banget */
+        background: #FFFBFC;
         font-size: 1rem;
-        font-family: 'Inter', sans-serif;
-        color: #334155;
+        color: #7D6E7D;
         transition: all 0.3s;
         text-align: center;
         /* Mengikuti referensi gambar */
@@ -78,9 +78,9 @@ require_once __DIR__ . '/../../layout/navbar.php';
 
     .custom-input:focus {
         outline: none;
-        border-color: #3a7bd5;
+        border-color: #FFB7CE; /* Pink pas ngetik */
         background: #ffffff;
-        box-shadow: 0 0 0 4px rgba(58, 123, 213, 0.1);
+        box-shadow: 0 0 0 4px rgba(255, 183, 206, 0.15);
     }
 
     .custom-input::placeholder {
@@ -95,7 +95,7 @@ require_once __DIR__ . '/../../layout/navbar.php';
     }
 
     .btn-next {
-        background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+        background: linear-gradient(135deg, #FFB7CE, #FFD1DC);
         color: white;
         padding: 18px 24px;
         border-radius: 40px;
@@ -103,32 +103,33 @@ require_once __DIR__ . '/../../layout/navbar.php';
         font-weight: 700;
         border: none;
         cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 10px 25px rgba(58, 123, 213, 0.3);
+        transition: all 0.3s;
+        box-shadow: 0 10px 25px rgba(255, 183, 206, 0.3);
         width: 100%;
     }
 
     .btn-next:hover {
         transform: translateY(-2px);
-        box-shadow: 0 15px 30px rgba(58, 123, 213, 0.4);
+        box-shadow: 0 15px 30px rgba(255, 183, 206, 0.5);
+        filter: brightness(1.05);
     }
 
     .btn-back {
-        background: #f1f5f9;
-        color: #64748b;
+     background: #FDF2F5;
+        color: #FFB7CE;
         padding: 18px 24px;
         border-radius: 40px;
         font-size: 1.1rem;
         font-weight: 700;
         border: none;
         cursor: pointer;
-        transition: background 0.3s, color 0.3s;
+        transition: all 0.3s;
         width: 100%;
     }
 
     .btn-back:hover {
-        background: #e2e8f0;
-        color: #0f172a;
+        background: #FFE4EC;
+        color: #FF8AAB;
     }
 
     .terms-box {
@@ -138,6 +139,7 @@ require_once __DIR__ . '/../../layout/navbar.php';
         text-align: left;
         margin-top: 25px;
         margin-bottom: 10px;
+        
     }
 
     .terms-text {
@@ -147,7 +149,7 @@ require_once __DIR__ . '/../../layout/navbar.php';
     }
 
     .terms-text a {
-        color: #3a7bd5;
+        color: #FFB7CE;
         font-weight: 600;
         text-decoration: none;
     }
@@ -166,8 +168,8 @@ require_once __DIR__ . '/../../layout/navbar.php';
     }
 
     .custom-checkbox:checked {
-        background: #3a7bd5;
-        border-color: #3a7bd5;
+        background: #FFB7CE;  /
+        border-color: #FFB7CE;
     }
 
     .custom-checkbox:checked::after {

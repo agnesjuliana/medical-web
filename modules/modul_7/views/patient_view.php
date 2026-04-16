@@ -7,28 +7,26 @@
 <style>
     /* Dermalyze AI Custom Premium CSS - Light Theme */
     :root {
-        --derm-primary: #00d2ff;
-        --derm-secondary: #3a7bd5;
-        --derm-dark: #0f172a;
+        --derm-primary: #FFB7CE;        
+        --derm-secondary: #B2E2F2;     
+        --derm-accent: #C1E1C1;         
+        --derm-dark: #7D6E7D;           
         --derm-card: #ffffff;
-        --derm-glass-border: #e2e8f0;
-        --derm-glass-bg: #f8fafc;
+        --derm-glass-border: #FFF0F5;   
+        --derm-glass-bg: #FFFBFC;
     }
 
     body {
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        background: linear-gradient(135deg, #FFF5F7 0%, #F0F7FF 100%);
+        color: var(--derm-dark);
+        font-family: 'Quicksand', sans-serif;
     }
 
     .derm-container {
-        font-family: 'Inter', sans-serif;
-        color: #334155;
+        border: none;
+        border-radius: 40px;
         background: #ffffff;
-        border: 1px solid #f1f5f9;
-        border-radius: 32px;
-        padding: 40px;
-        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
-        position: relative;
-        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(255, 183, 206, 0.25);
     }
 
     .derm-container::before {
@@ -57,13 +55,12 @@
     }
 
     .derm-title {
-        font-size: 2.8rem;
-        font-weight: 800;
-        background: linear-gradient(to right, var(--derm-secondary), var(--derm-primary));
+       background: linear-gradient(to right, #FFB7CE, #92DFF3);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 12px;
         letter-spacing: -0.02em;
+
     }
 
     .derm-subtitle {
@@ -84,12 +81,14 @@
     .mode-tab {
         padding: 12px 30px;
         border-radius: 30px;
-        background: #f1f5f9;
-        color: #64748b;
+        background: #FFB7CE;
+        color:white;
         font-weight: 700;
         cursor: pointer;
         border: 2px solid transparent;
         transition: all 0.3s;
+        border-color: #FFB7CE;
+        box-shadow: 0 8px 15px rgba(255, 183, 206, 0.3);
     }
 
     .mode-tab.active {
@@ -104,17 +103,18 @@
         position: relative;
         z-index: 10;
         background: var(--derm-glass-bg);
-        border: 2px dashed #cbd5e1;
+        background: #FFFBFC;
+        border: 2px dashed #FFD1DC;
         border-radius: 24px;
         padding: 60px 20px;
         text-align: center;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.3s ease;        
     }
 
     .upload-area:hover {
-        background: #eff6ff;
-        border-color: var(--derm-secondary);
+        background:  #FFF0F5;
+        border-color: var(--derm-primary);
         transform: translateY(-5px);
         box-shadow: 0 15px 30px rgba(58, 123, 213, 0.1);
     }
@@ -154,18 +154,18 @@
     }
 
     .capture-btn {
-        background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+        background: linear-gradient(135deg, #FFB7CE, #FFD1DC);
         color: white;
         padding: 15px 40px;
         border-radius: 30px;
         font-size: 1.1rem;
         font-weight: 700;
-        border: none;
+         border: 4px solid #ffffff;
         cursor: pointer;
         margin-top: -30px;
         position: relative;
         z-index: 5;
-        box-shadow: 0 10px 25px rgba(58, 123, 213, 0.4);
+         box-shadow: 0 10px 20px rgba(255, 183, 206, 0.4);
         border: 4px solid #0f172a;
         transition: transform 0.2s;
     }
@@ -204,7 +204,8 @@
         width: 80%;
         height: 6px;
         background: var(--derm-secondary);
-        box-shadow: 0 0 15px var(--derm-primary), 0 0 30px var(--derm-primary);
+        background: #FFB7CE;
+        box-shadow: 0 0 15px #FFB7CE, 0 0 30px #FFD1DC;
         animation: scanAnim 2s infinite ease-in-out alternate;
         margin-bottom: 20px;
         border-radius: 10px;
@@ -228,6 +229,7 @@
 
     .scan-text {
         color: var(--derm-secondary);
+        color: #FFB7CE
         font-weight: 700;
         letter-spacing: 1px;
         animation: pulse 1.5s infinite;
@@ -287,18 +289,18 @@
     }
 
     .severity-Mild {
-        background: #ecfdf5;
-        color: #10b981;
+        background: #E0F7FA; 
+        color: #4DB6AC;
     }
 
     .severity-Moderate {
-        background: #fffbeb;
-        color: #f59e0b;
+       background: #FFF9C4; 
+       color: #FBC02D;
     }
 
     .severity-Severe {
-        background: #fef2f2;
-        color: #ef4444;
+        background: #FFEBEE; 
+        color: #EF5350;
     }
 
     .stats-grid {
@@ -325,14 +327,14 @@
 
     .ingredient-tag {
         display: inline-block;
-        background: linear-gradient(135deg, var(--derm-secondary), var(--derm-primary));
+        background: linear-gradient(135deg, #FFB7CE, #B2E2F2);
         color: white;
         padding: 8px 16px;
-        border-radius: 12px;
+        border-radius: 15px;
         font-size: 0.95rem;
         margin-right: 10px;
         margin-bottom: 10px;
-        box-shadow: 0 4px 10px rgba(58, 123, 213, 0.2);
+        box-shadow: 0 4px 10px rgba(255, 183, 206, 0.2);
         font-weight: 600;
     }
 

@@ -20,8 +20,8 @@ require_once __DIR__ . '/../../layout/navbar.php';
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
     body {
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #FFF5F7 0%, #F0F7FF 100%);
+        font-family: 'Quicksand', 'Inter', sans-serif;
     }
 
     .scanner-wrapper {
@@ -34,7 +34,7 @@ require_once __DIR__ . '/../../layout/navbar.php';
     }
 
     .welcome-text {
-        color: #1e293b;
+        color: #7D6E7D; 
         font-size: 1.8rem;
         font-weight: 600;
         margin-bottom: 30px;
@@ -43,37 +43,41 @@ require_once __DIR__ . '/../../layout/navbar.php';
 
     /* Polish: Gradient Text for Name */
     .welcome-text span {
-        background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+        background: linear-gradient(135deg, #FFB7CE, #FFD1DC);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         font-weight: 800;
     }
 
     .history-link-wrapper {
-        margin-bottom: 40px;
+       margin-bottom: 40px;
     }
 
     .history-link {
-        display: inline-flex;
+       display: inline-flex;
         align-items: center;
         gap: 8px;
-        color: #6b7280;
-        font-weight: 500;
+        color: #FFB7CE; /* Warna teks pink */
+        font-weight: 600;
         font-size: 0.95rem;
-        background: rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.7); /* Putih transparan glassmorphism */
         backdrop-filter: blur(8px);
         padding: 10px 24px;
         border-radius: 9999px;
-        border: 1px solid #e5e7eb;
+        border: 1px solid #FFF0F5;
         text-decoration: none;
         transition: all 0.3s ease;
     }
 
     .history-link:hover {
-        color: #0891b2;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        border-color: #cffafe;
+        color: #FF8AAB;
+        box-shadow: 0 8px 15px rgba(255, 183, 206, 0.2);
+        border-color: #FFB7CE;
         transform: translateY(-2px);
+    }
+
+    .history-link svg {
+        stroke: #FFB7CE;
     }
 </style>
 
