@@ -354,7 +354,7 @@ $riwayat_pasien = $stmt->fetchAll();
         
         <div class="team-card">
             <div class="member-photo">
-                <img src="../../assets/img/rakha_web.JPG" alt="Ghaly Rakha Okusara">
+                <img src="../../assets/img/rakha_web.jpeg" alt="Ghaly Rakha Okusara">
             </div>
             <h3 class="member-name">Ghaly Rakha Okusara</h3>
             <div class="member-role">UI/UX Designer</div>
