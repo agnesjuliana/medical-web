@@ -14,7 +14,7 @@ $pageTitle = 'NeuroAI';
 body {
     font-family: 'Poppins', sans-serif;
     background: linear-gradient(to bottom, #020617, #020617);
-    color: #e2e8f0;
+    color: #c7d2fe; /* light purple matching theme */
     font-weight: 700; /* bold */
 }
 
@@ -92,6 +92,19 @@ Get Started
 </a>
 
 </div>
+
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="py-20 text-center">
+
+<h2 class="text-4xl mb-6 neon">
+About NeuroAI
+</h2>
+
+<p class="max-w-3xl mx-auto text-gray-400">
+NeuroAI is an AI-based medical imaging system designed to assist in detecting and analyzing brain tumors from MRI images. The system provides fast, accurate, and intelligent support for medical research and clinical decision-making.
+</p>
 
 </section>
 
@@ -268,10 +281,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (move_uploaded_file($file['tmp_name'], $path)) {
 
+        /* CONNECT TO DATABASE modul6_mri (phpMyAdmin) */
+        $conn = new mysqli(
+            "localhost",
+            "root",
+            "",
+            "modul6_mri"
+        );
+
+        if ($conn->connect_error) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Database connection failed'
+            ]);
+            exit;
+        }
+
+        /* INSERT DATA MRI INTO DATABASE */
+        $stmt = $conn->prepare(
+            "INSERT INTO mri_uploads (filename, path, upload_date) VALUES (?, ?, NOW())"
+        );
+
+        $relativePath = 'uploads/' . $filename;
+
+        $stmt->bind_param(
+            "ss",
+            $filename,
+            $relativePath
+        );
+
+        $stmt->execute();
+
         echo json_encode([
             'status' => 'success',
             'filename' => $filename,
-            'path' => 'uploads/' . $filename
+            'path' => $relativePath
         ]);
 
     } else {
