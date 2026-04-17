@@ -12,7 +12,7 @@ body {
     overflow-x: hidden;
 }
 
-/* COLOR SYSTEM */
+/* COLOR SYSTEM (TIDAK DIUBAH) */
 :root {
     --primary: #6366f1;
     --secondary: #22d3ee;
@@ -34,47 +34,41 @@ body {
     to { transform: translateY(-100vh); }
 }
 
-/* 3D BRAIN */
+/* ===== REVISI BRAIN (PAKAI GAMBAR) ===== */
 .brain-wrapper {
     perspective: 1000px;
 }
 
 .brain {
-    width: 240px;
-    height: 240px;
+    width: 260px;
+    height: 260px;
     margin: 40px auto;
-    border-radius: 50%;
     position: relative;
     transform-style: preserve-3d;
-    animation: rotateBrain 12s linear infinite;
+    animation: rotateBrain 14s linear infinite;
 }
 
+/* gambar otak */
+.brain img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter:
+        drop-shadow(0 0 20px rgba(99,102,241,0.6))
+        drop-shadow(0 0 40px rgba(34,211,238,0.4));
+}
+
+/* glow */
 .brain::before {
     content: '';
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #22d3ee, #6366f1);
-    box-shadow:
-        0 0 50px rgba(34,211,238,0.5),
-        inset 0 0 40px rgba(255,255,255,0.2);
+    background: radial-gradient(circle, rgba(99,102,241,0.2), transparent 70%);
+    filter: blur(40px);
 }
 
-.brain::after {
-    content: '';
-    position: absolute;
-    inset: 10px;
-    border-radius: 50%;
-    background:
-        repeating-radial-gradient(circle,
-            rgba(255,255,255,0.08) 0px,
-            rgba(255,255,255,0.08) 2px,
-            transparent 3px,
-            transparent 8px
-        );
-    animation: pulse 3s infinite ease-in-out;
-}
-
+/* scan line */
 .scan {
     position: absolute;
     width: 100%;
@@ -83,9 +77,10 @@ body {
     animation: scanMove 3s linear infinite;
 }
 
+/* animasi */
 @keyframes rotateBrain {
-    0% { transform: rotateY(0deg) rotateX(10deg); }
-    100% { transform: rotateY(360deg) rotateX(10deg); }
+    0% { transform: rotateY(0deg) rotateX(15deg); }
+    100% { transform: rotateY(360deg) rotateX(15deg); }
 }
 
 @keyframes scanMove {
@@ -94,14 +89,9 @@ body {
     100% { top: 100%; opacity: 0; }
 }
 
-@keyframes pulse {
-    0%,100% { opacity: 0.6; }
-    50% { opacity: 1; }
-}
-
 /* TEXT */
 .neon {
-    background: linear-gradient(to right, var(--primary), var(--secondary));
+    background: linear-gradient(to right, var(--primary), var(--secondary);
     -webkit-background-clip: text;
     color: transparent;
 }
@@ -175,8 +165,10 @@ body {
 NeuroAI System
 </h1>
 
+<!-- ===== BRAIN REVISI ===== -->
 <div class="brain-wrapper">
     <div class="brain">
+        <img src="assets/images/brain.png" alt="brain">
         <div class="scan"></div>
     </div>
 </div>
