@@ -1,12 +1,5 @@
 <?php
-require_once __DIR__ . '/../../core/auth.php';
-require_once __DIR__ . '/../../components/components.php';
-
-requireLogin();
-startSession();
-
-$user = getCurrentUser();
-$pageTitle = 'NeuroAI Dashboard';
+$pageTitle = 'NeuroAI';
 ?>
 
 <?php require_once __DIR__ . '/../../layout/header.php'; ?>
@@ -14,8 +7,21 @@ $pageTitle = 'NeuroAI Dashboard';
 <style>
 body {
     font-family: 'Poppins', sans-serif;
-    background: linear-gradient(to bottom, #020617, #020617);
-    color: #e2e8f0;
+    background: radial-gradient(circle at top, #020617, #020617);
+    color: #e5e7eb; /* putih keabuan */
+    font-weight: bold;
+}
+
+/* Text color global */
+h1, h2, h3, h4, p {
+    color: #e5e7eb;
+    font-weight: bold;
+}
+
+/* Neon glow */
+.neon {
+    color: #6366f1;
+    text-shadow: 0 0 10px rgba(99,102,241,0.8);
 }
 
 /* Card */
@@ -31,311 +37,247 @@ body {
     border-color: #6366f1;
     box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
 }
-
-/* Sidebar */
-.sidebar {
-    background: #020617;
-    border-right: 1px solid rgba(148,163,184,0.1);
-}
-
-.nav-item {
-    padding: 12px 16px;
-    border-radius: 10px;
-    transition: 0.2s;
-    cursor: pointer;
-}
-
-.nav-item:hover {
-    background: rgba(99,102,241,0.15);
-}
-
-.active {
-    background: rgba(99,102,241,0.25);
-}
-
-/* Topbar */
-.topbar {
-    background: rgba(2,6,23,0.8);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(148,163,184,0.1);
-}
 </style>
 
-<div class="flex min-h-screen">
+<!-- NAVBAR -->
+<div class="w-full border-b border-slate-700 bg-[#020617]/80 backdrop-blur-md">
 
-<!-- SIDEBAR -->
-<div class="sidebar w-64 p-6">
+<div class="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
 
-    <h1 class="text-2xl font-bold text-indigo-400 mb-8">
-        NeuroAI
-    </h1>
+<h1 class="text-2xl neon">
+NeuroAI
+</h1>
 
-    <p class="text-xs text-gray-400 mb-3">
-        NAVIGATION
-    </p>
+<div class="flex gap-6 text-gray-300">
 
-    <div class="space-y-2">
+<a href="#home" class="hover:text-indigo-400">
+Home
+</a>
 
-        <div class="nav-item active">
-            Dashboard
-        </div>
+<a href="#about">
+About
+</a>
 
-        <div class="nav-item">
-            Upload MRI
-        </div>
+<a href="#features">
+Features
+</a>
 
-        <div class="nav-item">
-            3D Segmentation
-        </div>
+<a href="#team">
+Team
+</a>
 
-        <div class="nav-item">
-            Patient Records
-        </div>
+<a href="../auth/login.php"
+class="px-5 py-2 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
 
-    </div>
+Login
 
-    <p class="text-xs text-gray-400 mt-8 mb-3">
-        ANALYSIS
-    </p>
-
-    <div class="space-y-2">
-
-        <div class="nav-item">
-            AI Analysis
-        </div>
-
-        <div class="nav-item">
-            Tumor Detection
-        </div>
-
-        <div class="nav-item">
-            Reports
-        </div>
-
-    </div>
+</a>
 
 </div>
 
-<!-- MAIN -->
-<div class="flex-1">
-
-<!-- TOPBAR -->
-<div class="topbar px-8 py-4 flex justify-between items-center">
-
-    <h2 class="text-lg font-semibold">
-        Dashboard
-    </h2>
-
-    <div class="flex items-center gap-4">
-
-        <input
-            type="text"
-            placeholder="Search patients..."
-            class="px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm"
-        >
-
-        <div class="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center">
-            <?= strtoupper(substr($user['name'],0,2)) ?>
-        </div>
-
-    </div>
-
-</div>
-
-<!-- CONTENT -->
-<div class="p-8 space-y-6">
-
-<!-- WELCOME -->
-<div class="card p-6 rounded-xl flex justify-between items-center">
-
-    <div>
-
-        <h2 class="text-xl font-semibold">
-            Welcome to NeuroAI
-        </h2>
-
-        <p class="text-gray-400 text-sm">
-            AI-powered 3D Brain Tumor Segmentation System
-        </p>
-
-    </div>
-
-    <button class="px-5 py-2 bg-indigo-500 rounded-lg hover:bg-indigo-600 transition">
-        Upload MRI Scan
-    </button>
-
-</div>
-
-<!-- STATS -->
-<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
-
-<div class="card p-5 rounded-xl">
-    <p class="text-gray-400 text-sm">Total Patients</p>
-    <h3 class="text-2xl font-bold mt-2">1,284</h3>
-</div>
-
-<div class="card p-5 rounded-xl">
-    <p class="text-gray-400 text-sm">MRI Scans</p>
-    <h3 class="text-2xl font-bold mt-2">4,739</h3>
-</div>
-
-<div class="card p-5 rounded-xl">
-    <p class="text-gray-400 text-sm">Detected Tumors</p>
-    <h3 class="text-2xl font-bold mt-2">318</h3>
-</div>
-
-<div class="card p-5 rounded-xl">
-    <p class="text-gray-400 text-sm">AI Accuracy</p>
-    <h3 class="text-2xl font-bold mt-2">97.4%</h3>
-</div>
-
-<div class="card p-5 rounded-xl">
-    <p class="text-gray-400 text-sm">Active Cases</p>
-    <h3 class="text-2xl font-bold mt-2">42</h3>
-</div>
-
-<div class="card p-5 rounded-xl">
-    <p class="text-gray-400 text-sm">Reports</p>
-    <h3 class="text-2xl font-bold mt-2">2,156</h3>
 </div>
 
 </div>
 
-<!-- CHART AREA -->
-<div class="grid md:grid-cols-2 gap-6">
+<!-- HERO -->
+<section id="home"
+class="min-h-screen flex items-center justify-center text-center px-8">
 
+<div>
+
+<h1 class="text-6xl neon">
+
+NeuroAI System
+
+</h1>
+
+<p class="mt-6 text-gray-300 max-w-2xl mx-auto">
+
+AI-powered 3D Brain Tumor Segmentation from MRI scans
+for fast, accurate, and intelligent medical diagnosis.
+
+</p>
+
+<a href="../auth/login.php"
+class="mt-8 inline-block px-8 py-3 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
+
+Get Started
+
+</a>
+
+</div>
+
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="py-20 text-center">
+
+<h2 class="text-4xl mb-6 neon">
+
+About NeuroAI
+
+</h2>
+
+<p class="max-w-3xl mx-auto text-gray-300">
+
+NeuroAI is an intelligent medical system designed to assist
+radiologists and clinicians in detecting and segmenting
+brain tumors from MRI scans using deep learning technology.
+
+</p>
+
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="py-20 text-center">
+
+<h2 class="text-4xl mb-12 neon">
+
+Core Features
+
+</h2>
+
+<div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+
+<div class="card p-8 rounded-xl">
+
+<h3 class="text-xl">
+
+MRI Upload
+
+</h3>
+
+<p class="text-gray-300 mt-3">
+
+Secure medical image upload system.
+
+</p>
+
+</div>
+
+<div class="card p-8 rounded-xl">
+
+<h3 class="text-xl">
+
+AI Segmentation
+
+</h3>
+
+<p class="text-gray-300 mt-3">
+
+Automatic tumor detection using AI.
+
+</p>
+
+</div>
+
+<div class="card p-8 rounded-xl">
+
+<h3 class="text-xl">
+
+3D Visualization
+
+</h3>
+
+<p class="text-gray-300 mt-3">
+
+Interactive tumor visualization.
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- TEAM -->
+<section id="team" class="py-20 text-center">
+
+<h2 class="text-4xl mb-12 neon">
+
+Our Team
+
+</h2>
+
+<div class="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
+
+<!-- Tsamarah -->
 <div class="card p-6 rounded-xl">
 
-    <h3 class="font-semibold mb-4">
-        Tumor Detection Trend
-    </h3>
+<img
+src="assets/images/Tsamarah Amelia Putri Ginting-foto.jpeg"
+class="w-32 h-32 mx-auto rounded-full object-cover border-2 border-indigo-500">
 
-    <canvas id="chart1"></canvas>
+<h3 class="mt-4">
+
+Tsamarah Amelia Putri Ginting
+
+</h3>
+
+<p class="text-gray-300">
+
+NRP: 5049231018
+
+</p>
 
 </div>
 
+<!-- Kezia -->
 <div class="card p-6 rounded-xl">
 
-    <h3 class="font-semibold mb-4">
-        MRI Upload Activity
-    </h3>
+<img
+src="assets/images/Kezia Martha Stephanie Silaban.jpeg"
+class="w-32 h-32 mx-auto rounded-full object-cover border-2 border-indigo-500">
 
-    <canvas id="chart2"></canvas>
+<h3 class="mt-4">
+
+Kezia Martha Stephanie Silaban
+
+</h3>
+
+<p class="text-gray-300">
+
+NRP: 5049231090
+
+</p>
 
 </div>
 
-</div>
-
-<!-- OUR TEAM -->
+<!-- Cintya -->
 <div class="card p-6 rounded-xl">
 
-    <h3 class="text-xl font-semibold mb-6">
-        Our Team
-    </h3>
+<img
+src="assets/images/Cintya Melati Sianipar.jpeg"
+class="w-32 h-32 mx-auto rounded-full object-cover border-2 border-indigo-500">
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<h3 class="mt-4">
 
-        <!-- Tsamarah -->
-        <div class="text-center">
+Cintya Melati Sianipar
 
-            <img
-                src="assets/images/Tsamarah Amelia Putri Ginting-foto.jpeg"
-                class="w-28 h-28 mx-auto rounded-full object-cover border-2 border-indigo-500 shadow-lg hover:scale-105 transition"
-            >
+</h3>
 
-            <h4 class="mt-4 font-semibold">
-                Tsamarah Amelia Putri Ginting
-            </h4>
+<p class="text-gray-300">
 
-            <p class="text-sm text-gray-400">
-                NRP: 5049231018
-            </p>
+NRP: 5049231095
 
-        </div>
-
-        <!-- Kezia -->
-        <div class="text-center">
-
-            <img
-                src="assets/images/Kezia Martha Stephanie Silaban.jpeg"
-                class="w-28 h-28 mx-auto rounded-full object-cover border-2 border-indigo-500 shadow-lg hover:scale-105 transition"
-            >
-
-            <h4 class="mt-4 font-semibold">
-                Kezia Martha Stephanie Silaban
-            </h4>
-
-            <p class="text-sm text-gray-400">
-                NRP: 5049231090
-            </p>
-
-        </div>
-
-        <!-- Cintya -->
-        <div class="text-center">
-
-            <img
-                src="assets/images/Cintya Melati Sianipar.jpeg"
-                class="w-28 h-28 mx-auto rounded-full object-cover border-2 border-indigo-500 shadow-lg hover:scale-105 transition"
-            >
-
-            <h4 class="mt-4 font-semibold">
-                Cintya Melati Sianipar
-            </h4>
-
-            <p class="text-sm text-gray-400">
-                NRP: 5049231095
-            </p>
-
-        </div>
-
-    </div>
+</p>
 
 </div>
 
 </div>
 
-</div>
+</section>
 
-</div>
+<!-- FOOTER -->
+<footer class="py-8 text-center border-t border-slate-700">
 
-<!-- CHART JS -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<p class="text-gray-400">
 
-<script>
+© 2026 NeuroAI System
 
-new Chart(
-    document.getElementById('chart1'),
-    {
-        type: 'line',
-        data: {
-            labels: ['Jan','Feb','Mar','Apr','May','Jun'],
-            datasets: [
-                {
-                    label: 'Tumors',
-                    data: [25,30,28,35,42,38]
-                }
-            ]
-        }
-    }
-)
+</p>
 
-new Chart(
-    document.getElementById('chart2'),
-    {
-        type: 'bar',
-        data: {
-            labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-            datasets: [
-                {
-                    label: 'Uploads',
-                    data: [18,24,21,32,28,15,10]
-                }
-            ]
-        }
-    }
-)
-
-</script>
+</footer>
 
 <?php require_once __DIR__ . '/../../layout/footer.php'; ?>
