@@ -136,7 +136,7 @@ export default function HomeScreen() {
     <div className="min-h-screen p-4 pb-24 md:pb-4 bg-slate-50 dark:bg-slate-950 transition-colors">
       <div className="max-w-4xl mx-auto">
         {/* TabBar — fixed bottom on mobile, top-centered on desktop */}
-        <div className="">
+        <div className="mb-8">
           <TabBar
             tabs={NAV_TABS}
             activeTab={activeTab}

@@ -1,0 +1,102 @@
+:root {
+    --pink-dark: #fb6f92;
+    --pink-light: #ffafcc;
+    --bg-soft: #fffcfd;
+    --text: #4a4a4a;
+    --green-who: #4caf50;
+    --red-who: #e57373;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, var(--bg-soft) 0%, #f7eff3 100%);
+    color: var(--text);
+    margin: 0; padding: 20px; min-height: 100vh;
+    width: 100%; overflow-x: hidden;
+}
+
+.container { width: 100%; max-width: 1200px; margin: 0 auto; }
+.page-header { text-align: center; margin-bottom: 25px; }
+.logo { font-size: 2rem; font-weight: 600; color: var(--pink-dark); }
+.page-header p { color: #888; font-size: 0.95rem; }
+
+.monitor-layout {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 25px;
+}
+
+.card {
+    background: white; border-radius: 25px; padding: 30px;
+    box-shadow: 0 10px 30px rgba(251, 111, 146, 0.08);
+}
+.card-title { margin-top: 0; color: var(--pink-dark); font-size: 1.2rem; border-bottom: 2px solid #eee; padding-bottom: 15px;}
+
+.input-row { display: flex; gap: 15px; }
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 8px; }
+.custom-input {
+    width: 100%; padding: 12px; border: 1.5px solid #eee;
+    border-radius: 12px; outline: none; box-sizing: border-box; font-family: inherit;
+    transition: 0.3s;
+}
+.custom-input:focus { border-color: var(--pink-dark); }
+
+.btn {
+    border: none; padding: 15px; border-radius: 12px; font-size: 0.95rem;
+    width: 100%; cursor: pointer; font-weight: 600; transition: 0.3s;
+    box-sizing: border-box;
+}
+.btn-pink { background: var(--pink-dark); color: white; }
+.btn-pink:hover { background: #e05e80; }
+.btn-outline { background: transparent; border: 1.5px solid #ccc; color: #888; }
+.btn-outline:hover { background: #f9f9f9; }
+.btn-red { background: #d32f2f; color: white;}
+.btn-red:hover { background: #b71c1c;}
+
+/* UI Dashboard Tabulasi & Rekomendasi Pintar */
+.chart-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab-btn { 
+    flex-grow: 1; padding: 10px; border: 2px solid #eee; background: white; 
+    border-radius: 12px; font-family: inherit; font-size:0.85rem; font-weight: 600; 
+    cursor: pointer; color: #888; transition: 0.3s; 
+}
+.tab-btn.active { background: var(--pink-dark); color: white; border-color: var(--pink-dark); }
+
+.chart-wrapper { width: 100%; height: 400px; position: relative; margin-bottom: 20px; }
+
+.conclusion-box {
+    margin-top: 25px; padding: 15px; border-radius: 12px; text-align: left;
+    background: #f1f1f1; color: #555; font-size: 0.9rem; font-weight: 500;
+    line-height: 1.5; border-left: 5px solid #ccc;
+}
+.conclusion-box.safe { background: #e8f5e9; color: #2e7d32; border-left-color: #4caf50; }
+.conclusion-box.warning { background: #ffebee; color: #c62828; border-left-color: #e53935; }
+.conclusion-box.trend-warn { background: #fff3e0; color: #e65100; border-left-color: #ff9800; }
+
+.nutrition-box {
+    margin-top: 15px; padding: 15px; border-radius: 12px; font-size: 0.9rem;
+    background: #e3f2fd; color: #1565c0; border-left: 5px solid #2196f3;
+    line-height: 1.6;
+}
+
+.simple-legend {
+    display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 15px;
+    border-top: 1px dotted #ccc; padding-top: 15px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #666; font-weight: 600;}
+.color-box { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
+
+.back-link {
+    text-decoration: none; color: #888; font-weight: 600; font-size:0.9rem;
+    transition: 0.3s; display: inline-block; background: white; 
+    padding: 10px 20px; border-radius: 50px;
+}
+.back-link:hover { color: var(--pink-dark); box-shadow: 0 5px 15px rgba(251, 111, 146, 0.2); }
+
+@media (max-width: 900px) {
+    .monitor-layout { grid-template-columns: 1fr; }
+    .chart-wrapper { height: 300px; }
+}
