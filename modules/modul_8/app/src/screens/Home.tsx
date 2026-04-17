@@ -67,6 +67,7 @@ function HomeContent() {
       <Header
         title="Home"
         subtitle={`${getDateNow().toLocaleDateString("en-US", {
+          weekday: "long",
           day: "2-digit",
           month: "long",
           year: "numeric",
@@ -135,7 +136,7 @@ export default function HomeScreen() {
     <div className="min-h-screen p-4 pb-24 md:pb-4 bg-slate-50 dark:bg-slate-950 transition-colors">
       <div className="max-w-4xl mx-auto">
         {/* TabBar — fixed bottom on mobile, top-centered on desktop */}
-        <div className="mb-8">
+        <div className="">
           <TabBar
             tabs={NAV_TABS}
             activeTab={activeTab}
