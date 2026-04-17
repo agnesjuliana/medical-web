@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import TabBar from "@/components/navigation/tabBar";
 import Header from "@/components/header/Header";
 import type { TabItem } from "@/components/navigation/tabBar";
-import { Home, User, Settings, Bell } from "lucide-react";
+import { Home, User, Settings, Bell, Plus } from "lucide-react";
 import {
   Button,
   Card,
@@ -22,6 +22,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  FloatingButton,
 } from "./components/ui";
 import "./App.css";
 
@@ -182,6 +183,35 @@ function App() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+            </CardContent>
+          </Card>
+
+          {/* Floating Action Button Showcase */}
+          <Card className="border-slate-700 bg-slate-800">
+            <CardHeader>
+              <CardTitle className="text-white">Floating Action Button</CardTitle>
+              <CardDescription>Reusable FAB with specific sizes</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-wrap items-end gap-6 justify-center p-8 bg-slate-900/50 rounded-2xl border border-slate-700/50">
+                <div className="flex flex-col items-center gap-3">
+                  <FloatingButton size="small" variant="primary" icon={Plus} />
+                  <span className="text-xs font-medium text-slate-400">Small (56px)</span>
+                </div>
+                <div className="flex flex-col items-center gap-3">
+                  <FloatingButton size="medium" variant="gradient" icon={Plus} />
+                  <span className="text-xs font-medium text-slate-400">Medium (80px)</span>
+                </div>
+                <div className="flex flex-col items-center gap-3">
+                  <FloatingButton size="large" variant="glass" icon={Plus} />
+                  <span className="text-xs font-medium text-slate-400">Large (96px)</span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <FloatingButton size="small" variant="secondary" icon={Bell} className="w-full h-12 rounded-xl" />
+                <FloatingButton size="small" variant="danger" icon={User} className="w-full h-12 rounded-xl" />
+              </div>
             </CardContent>
           </Card>
 
