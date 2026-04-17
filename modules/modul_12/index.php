@@ -16,38 +16,661 @@ startSession();
 $user = getCurrentUser();
 $pageTitle = 'Modul 12';
 ?>
-<?php require_once __DIR__ . '/../../layout/header.php'; ?>
-<?php require_once __DIR__ . '/../../layout/navbar.php'; ?>
 
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MedWeb - Medical Web Application">
+    <title><?= htmlspecialchars($pageTitle) ?> — MedWeb</title>
+    
+    <!-- TailwindCSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#0891b2', // cyan-600
+                            hover: '#0e7490',   // cyan-700
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
-    <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
-        <a href="<?= BASE_URL ?>/index.php" class="hover:text-cyan-600 transition-colors">Module Hub</a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-        <span class="text-gray-700 font-medium">Modul 12</span>
+    <!-- Google Fonts — Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="app/style.css">
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Smooth transitions */
+        * {
+            transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 150ms;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Focus ring utility */
+        .focus-ring:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0891b2;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ══════════════════════════════════════════
+        NAVBAR
+    ══════════════════════════════════════════ -->
+    <nav id="navbar">
+        <div class="nav-wrap">
+            <a class="logo" onclick="navigate('home')">
+                <div class="logo-mark"><i class="fas fa-seedling"></i></div>
+                <span>HealthEdu</span>
+            </a>
+            <ul class="nav-links">
+                <li><a class="nav-a" onclick="navigate('home')">Beranda</a></li>
+                <li><a class="nav-a" onclick="navigate('kalkulator')">Kalkulator</a></li>
+                <li><a class="nav-a" onclick="navigate('menu')">Menu</a></li>
+                <li><a class="nav-a" onclick="navigate('log')">Log Harian</a></li>
+                <li><a class="nav-a" onclick="scrollToFAQ()">FAQ</a></li>
+            </ul>
+            <div class="nav-auth" id="navAuth">
+                <button class="nav-btn-login" onclick="navigate('login')"><i class="fas fa-sign-in-alt"></i> Masuk</button>
+                <button class="nav-btn-signup" onclick="navigate('signup')"><i class="fas fa-user-plus"></i> Daftar</button>
+            </div>
+            <button class="hamburger" id="hamburger" onclick="toggleNav()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="nav-mobile" id="navMobile">
+            <a onclick="navigate('home'); toggleNav()"><i class="fas fa-home"></i> Beranda</a>
+            <a onclick="navigate('kalkulator'); toggleNav()"><i class="fas fa-calculator"></i> Kalkulator</a>
+            <a onclick="navigate('menu'); toggleNav()"><i class="fas fa-utensils"></i> Menu Makanan</a>
+            <a onclick="navigate('log'); toggleNav()"><i class="fas fa-chart-line"></i> Log Harian</a>
+            <div class="nav-mobile-divider"></div>
+            <a onclick="navigate('login'); toggleNav()"><i class="fas fa-sign-in-alt"></i> Masuk</a>
+            <a onclick="navigate('signup'); toggleNav()" class="nav-mobile-signup"><i class="fas fa-user-plus"></i> Daftar</a>
+        </div>
     </nav>
 
-    <!-- Module Header -->
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">Modul 12</h1>
-        <p class="text-gray-500 mt-1">HealthEdu — Platform Kesehatan & Nutrisi</p>
+    <!-- ══════════════════════════════════════════
+        PAGE: HOME (LANDING)
+    ══════════════════════════════════════════ -->
+    <div id="page-home" class="page active">
+
+        <!-- HERO -->
+        <section class="hero">
+            <div class="hero-orb orb-1"></div>
+            <div class="hero-orb orb-2"></div>
+            <div class="hero-orb orb-3"></div>
+            <div class="hero-inner">
+                <div class="hero-pill animate-1"><i class="fas fa-award"></i> Platform Kesehatan Terpercaya</div>
+                <h1 class="hero-h1 animate-2">Kenali Tubuhmu,<br><em>Mulai Hidup Sehat</em></h1>
+                <p class="hero-p animate-3">Pantau BMI, hitung kebutuhan kalori, jelajahi menu sehat, dan catat progres harianmu — semua dalam satu tempat.</p>
+                <div class="hero-actions animate-4">
+                    <button class="btn-hero-primary" onclick="navigate('kalkulator')">
+                        <i class="fas fa-calculator"></i> Cek BMI & TDEE
+                    </button>
+                    <button class="btn-hero-ghost" onclick="navigate('menu')">
+                        <i class="fas fa-utensils"></i> Lihat Menu Sehat
+                    </button>
+                </div>
+            </div>
+            <div class="hero-float animate-5">
+                <div class="float-card">
+                    <i class="fas fa-fire-alt"></i>
+                    <div>
+                        <strong><span class="count-up" data-to="12847">0</span></strong>
+                        <small>Pengguna Aktif</small>
+                    </div>
+                </div>
+                <div class="float-card fc-accent">
+                    <i class="fas fa-utensils"></i>
+                    <div>
+                        <strong><span class="count-up" data-to="150">0</span>+</strong>
+                        <small>Resep Sehat</small>
+                    </div>
+                </div>
+                <div class="float-card">
+                    <i class="fas fa-star"></i>
+                    <div>
+                        <strong>4.9</strong>
+                        <small>Rating Pengguna</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURE CARDS -->
+        <section class="features-section">
+            <div class="section-label">Layanan Kami</div>
+            <h2 class="features-h2">Apa yang ingin kamu <em>lakukan hari ini?</em></h2>
+            <div class="feature-grid">
+                <div class="fcard fcard-primary" onclick="navigate('kalkulator')">
+                    <div class="fcard-glow"></div>
+                    <div class="fcard-icon-wrap"><i class="fas fa-calculator"></i></div>
+                    <div class="fcard-body">
+                        <h3>Kalkulator BMI & TDEE</h3>
+                        <p>Ketahui indeks massa tubuh dan total kebutuhan kalori harian berdasarkan data tubuh dan aktivitasmu.</p>
+                        <ul class="fcard-list">
+                            <li><i class="fas fa-check-circle"></i> Body Mass Index (BMI)</li>
+                            <li><i class="fas fa-check-circle"></i> Basal Metabolic Rate (BMR)</li>
+                            <li><i class="fas fa-check-circle"></i> Total Daily Energy (TDEE)</li>
+                        </ul>
+                    </div>
+                    <div class="fcard-cta">Hitung Sekarang <i class="fas fa-arrow-right"></i></div>
+                </div>
+
+                <div class="fcard-col">
+                    <div class="fcard fcard-menu" onclick="navigate('menu')">
+                        <div class="fcard-icon-wrap sm"><i class="fas fa-bowl-food"></i></div>
+                        <div class="fcard-body">
+                            <h3>Menu Makanan Sehat</h3>
+                            <p>12+ pilihan menu dengan info kalori & makro lengkap untuk sarapan, siang, malam, dan snack.</p>
+                        </div>
+                        <div class="fcard-cta">Lihat Menu <i class="fas fa-arrow-right"></i></div>
+                    </div>
+                    <div class="fcard fcard-log" onclick="navigate('log')">
+                        <div class="fcard-icon-wrap sm"><i class="fas fa-chart-line"></i></div>
+                        <div class="fcard-body">
+                            <h3>Log & Grafik Harian</h3>
+                            <p>Catat asupan kalori, pantau progres BMI, dan lihat tren kesehatanmu lewat grafik visual.</p>
+                        </div>
+                        <div class="fcard-cta">Buka Log <i class="fas fa-arrow-right"></i></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WHY SECTION -->
+        <section class="why-section">
+            <div class="why-text">
+                <div class="section-label">Kenapa HealthEdu?</div>
+                <h2><em>Lebih dari sekadar</em><br>kalkulator biasa</h2>
+                <p>Kami menggabungkan ilmu nutrisi, data akurat, dan desain intuitif agar kamu bisa membuat keputusan kesehatan yang lebih baik setiap hari.</p>
+                <div class="why-pills">
+                    <span><i class="fas fa-shield-alt"></i> Data Akurat</span>
+                    <span><i class="fas fa-bolt"></i> Instan & Gratis</span>
+                    <span><i class="fas fa-lock"></i> Privasi Terjaga</span>
+                    <span><i class="fas fa-mobile-alt"></i> Mobile Friendly</span>
+                </div>
+            </div>
+            <div class="why-visual">
+                <div class="why-ring">
+                    <div class="ring-inner">
+                        <i class="fas fa-heart-pulse"></i>
+                        <span>Sehat</span>
+                    </div>
+                </div>
+                <div class="why-badge wb-1"><i class="fas fa-check"></i> BMI Normal</div>
+                <div class="why-badge wb-2"><i class="fas fa-fire"></i> 1.850 kkal</div>
+                <div class="why-badge wb-3"><i class="fas fa-thumbs-up"></i> Tujuan Tercapai</div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="faq-section" id="faq-anchor">
+            <div class="section-label">Pertanyaan Umum</div>
+            <h2 class="faq-h2"><em>FAQ</em> Kesehatan</h2>
+            <div class="faq-wrap">
+                <div class="faq-item">
+                    <button class="fq" onclick="toggleFAQ(this)"><span>Mengapa sarapan itu penting?</span><i class="fas fa-plus"></i></button>
+                    <div class="fa-ans"><p>Sarapan memberikan glukosa sebagai energi utama otak dan tubuh setelah berpuasa semalaman. Sarapan rutin terbukti meningkatkan konsentrasi, menjaga metabolisme, dan membantu kontrol berat badan.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="fq" onclick="toggleFAQ(this)"><span>Berapa kalori yang saya butuhkan per hari?</span><i class="fas fa-plus"></i></button>
+                    <div class="fa-ans"><p>Bergantung pada usia, jenis kelamin, tinggi badan, berat badan, dan aktivitas fisik. Gunakan kalkulator TDEE kami untuk mendapat angka yang akurat. Rata-rata orang dewasa membutuhkan 1.800–2.500 kkal/hari.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="fq" onclick="toggleFAQ(this)"><span>Apakah BMI cukup untuk mengukur kesehatan?</span><i class="fas fa-plus"></i></button>
+                    <div class="fa-ans"><p>BMI adalah indikator umum yang praktis, namun tidak mempertimbangkan komposisi tubuh seperti massa otot. Untuk penilaian komprehensif, kombinasikan dengan TDEE dan konsultasi dokter atau ahli gizi.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="fq" onclick="toggleFAQ(this)"><span>Bagaimana cara menurunkan berat badan secara sehat?</span><i class="fas fa-plus"></i></button>
+                    <div class="fa-ans"><p>Penurunan sehat adalah 0,5–1 kg per minggu. Konsumsi 300–500 kkal di bawah TDEE, perbanyak protein dan serat, olahraga minimal 150 menit per minggu, dan tidur 7–9 jam per malam.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <div class="logo"><div class="logo-mark"><i class="fas fa-seedling"></i></div><span>HealthEdu</span></div>
+                    <p>Platform edukasi kesehatan dan nutrisi modern untuk Indonesia yang lebih sehat.</p>
+                </div>
+                <div class="footer-nav">
+                    <h5>Layanan</h5>
+                    <a onclick="navigate('kalkulator')">Kalkulator BMI</a>
+                    <a onclick="navigate('kalkulator')">Kalkulator TDEE</a>
+                    <a onclick="navigate('menu')">Menu Makanan</a>
+                    <a onclick="navigate('log')">Log Harian</a>
+                </div>
+                <div class="footer-nav">
+                    <h5>Info</h5>
+                    <a onclick="scrollToFAQ()">FAQ</a>
+                    <a href="#">Kebijakan Privasi</a>
+                    <a href="#">Kontak Kami</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 HealthEdu Digital — Pendidikan Kesehatan Untuk Semua</p>
+            </div>
+        </footer>
     </div>
 
-    <!-- HealthEdu App Frame -->
-    <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm" style="height: 85vh;">
-        <iframe
-            src="<?= BASE_URL ?>/modules/modul_12/app/index.html"
-            title="HealthEdu App"
-            width="100%"
-            height="100%"
-            style="border: none; display: block;"
-            allow="fullscreen"
-        ></iframe>
+    <!-- ══════════════════════════════════════════
+        PAGE: KALKULATOR
+    ══════════════════════════════════════════ -->
+    <div id="page-kalkulator" class="page">
+        <div class="page-header">
+            <div class="ph-inner">
+                <button class="back-btn" onclick="navigate('home')"><i class="fas fa-arrow-left"></i> Kembali</button>
+                <div class="ph-title">
+                    <i class="fas fa-calculator"></i>
+                    <div><h1>Kalkulator Kesehatan</h1><p>BMI · BMR · TDEE</p></div>
+                </div>
+            </div>
+        </div>
+        <div class="page-body">
+            <div class="tab-bar">
+                <button class="tab-btn active" id="tab-bmi" onclick="switchCalcTab('bmi')"><i class="fas fa-weight-scale"></i> BMI</button>
+                <button class="tab-btn" id="tab-tdee" onclick="switchCalcTab('tdee')"><i class="fas fa-fire"></i> TDEE</button>
+            </div>
+
+            <!-- BMI PANEL -->
+            <div id="cpanel-bmi" class="cpanel active">
+                <div class="calc-layout">
+                    <div class="calc-form-card">
+                        <h3><i class="fas fa-user-circle"></i> Data Tubuh</h3>
+                        <div class="gender-row">
+                            <button class="gbtn active" id="gbtn-male" onclick="setGender('male','bmi')"><i class="fas fa-mars"></i> Pria</button>
+                            <button class="gbtn" id="gbtn-female" onclick="setGender('female','bmi')"><i class="fas fa-venus"></i> Wanita</button>
+                        </div>
+                        <div class="field-row">
+                            <div class="field">
+                                <label>Berat Badan</label>
+                                <div class="input-box"><input type="number" id="b-weight" placeholder="70" min="20" max="300"><span>kg</span></div>
+                            </div>
+                            <div class="field">
+                                <label>Tinggi Badan</label>
+                                <div class="input-box"><input type="number" id="b-height" placeholder="170" min="50" max="250"><span>cm</span></div>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>Usia</label>
+                            <div class="input-box"><input type="number" id="b-age" placeholder="25" min="5" max="100"><span>tahun</span></div>
+                        </div>
+                        <button class="calc-go" onclick="calcBMI()"><i class="fas fa-calculator"></i> Hitung BMI Saya</button>
+                    </div>
+                    <div class="calc-result-card" id="bmi-res">
+                        <div class="res-empty"><i class="fas fa-weight-scale"></i><p>Isi data dan klik hitung</p></div>
+                    </div>
+                </div>
+                <div class="bmi-scale-card">
+                    <h4>Skala Indikator BMI</h4>
+                    <div class="scale-track">
+                        <div class="scale-zone z-thin">Underweight<br><em>&lt;18.5</em></div>
+                        <div class="scale-zone z-normal">Normal<br><em>18.5–24.9</em></div>
+                        <div class="scale-zone z-fat">Overweight<br><em>25–29.9</em></div>
+                        <div class="scale-zone z-obese">Obese<br><em>≥30</em></div>
+                    </div>
+                    <div class="needle-row"><div class="scale-needle" id="bmi-needle" style="display:none"></div></div>
+                </div>
+            </div>
+
+            <!-- TDEE PANEL -->
+            <div id="cpanel-tdee" class="cpanel">
+                <div class="calc-layout">
+                    <div class="calc-form-card">
+                        <h3><i class="fas fa-fire-flame-curved"></i> Data & Aktivitas</h3>
+                        <div class="gender-row">
+                            <button class="gbtn active" id="tgbtn-male" onclick="setGender('male','tdee')"><i class="fas fa-mars"></i> Pria</button>
+                            <button class="gbtn" id="tgbtn-female" onclick="setGender('female','tdee')"><i class="fas fa-venus"></i> Wanita</button>
+                        </div>
+                        <div class="field-row">
+                            <div class="field">
+                                <label>Berat Badan</label>
+                                <div class="input-box"><input type="number" id="t-weight" placeholder="70" min="20" max="300"><span>kg</span></div>
+                            </div>
+                            <div class="field">
+                                <label>Tinggi Badan</label>
+                                <div class="input-box"><input type="number" id="t-height" placeholder="170" min="50" max="250"><span>cm</span></div>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>Usia</label>
+                            <div class="input-box"><input type="number" id="t-age" placeholder="25" min="5" max="100"><span>tahun</span></div>
+                        </div>
+                        <div class="field">
+                            <label>Tingkat Aktivitas</label>
+                            <select id="t-activity" class="select-field">
+                                <option value="1.2">Sedentary — Jarang olahraga</option>
+                                <option value="1.375">Ringan — 1–3x/minggu</option>
+                                <option value="1.55" selected>Sedang — 3–5x/minggu</option>
+                                <option value="1.725">Aktif — 6–7x/minggu</option>
+                                <option value="1.9">Sangat Aktif — Kerja fisik berat</option>
+                            </select>
+                        </div>
+                        <button class="calc-go tdee-go" onclick="calcTDEE()"><i class="fas fa-fire"></i> Hitung TDEE Saya</button>
+                    </div>
+                    <div class="calc-result-card" id="tdee-res">
+                        <div class="res-empty"><i class="fas fa-fire-flame-curved"></i><p>Isi data dan klik hitung</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-</main>
+    <!-- ══════════════════════════════════════════
+        PAGE: MENU MAKANAN
+    ══════════════════════════════════════════ -->
+    <div id="page-menu" class="page">
+        <div class="page-header ph-green">
+            <div class="ph-inner">
+                <button class="back-btn" onclick="navigate('home')"><i class="fas fa-arrow-left"></i> Kembali</button>
+                <div class="ph-title">
+                    <i class="fas fa-bowl-food"></i>
+                    <div><h1>Menu Makanan Sehat</h1><p>Pilih & catat asupan kalorimu</p></div>
+                </div>
+            </div>
+        </div>
+        <div class="page-body">
+            <div class="menu-filters">
+                <button class="mf active" onclick="filterMenu('all',this)"><i class="fas fa-th-large"></i> Semua</button>
+                <button class="mf" onclick="filterMenu('sarapan',this)"><i class="fas fa-sun"></i> Sarapan</button>
+                <button class="mf" onclick="filterMenu('siang',this)"><i class="fas fa-cloud-sun"></i> Makan Siang</button>
+                <button class="mf" onclick="filterMenu('malam',this)"><i class="fas fa-moon"></i> Makan Malam</button>
+                <button class="mf" onclick="filterMenu('snack',this)"><i class="fas fa-cookie-bite"></i> Snack</button>
+            </div>
+            <div class="menu-grid" id="menuGrid"></div>
+        </div>
+    </div>
 
-<?php require_once __DIR__ . '/../../layout/footer.php'; ?>
+    <!-- ══════════════════════════════════════════
+        PAGE: LOG HARIAN
+    ══════════════════════════════════════════ -->
+    <div id="page-log" class="page">
+        <div class="page-header ph-dark">
+            <div class="ph-inner">
+                <button class="back-btn back-light" onclick="navigate('home')"><i class="fas fa-arrow-left"></i> Kembali</button>
+                <div class="ph-title">
+                    <i class="fas fa-chart-line"></i>
+                    <div><h1>Log & Grafik Harian</h1><p>Pantau asupan kalori dan tren kesehatan</p></div>
+                </div>
+            </div>
+        </div>
+        <div class="page-body">
+
+            <!-- Summary Cards -->
+            <div class="log-summary-grid">
+                <div class="lsg-card lsg-total">
+                    <i class="fas fa-fire-alt"></i>
+                    <div class="lsg-val" id="ls-total">0</div>
+                    <div class="lsg-label">Total Kalori</div>
+                </div>
+                <div class="lsg-card">
+                    <i class="fas fa-utensils"></i>
+                    <div class="lsg-val" id="ls-meals">0</div>
+                    <div class="lsg-label">Makanan Dicatat</div>
+                </div>
+                <div class="lsg-card">
+                    <i class="fas fa-bullseye"></i>
+                    <div class="lsg-val" id="ls-goal">2000</div>
+                    <div class="lsg-label">Target Kalori</div>
+                </div>
+                <div class="lsg-card lsg-remain">
+                    <i class="fas fa-battery-three-quarters"></i>
+                    <div class="lsg-val" id="ls-remain">2000</div>
+                    <div class="lsg-label">Sisa Kalori</div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="cal-prog-row">
+                <div class="cal-prog-bar"><div id="calProgFill" class="cal-prog-fill" style="width:0%"></div></div>
+                <span id="calProgPct">0% tercapai</span>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-row">
+                <!-- Donut -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h4><i class="fas fa-circle-half-stroke"></i> Distribusi Makro</h4>
+                        <span class="chart-sub">Hari ini</span>
+                    </div>
+                    <div class="donut-wrap">
+                        <div class="donut-svg-wrap">
+                            <svg id="donutChart" viewBox="0 0 200 200" width="170" height="170">
+                                <circle cx="100" cy="100" r="70" fill="none" stroke="#f1f5f9" stroke-width="30"/>
+                                <circle id="donut-carb" cx="100" cy="100" r="70" fill="none" stroke="#10b981" stroke-width="30"
+                                    stroke-dasharray="0 439.82" stroke-dashoffset="109.96" transform="rotate(-90 100 100)" style="transition:stroke-dasharray 0.7s ease"/>
+                                <circle id="donut-prot" cx="100" cy="100" r="70" fill="none" stroke="#3b82f6" stroke-width="30"
+                                    stroke-dasharray="0 439.82" stroke-dashoffset="0" transform="rotate(-90 100 100)" style="transition:stroke-dasharray 0.7s ease,stroke-dashoffset 0.7s ease"/>
+                                <circle id="donut-fat" cx="100" cy="100" r="70" fill="none" stroke="#f59e0b" stroke-width="30"
+                                    stroke-dasharray="0 439.82" stroke-dashoffset="0" transform="rotate(-90 100 100)" style="transition:stroke-dasharray 0.7s ease,stroke-dashoffset 0.7s ease"/>
+                                <text x="100" y="95" text-anchor="middle" font-size="24" font-weight="800" fill="#064e3b" font-family="Plus Jakarta Sans" id="donut-center">0</text>
+                                <text x="100" y="113" text-anchor="middle" font-size="12" fill="#94a3b8" font-weight="600" font-family="Plus Jakarta Sans">kkal</text>
+                            </svg>
+                        </div>
+                        <div class="donut-legend">
+                            <div class="dl-item"><span class="dl-dot" style="background:#10b981"></span>Karbo <strong id="leg-carb">0g</strong></div>
+                            <div class="dl-item"><span class="dl-dot" style="background:#3b82f6"></span>Protein <strong id="leg-prot">0g</strong></div>
+                            <div class="dl-item"><span class="dl-dot" style="background:#f59e0b"></span>Lemak <strong id="leg-fat">0g</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bar Chart -->
+                <div class="chart-card chart-card-wide">
+                    <div class="chart-card-header">
+                        <h4><i class="fas fa-chart-bar"></i> Tren Kalori 7 Hari</h4>
+                        <span class="chart-sub">vs. target harian</span>
+                    </div>
+                    <div class="bar-chart-area" id="barChartArea"></div>
+                </div>
+            </div>
+
+            <!-- BMI Line Chart -->
+            <div class="chart-card chart-full">
+                <div class="chart-card-header">
+                    <h4><i class="fas fa-chart-line"></i> Tren BMI</h4>
+                    <span class="chart-sub">Riwayat pengukuran</span>
+                </div>
+                <div class="line-chart-area" id="lineChartArea">
+                    <div class="chart-empty-msg" id="lineEmpty"><i class="fas fa-chart-line"></i><p>Hitung BMI dahulu untuk melihat tren</p></div>
+                </div>
+            </div>
+
+            <!-- Food Log List -->
+            <div class="log-section">
+                <div class="log-top">
+                    <h3><i class="fas fa-list-ul"></i> Log Makanan Hari Ini</h3>
+                    <div class="log-btns">
+                        <button class="lbtn-add" onclick="openAddFood()"><i class="fas fa-plus"></i> Tambah Manual</button>
+                        <button class="lbtn-clear" onclick="clearFoodLog()"><i class="fas fa-trash"></i> Hapus Semua</button>
+                    </div>
+                </div>
+                <div class="log-list" id="logList">
+                    <div class="log-empty-state"><i class="fas fa-clipboard-list"></i><p>Belum ada catatan. Tambah dari Menu atau klik "+ Tambah Manual".</p></div>
+                </div>
+            </div>
+
+            <!-- BMI History List -->
+            <div class="log-section">
+                <div class="log-top">
+                    <h3><i class="fas fa-history"></i> Riwayat BMI</h3>
+                    <button class="lbtn-clear" onclick="clearBMILog()"><i class="fas fa-trash"></i> Hapus</button>
+                </div>
+                <div class="log-list" id="bmiLogList">
+                    <div class="log-empty-state"><i class="fas fa-weight-scale"></i><p>Belum ada riwayat. Hitung BMI di halaman Kalkulator.</p></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+        MODAL: Tambah Makanan Manual
+    ══════════════════════════════════════════ -->
+    <div class="modal-bg" id="addFoodModal" onclick="closeModalBg(event)">
+        <div class="modal-box">
+            <button class="modal-x" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-icon-wrap"><i class="fas fa-utensils"></i></div>
+            <h3>Tambah Makanan Manual</h3>
+            <input type="text" id="mf-name" class="minput" placeholder="Nama makanan...">
+            <input type="number" id="mf-cal" class="minput" placeholder="Kalori (kkal)">
+            <select id="mf-type" class="minput mselect">
+                <option value="Sarapan">Sarapan</option>
+                <option value="Makan Siang">Makan Siang</option>
+                <option value="Makan Malam">Makan Malam</option>
+                <option value="Snack">Snack</option>
+            </select>
+            <button class="modal-go" onclick="submitAddFood()"><i class="fas fa-plus"></i> Tambahkan</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-box" id="toast"></div>
+
+    <!-- ══════════════════════════════════════════
+        PAGE: LOGIN
+    ══════════════════════════════════════════ -->
+    <div id="page-login" class="page">
+        <div class="auth-page">
+            <div class="auth-bg-orb aorb-1"></div>
+            <div class="auth-bg-orb aorb-2"></div>
+            <div class="auth-card">
+                <button class="auth-back" onclick="navigate('home')"><i class="fas fa-arrow-left"></i> Kembali</button>
+                <div class="auth-logo">
+                    <div class="logo-mark"><i class="fas fa-seedling"></i></div>
+                    <span>HealthEdu</span>
+                </div>
+                <h2 class="auth-title">Selamat Datang Kembali</h2>
+                <p class="auth-sub">Masuk untuk melanjutkan perjalanan sehatmu.</p>
+
+                <div class="auth-social">
+                    <button class="social-btn" onclick="showToast('🔗 Login Google segera hadir!')">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="18" height="18" alt="Google"> Lanjutkan dengan Google
+                    </button>
+                </div>
+                <div class="auth-divider"><span>atau masuk dengan email</span></div>
+
+                <div class="auth-form">
+                    <div class="auth-field">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="login-email" class="auth-input" placeholder="email@kamu.com">
+                    </div>
+                    <div class="auth-field">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <div class="auth-input-wrap">
+                            <input type="password" id="login-pass" class="auth-input no-right-radius" placeholder="••••••••">
+                            <button class="toggle-pass" onclick="togglePass('login-pass', this)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="auth-row">
+                        <label class="auth-check"><input type="checkbox"> Ingat saya</label>
+                        <a class="auth-link" href="#">Lupa password?</a>
+                    </div>
+                    <button class="auth-submit" onclick="handleLogin()">
+                        <i class="fas fa-sign-in-alt"></i> Masuk
+                    </button>
+                </div>
+
+                <p class="auth-switch">Belum punya akun? <a onclick="navigate('signup')" class="auth-link">Daftar sekarang</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+        PAGE: SIGN UP
+    ══════════════════════════════════════════ -->
+    <div id="page-signup" class="page">
+        <div class="auth-page">
+            <div class="auth-bg-orb aorb-1"></div>
+            <div class="auth-bg-orb aorb-2"></div>
+            <div class="auth-card">
+                <button class="auth-back" onclick="navigate('home')"><i class="fas fa-arrow-left"></i> Kembali</button>
+                <div class="auth-logo">
+                    <div class="logo-mark"><i class="fas fa-seedling"></i></div>
+                    <span>HealthEdu</span>
+                </div>
+                <h2 class="auth-title">Buat Akun Gratis</h2>
+                <p class="auth-sub">Mulai perjalanan hidup sehatmu hari ini.</p>
+
+                <div class="auth-social">
+                    <button class="social-btn" onclick="showToast('🔗 Daftar Google segera hadir!')">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="18" height="18" alt="Google"> Lanjutkan dengan Google
+                    </button>
+                </div>
+                <div class="auth-divider"><span>atau daftar dengan email</span></div>
+
+                <div class="auth-form">
+                    <div class="auth-field">
+                        <label><i class="fas fa-user"></i> Nama Lengkap</label>
+                        <input type="text" id="signup-name" class="auth-input" placeholder="Nama kamu">
+                    </div>
+                    <div class="auth-field">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="signup-email" class="auth-input" placeholder="email@kamu.com">
+                    </div>
+                    <div class="auth-field">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <div class="auth-input-wrap">
+                            <input type="password" id="signup-pass" class="auth-input no-right-radius" placeholder="Min. 8 karakter">
+                            <button class="toggle-pass" onclick="togglePass('signup-pass', this)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label><i class="fas fa-lock"></i> Konfirmasi Password</label>
+                        <div class="auth-input-wrap">
+                            <input type="password" id="signup-confirm" class="auth-input no-right-radius" placeholder="Ulangi password">
+                            <button class="toggle-pass" onclick="togglePass('signup-confirm', this)"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <label class="auth-check mt8">
+                        <input type="checkbox" id="signup-agree"> Saya setuju dengan <a class="auth-link" href="#">Syarat & Ketentuan</a>
+                    </label>
+                    <button class="auth-submit signup-submit" onclick="handleSignup()">
+                        <i class="fas fa-user-plus"></i> Buat Akun
+                    </button>
+                </div>
+
+                <p class="auth-switch">Sudah punya akun? <a onclick="navigate('login')" class="auth-link">Masuk di sini</a></p>
+            </div>
+        </div>
+    </div>
+
+<script src="app/script.js"></script>
+</body>
