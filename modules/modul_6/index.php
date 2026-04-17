@@ -1,71 +1,54 @@
-<?php
-$pageTitle = 'NeuroAI';
-?>
-
-<?php require_once __DIR__ . '/../../layout/header.php'; ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NeuroAI System</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
 
 <style>
 body {
     font-family: 'Poppins', sans-serif;
     background: #020617;
-    color: #e5e7eb;
     overflow-x: hidden;
 }
 
-/* COLOR SYSTEM (TIDAK DIUBAH) */
-:root {
-    --primary: #6366f1;
-    --secondary: #22d3ee;
+/* gradient glow background */
+.bg-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(99,102,241,0.3), transparent);
+    filter: blur(120px);
+    z-index: 0;
 }
 
-/* PARTICLES */
-.particles span {
+/* particles */
+.particle {
     position: absolute;
     width: 3px;
     height: 3px;
-    background: var(--secondary);
+    background: #22d3ee;
     opacity: 0.5;
     border-radius: 50%;
-    animation: floatParticle 12s linear infinite;
+    animation: float 12s linear infinite;
 }
 
-@keyframes floatParticle {
+@keyframes float {
     from { transform: translateY(0); }
     to { transform: translateY(-100vh); }
 }
 
-/* ===== REVISI BRAIN (PAKAI GAMBAR) ===== */
-.brain-wrapper {
-    perspective: 1000px;
-}
-
+/* brain animation */
 .brain {
-    width: 260px;
-    height: 260px;
-    margin: 40px auto;
-    position: relative;
-    transform-style: preserve-3d;
-    animation: rotateBrain 14s linear infinite;
+    width: 280px;
+    animation: rotate 12s linear infinite;
+    filter: drop-shadow(0 0 20px #6366f1);
 }
 
-/* gambar otak */
-.brain img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    filter:
-        drop-shadow(0 0 20px rgba(99,102,241,0.6))
-        drop-shadow(0 0 40px rgba(34,211,238,0.4));
-}
-
-/* glow */
-.brain::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(99,102,241,0.2), transparent 70%);
-    filter: blur(40px);
+@keyframes rotate {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
 }
 
 /* scan line */
@@ -74,154 +57,108 @@ body {
     width: 100%;
     height: 4px;
     background: linear-gradient(to right, transparent, #22d3ee, transparent);
-    animation: scanMove 3s linear infinite;
+    animation: scan 3s linear infinite;
 }
 
-/* animasi */
-@keyframes rotateBrain {
-    0% { transform: rotateY(0deg) rotateX(15deg); }
-    100% { transform: rotateY(360deg) rotateX(15deg); }
-}
-
-@keyframes scanMove {
-    0% { top: 0%; opacity: 0; }
+@keyframes scan {
+    0% { top: 0; opacity: 0; }
     50% { opacity: 1; }
     100% { top: 100%; opacity: 0; }
 }
 
-/* TEXT */
-.neon {
-    background: linear-gradient(to right, var(--primary), var(--secondary);
-    -webkit-background-clip: text;
-    color: transparent;
-}
-
-/* DIVIDER */
-.divider {
-    width: 100px;
-    height: 4px;
-    margin: 16px auto;
-    background: linear-gradient(to right, var(--primary), var(--secondary));
-    border-radius: 10px;
-}
-
-/* CARD */
+/* card */
 .card {
-    background: rgba(15, 23, 42, 0.6);
+    background: rgba(15,23,42,0.6);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(148, 163, 184, 0.15);
+    border: 1px solid rgba(255,255,255,0.1);
     transition: 0.4s;
 }
 
 .card:hover {
-    transform: translateY(-10px) scale(1.03);
-    box-shadow: 0 0 30px rgba(99,102,241,0.4);
+    transform: translateY(-10px);
+    box-shadow: 0 0 25px rgba(99,102,241,0.4);
 }
 
-/* ICON */
-.icon {
-    font-size: 40px;
-    color: var(--secondary);
-    margin-bottom: 10px;
-}
-
-/* FADE */
-.fade-in {
-    animation: fade 1.2s ease-in;
-}
-
-@keyframes fade {
-    from { opacity: 0; transform: translateY(20px);}
-    to { opacity: 1; transform: translateY(0);}
+/* neon text */
+.neon {
+    background: linear-gradient(to right, #6366f1, #8b5cf6, #22d3ee);
+    -webkit-background-clip: text;
+    color: transparent;
 }
 </style>
+</head>
+
+<body class="text-gray-200">
+
+<!-- BACKGROUND -->
+<div class="bg-glow top-0 left-0"></div>
 
 <!-- PARTICLES -->
-<div class="particles">
-<?php for($i=0;$i<50;$i++): ?>
-<span style="left:<?= rand(0,100) ?>%; animation-duration:<?= rand(6,15) ?>s;"></span>
-<?php endfor; ?>
-</div>
-
-<!-- NAVBAR -->
-<div class="w-full border-b border-slate-700 bg-[#020617]/80 backdrop-blur-md relative z-10">
-<div class="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
-<h1 class="text-2xl neon">NeuroAI</h1>
-<div class="flex gap-6 text-gray-300">
-<a href="#home">Home</a>
-<a href="#about">About</a>
-<a href="#features">Features</a>
-<a href="#team">Team</a>
-</div>
-</div>
-</div>
+<script>
+for(let i=0;i<40;i++){
+    let p=document.createElement("div");
+    p.className="particle";
+    p.style.left=Math.random()*100+"%";
+    p.style.animationDuration=(5+Math.random()*10)+"s";
+    document.body.appendChild(p);
+}
+</script>
 
 <!-- HERO -->
-<section id="home" class="min-h-screen flex items-center justify-center text-center px-8 relative z-10">
+<section class="min-h-screen flex flex-col items-center justify-center text-center relative z-10 px-6">
 
-<div class="fade-in">
+<h1 class="text-6xl font-bold neon">NeuroAI System</h1>
 
-<h1 class="text-6xl neon">
-NeuroAI System
-</h1>
-
-<!-- ===== BRAIN REVISI ===== -->
-<div class="brain-wrapper">
-    <div class="brain">
-        <img src="assets/images/brain.png" alt="brain">
-        <div class="scan"></div>
-    </div>
-</div>
-
-<div class="divider"></div>
-
-<p class="mt-6 text-gray-300 max-w-2xl mx-auto">
-AI-powered 3D Brain Tumor Segmentation from MRI scans
-for fast, accurate, and intelligent medical diagnosis.
+<p class="mt-6 max-w-2xl text-gray-400">
+AI-powered Brain Tumor Segmentation from MRI scans using deep learning technology.
 </p>
 
+<!-- brain -->
+<div class="relative mt-10">
+    <img src="assets/images/brain.png" class="brain mx-auto">
+    <div class="scan"></div>
 </div>
 
 </section>
 
 <!-- ABOUT -->
-<section id="about" class="py-20 text-center fade-in">
+<section class="py-20 text-center px-6">
 
 <h2 class="text-4xl neon">About NeuroAI</h2>
-<div class="divider"></div>
 
-<p class="max-w-3xl mx-auto text-gray-300 mt-4">
-NeuroAI is an intelligent medical system designed to assist
-radiologists and clinicians in detecting and segmenting
-brain tumors from MRI scans using deep learning technology.
+<p class="max-w-3xl mx-auto mt-6 text-gray-400">
+NeuroAI helps radiologists analyze MRI scans with advanced AI algorithms,
+providing fast and accurate tumor detection.
 </p>
+
+<img src="https://cdn-icons-png.flaticon.com/512/4149/4149673.png"
+class="w-32 mx-auto mt-10 opacity-80">
 
 </section>
 
 <!-- FEATURES -->
-<section id="features" class="py-20 text-center">
+<section class="py-20 text-center px-6">
 
 <h2 class="text-4xl neon">Core Features</h2>
-<div class="divider"></div>
 
-<div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-10">
+<div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-12">
 
 <div class="card p-8 rounded-xl">
-<div class="icon">🧠</div>
-<h3>MRI Upload</h3>
-<p class="text-gray-300 mt-3">Secure medical image upload system.</p>
+<img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" class="w-16 mx-auto mb-4">
+<h3 class="text-xl">MRI Upload</h3>
+<p class="text-gray-400 mt-3">Upload medical images securely.</p>
 </div>
 
 <div class="card p-8 rounded-xl">
-<div class="icon">⚡</div>
-<h3>AI Segmentation</h3>
-<p class="text-gray-300 mt-3">Automatic tumor detection using AI.</p>
+<img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="w-16 mx-auto mb-4">
+<h3 class="text-xl">AI Segmentation</h3>
+<p class="text-gray-400 mt-3">Automatic tumor detection using AI.</p>
 </div>
 
 <div class="card p-8 rounded-xl">
-<div class="icon">📊</div>
-<h3>3D Visualization</h3>
-<p class="text-gray-300 mt-3">Interactive tumor visualization.</p>
+<img src="https://cdn-icons-png.flaticon.com/512/2784/2784445.png" class="w-16 mx-auto mb-4">
+<h3 class="text-xl">3D Visualization</h3>
+<p class="text-gray-400 mt-3">Interactive brain visualization.</p>
 </div>
 
 </div>
@@ -229,32 +166,28 @@ brain tumors from MRI scans using deep learning technology.
 </section>
 
 <!-- TEAM -->
-<section id="team" class="py-20 text-center">
+<section class="py-20 text-center px-6">
 
 <h2 class="text-4xl neon">Our Team</h2>
-<div class="divider"></div>
 
-<div class="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto mt-10">
+<div class="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto mt-12">
 
 <div class="card p-6 rounded-xl">
 <img src="assets/images/Tsamarah Amelia Putri Ginting-foto.jpeg"
-class="w-32 h-32 mx-auto rounded-full object-cover border-2 border-cyan-400">
-<h3 class="mt-4">Tsamarah Amelia Putri Ginting</h3>
-<p class="text-gray-300">NRP: 5049231018</p>
+class="w-32 h-32 mx-auto rounded-full object-cover border-2 border-indigo-500">
+<h3 class="mt-4">Tsamarah Amelia</h3>
 </div>
 
 <div class="card p-6 rounded-xl">
 <img src="assets/images/Kezia Martha Stephanie Silaban.jpeg"
-class="w-32 h-32 mx-auto rounded-full object-cover border-2 border-cyan-400">
-<h3 class="mt-4">Kezia Martha Stephanie Silaban</h3>
-<p class="text-gray-300">NRP: 5049231090</p>
+class="w-32 h-32 mx-auto rounded-full object-cover border-2 border-indigo-500">
+<h3 class="mt-4">Kezia Martha</h3>
 </div>
 
 <div class="card p-6 rounded-xl">
 <img src="assets/images/Cintya Melati Sianipar.jpeg"
-class="w-32 h-32 mx-auto rounded-full object-cover border-2 border-cyan-400">
-<h3 class="mt-4">Cintya Melati Sianipar</h3>
-<p class="text-gray-300">NRP: 5049231095</p>
+class="w-32 h-32 mx-auto rounded-full object-cover border-2 border-indigo-500">
+<h3 class="mt-4">Cintya Melati</h3>
 </div>
 
 </div>
@@ -262,12 +195,9 @@ class="w-32 h-32 mx-auto rounded-full object-cover border-2 border-cyan-400">
 </section>
 
 <!-- FOOTER -->
-<footer class="py-8 text-center border-t border-slate-700">
-
-<p class="text-gray-400">
-© 2026 NeuroAI System
-</p>
-
+<footer class="text-center py-8 border-t border-gray-700">
+<p class="text-gray-500">© 2026 NeuroAI System</p>
 </footer>
 
-<?php require_once __DIR__ . '/../../layout/footer.php'; ?>
+</body>
+</html>
