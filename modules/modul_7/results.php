@@ -21,26 +21,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['photo'])) {
     $target_file = $target_dir . $new_filename;
 
     if (move_uploaded_file($file['tmp_name'], $target_file)) {
-        // TANGKAP DATA ASLI DARI AI (dikirim dari patient_view.php)
         $ai_severity = $_POST['severity'] ?? 'MODERATE';
         $ai_accuracy = $_POST['accuracy'] ?? 0;
 
-        // Logika Penentuan Jumlah Lesi berdasarkan Klasifikasi AI
-        // Kita sesuaikan agar angka di laporan medis terlihat masuk akal
         $severity_upper = strtoupper($ai_severity);
         
         if ($severity_upper == 'PUSTULE') {
             $papule = rand(1, 3);
-            $pustule = rand(5, 9); // Lebih tinggi karena AI mendeteksi Pustule
+            $pustule = rand(5, 9);
             $blackhead = rand(2, 5);
         } elseif ($severity_upper == 'PAPULE') {
-            $papule = rand(5, 9); // Lebih tinggi karena AI mendeteksi Papule
+            $papule = rand(5, 9);
             $pustule = rand(1, 3);
             $blackhead = rand(2, 5);
         } elseif ($severity_upper == 'BLACKHEAD') {
             $papule = rand(0, 2);
             $pustule = rand(0, 2);
-            $blackhead = rand(8, 15); // Lebih tinggi karena AI mendeteksi Blackhead
+            $blackhead = rand(8, 15);
         } else {
             $papule = rand(1, 5); $pustule = rand(1, 5); $blackhead = rand(5, 10);
         }
@@ -51,10 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['photo'])) {
         $stmt = $db->prepare($sql);
         $stmt->execute([$user['id'], $target_file, $severity_upper, $papule, $pustule, $blackhead, 'Completed']);
         
-        // Simpan ID baru
         $new_id = $db->lastInsertId();
         
-        // Redirect dengan membawa akurasi untuk ditampilkan
         header("Location: results.php?id=" . $new_id . "&notif=success&acc=" . $ai_accuracy);
         exit;
     }
@@ -87,17 +82,6 @@ require_once __DIR__ . '/../../layout/navbar.php';
 </style>
 
 <main class="max-w-4xl mx-auto px-4 py-10">
-    
-    <?php if(isset($_GET['notif'])): ?>
-    <div class="mb-6 bg-gradient-to-r from-pink-400 to-rose-400 p-4 rounded-2xl text-white flex items-center gap-4 shadow-lg animate-bounce">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div>
-            <p class="text-sm font-bold">Analisis AI Selesai!</p>
-            <p class="text-xs opacity-90">Tingkat Keyakinan Model: <b><?= htmlspecialchars($_GET['acc'] ?? 0) ?>%</b> ✨</p>
-        </div>
-    </div>
-    <?php endif; ?>
-
     <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-pink-50 p-8">
         <h2 class="text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 mb-8 italic tracking-tighter">Dermalyze.AI</h2>
 
