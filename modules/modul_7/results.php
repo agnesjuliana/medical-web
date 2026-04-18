@@ -9,8 +9,16 @@ startSession();
 $db = getModul7DBConnection();
 $user = getCurrentUser();
 
+// Ambil data profil dari session agar bisa disimpan ke database
+$profile = $_SESSION['patient_profile'] ?? [
+    'full_name' => 'Pasien',
+    'age' => 0,
+    'skin_type' => '-',
+    'main_concern' => '-'
+];
+
 // ==========================================
-// BAGIAN 1: LOGIKA SIMPAN (Menerima Data AI)
+// BAGIAN 1: LOGIKA SIMPAN
 // ==========================================
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['photo'])) {
     $target_dir = "assets/";
@@ -23,40 +31,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['photo'])) {
     if (move_uploaded_file($file['tmp_name'], $target_file)) {
         $ai_severity = $_POST['severity'] ?? 'MODERATE';
         $ai_accuracy = $_POST['accuracy'] ?? 0;
-
         $severity_upper = strtoupper($ai_severity);
         
         if ($severity_upper == 'PUSTULE') {
-            $papule = rand(1, 3);
-            $pustule = rand(5, 9);
-            $blackhead = rand(2, 5);
+            $papule = rand(1, 3); $pustule = rand(5, 9); $blackhead = rand(2, 5);
         } elseif ($severity_upper == 'PAPULE') {
-            $papule = rand(5, 9);
-            $pustule = rand(1, 3);
-            $blackhead = rand(2, 5);
+            $papule = rand(5, 9); $pustule = rand(1, 3); $blackhead = rand(2, 5);
         } elseif ($severity_upper == 'BLACKHEAD') {
-            $papule = rand(0, 2);
-            $pustule = rand(0, 2);
-            $blackhead = rand(8, 15);
+            $papule = rand(0, 2); $pustule = rand(0, 2); $blackhead = rand(8, 15);
         } else {
             $papule = rand(1, 5); $pustule = rand(1, 5); $blackhead = rand(5, 10);
         }
 
+        // QUERY FIX: Memasukkan data profil asli (bukan NULL)
         $sql = "INSERT INTO screening_results 
-                (patient_id, image_path, ml_severity_level, ml_papule_count, ml_pustule_count, ml_blackhead_count, status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+                (patient_id, full_name, age, skin_type, main_concern, image_path, ml_severity_level, ml_papule_count, ml_pustule_count, ml_blackhead_count, status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $db->prepare($sql);
-        $stmt->execute([$user['id'], $target_file, $severity_upper, $papule, $pustule, $blackhead, 'Completed']);
+        $stmt->execute([
+            $user['id'], 
+            $profile['full_name'], 
+            $profile['age'], 
+            $profile['skin_type'], 
+            $profile['main_concern'], 
+            $target_file, 
+            $severity_upper, 
+            $papule, $pustule, $blackhead, 
+            'Completed'
+        ]);
         
         $new_id = $db->lastInsertId();
-        
         header("Location: results.php?id=" . $new_id . "&notif=success&acc=" . $ai_accuracy);
         exit;
     }
 }
 
 // ==========================================
-// BAGIAN 2: TAMPILAN (Menampilkan Hasil)
+// BAGIAN 2: TAMPILAN
 // ==========================================
 $scan_id = $_GET['id'] ?? null;
 if (!$scan_id) { header("Location: history.php"); exit; }
@@ -73,17 +84,35 @@ require_once __DIR__ . '/../../layout/navbar.php';
 ?>
 
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
-
 <style>
-    body {
-        background: linear-gradient(135deg, #FFF5F7 0%, #F0F7FF 100%);
-        font-family: 'Quicksand', sans-serif;
-    }
+    body { background: linear-gradient(135deg, #FFF5F7 0%, #F0F7FF 100%); font-family: 'Quicksand', sans-serif; }
+    .profile-info-box { background: rgba(255, 183, 206, 0.05); border-radius: 20px; border: 1px dashed #FFB7CE; padding: 20px; margin-bottom: 30px; }
+    .info-label { font-size: 0.75rem; font-weight: 700; color: #FFB7CE; text-transform: uppercase; margin-bottom: 4px; }
+    .info-value { font-size: 1rem; font-weight: 600; color: #7D6E7D; }
 </style>
 
 <main class="max-w-4xl mx-auto px-4 py-10">
     <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-pink-50 p-8">
         <h2 class="text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 mb-8 italic tracking-tighter">Dermalyze.AI</h2>
+
+        <div class="profile-info-box grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div>
+                <p class="info-label">Pasien</p>
+                <p class="info-value"><?= htmlspecialchars($data['full_name']) ?></p>
+            </div>
+            <div>
+                <p class="info-label">Usia</p>
+                <p class="info-value"><?= htmlspecialchars($data['age']) ?> Tahun</p>
+            </div>
+            <div>
+                <p class="info-label">Tipe Kulit</p>
+                <p class="info-value"><?= htmlspecialchars($data['skin_type']) ?></p>
+            </div>
+            <div>
+                <p class="info-label">Keluhan</p>
+                <p class="info-value"><?= htmlspecialchars($data['main_concern']) ?></p>
+            </div>
+        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div class="rounded-3xl overflow-hidden bg-gray-50 border-4 border-white shadow-md aspect-square">

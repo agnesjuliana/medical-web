@@ -9,8 +9,19 @@ require_once __DIR__ . '/config/database.php';
 requireLogin();
 startSession();
 
-// Tangkap nama dari login
-$userName = $_GET['name'] ?? getCurrentUser()['name'] ?? 'Pasien';
+// --- LOGIKA PENANGKAPAN DATA PROFIL DARI LOGIN.PHP ---
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $_SESSION['patient_profile'] = [
+        'full_name'    => $_POST['name'] ?? 'Pasien',
+        'age'          => $_POST['age'] ?? 0,
+        'skin_type'    => $_POST['skin_type'] ?? '-',
+        'main_concern' => $_POST['concern'] ?? '-'
+    ];
+}
+
+// Gunakan nama dari session jika ada
+$userName = $_SESSION['patient_profile']['full_name'] ?? getCurrentUser()['name'] ?? 'Pasien';
+// ----------------------------------------------------
 
 $pageTitle = 'Scanner Dermalyze.AI';
 require_once __DIR__ . '/../../layout/header.php';
@@ -41,7 +52,6 @@ require_once __DIR__ . '/../../layout/navbar.php';
         text-align: center;
     }
 
-    /* Polish: Gradient Text for Name */
     .welcome-text span {
         background: linear-gradient(135deg, #FFB7CE, #FFD1DC);
         -webkit-background-clip: text;
@@ -57,10 +67,10 @@ require_once __DIR__ . '/../../layout/navbar.php';
        display: inline-flex;
         align-items: center;
         gap: 8px;
-        color: #FFB7CE; /* Warna teks pink */
+        color: #FFB7CE;
         font-weight: 600;
         font-size: 0.95rem;
-        background: rgba(255, 255, 255, 0.7); /* Putih transparan glassmorphism */
+        background: rgba(255, 255, 255, 0.7);
         backdrop-filter: blur(8px);
         padding: 10px 24px;
         border-radius: 9999px;
@@ -74,10 +84,6 @@ require_once __DIR__ . '/../../layout/navbar.php';
         box-shadow: 0 8px 15px rgba(255, 183, 206, 0.2);
         border-color: #FFB7CE;
         transform: translateY(-2px);
-    }
-
-    .history-link svg {
-        stroke: #FFB7CE;
     }
 </style>
 
@@ -101,18 +107,13 @@ require_once __DIR__ . '/../../layout/navbar.php';
 </div>
 
 <script>
-   
     function resetApp(newId = null) {
         if (newId) {
-            // Jika ada ID baru, langsung ke halaman hasil detail
             window.location.href = 'results.php?id=' + newId;
         } else {
-            // Jika tidak ada ID (misal user klik cancel), balik ke dashboard
             window.location.href = 'index.php';
         }
     }
-
-
 </script>
 
 <?php require_once __DIR__ . '/../../layout/footer.php'; ?>
