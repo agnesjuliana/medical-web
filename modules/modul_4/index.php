@@ -960,8 +960,8 @@ $pageTitle = 'CalorieCare - Modul 4';
         <div class="max-w-5xl mx-auto">
             <div class="text-center mb-12 fade-in">
                 <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4 translatable"
-                    data-en="📋 Activity History"
-                    data-id="📋 Riwayat Aktivitas">📋 Activity History</h2>
+                    data-en="Activity History"
+                    data-id="Riwayat Aktivitas">Activity History</h2>
                 <p class="text-lg text-gray-600 dark:text-gray-400 translatable"
                     data-en="Your last 5 calculation results"
                     data-id="5 hasil kalkulasi terakhirmu">Your last 5 calculation results</p>
@@ -990,8 +990,8 @@ $pageTitle = 'CalorieCare - Modul 4';
         <div class="max-w-6xl mx-auto">
             <div class="text-center mb-12 fade-in">
                 <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4 translatable"
-                    data-en="📰 Health Articles"
-                    data-id="📰 Artikel Kesehatan">📰 Health Articles</h2>
+                    data-en="Health Articles"
+                    data-id="Artikel Kesehatan">Health Articles</h2>
                 <p class="text-lg text-gray-600 dark:text-gray-400 translatable"
                     data-en="Health insights from trusted Indonesian sources"
                     data-id="Wawasan kesehatan dari sumber terpercaya Indonesia">Health insights from trusted Indonesian sources</p>
@@ -1673,20 +1673,58 @@ document.addEventListener('DOMContentLoaded', () => {
     // ================================================================
     // 10. ARTIKEL KESEHATAN (Inline, No External Redirect)
     // ================================================================
+
+    // Category → Icon/Color mapping (scalable, no hardcode)
+    const categoryMap = {
+        health: {
+            icon: `<svg width="40" height="40" fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`,
+            gradient: 'linear-gradient(135deg, #059669, #10b981)',
+            label: 'Health'
+        },
+        fitness: {
+            icon: `<svg width="40" height="40" fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>`,
+            gradient: 'linear-gradient(135deg, #0ea5e9, #06b6d4)',
+            label: 'Fitness'
+        },
+        exercise: {
+            icon: `<svg width="40" height="40" fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>`,
+            gradient: 'linear-gradient(135deg, #8b5cf6, #a78bfa)',
+            label: 'Exercise'
+        },
+        wellness: {
+            icon: `<svg width="40" height="40" fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`,
+            gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+            label: 'Wellness'
+        },
+        research: {
+            icon: `<svg width="40" height="40" fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`,
+            gradient: 'linear-gradient(135deg, #ef4444, #f87171)',
+            label: 'Research'
+        },
+        global: {
+            icon: `<svg width="40" height="40" fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+            gradient: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+            label: 'Global'
+        }
+    };
+
+    function getCategoryInfo(cat) {
+        return categoryMap[cat] || categoryMap['health'];
+    }
+
     const artikelData = [
         {
             id: 1,
-            emoji: '🏃',
-            banner: 'linear-gradient(135deg, #059669, #10b981)',
+            category: 'health',
             title: 'Berapa Banyak Aktivitas Fisik yang Anda Butuhkan?',
             source: 'Kemenkes RI',
             sourceUrl: 'https://keslan.kemkes.go.id/view_artikel/2459/berapa-banyak-aktivitas-fisik-yang-anda-butuhkan',
-            excerpt: 'WHO merekomendasikan 150–300 menit aktivitas aerobik intensitas sedang per minggu untuk orang dewasa.',
+            excerpt: 'WHO merekomendasikan 150\u2013300 menit aktivitas aerobik intensitas sedang per minggu untuk orang dewasa.',
             content: `<h3>Rekomendasi WHO untuk Aktivitas Fisik</h3>
-<p>Organisasi Kesehatan Dunia (WHO) merekomendasikan agar orang dewasa berusia 18–64 tahun melakukan:</p>
+<p>Organisasi Kesehatan Dunia (WHO) merekomendasikan agar orang dewasa berusia 18\u201364 tahun melakukan:</p>
 <ul>
-<li><strong>150–300 menit</strong> aktivitas fisik aerobik intensitas sedang per minggu, ATAU</li>
-<li><strong>75–150 menit</strong> aktivitas fisik aerobik intensitas berat per minggu</li>
+<li><strong>150\u2013300 menit</strong> aktivitas fisik aerobik intensitas sedang per minggu, ATAU</li>
+<li><strong>75\u2013150 menit</strong> aktivitas fisik aerobik intensitas berat per minggu</li>
 <li>Kombinasi keduanya juga direkomendasikan</li>
 </ul>
 
@@ -1698,39 +1736,38 @@ document.addEventListener('DOMContentLoaded', () => {
 <li>Yoga dan pilates</li>
 </ul>
 
-<h3>Untuk Anak dan Remaja (5–17 tahun)</h3>
+<h3>Untuk Anak dan Remaja (5\u201317 tahun)</h3>
 <ul>
 <li>Minimal <strong>60 menit per hari</strong> aktivitas fisik intensitas sedang hingga berat</li>
 <li>Aktivitas aerobik intensitas berat sebaiknya dilakukan minimal <strong>3 kali per minggu</strong></li>
 </ul>
 
 <h3>Manfaat Utama</h3>
-<p>Aktivitas fisik yang teratur terbukti dapat mengurangi risiko penyakit jantung, diabetes tipe 2, beberapa jenis kanker, serta meningkatkan kesehatan mental dan kualitas tidur. Setiap gerakan berarti — bahkan aktivitas ringan lebih baik daripada tidak bergerak sama sekali.</p>
+<p>Aktivitas fisik yang teratur terbukti dapat mengurangi risiko penyakit jantung, diabetes tipe 2, beberapa jenis kanker, serta meningkatkan kesehatan mental dan kualitas tidur. Setiap gerakan berarti \u2014 bahkan aktivitas ringan lebih baik daripada tidak bergerak sama sekali.</p>
 
 <p><em>Catatan: Konsultasikan dengan tenaga medis sebelum memulai program olahraga baru, terutama jika memiliki kondisi kesehatan tertentu.</em></p>`
         },
         {
             id: 2,
-            emoji: '💪',
-            banner: 'linear-gradient(135deg, #0ea5e9, #06b6d4)',
+            category: 'fitness',
             title: 'Manfaat Aktivitas Fisik: Sehat, Bugar, Bahagia',
             source: 'Halodoc',
             sourceUrl: 'https://www.halodoc.com/artikel/manfaat-aktivitas-fisik-sehat-bugar-bahagia',
             excerpt: 'Aktivitas fisik tidak hanya menyehatkan tubuh, tapi juga meningkatkan mood dan kebahagiaan secara keseluruhan.',
             content: `<h3>Manfaat untuk Kesehatan Fisik</h3>
 <ul>
-<li><strong>Menjaga berat badan ideal</strong> — Aktivitas fisik membantu membakar kalori berlebih dan mencegah obesitas</li>
-<li><strong>Memperkuat jantung</strong> — Olahraga teratur menurunkan tekanan darah dan kadar kolesterol jahat (LDL)</li>
-<li><strong>Meningkatkan imunitas</strong> — Tubuh yang aktif memiliki sistem kekebalan yang lebih kuat</li>
-<li><strong>Mencegah penyakit kronis</strong> — Mengurangi risiko diabetes tipe 2, stroke, dan beberapa jenis kanker</li>
+<li><strong>Menjaga berat badan ideal</strong> \u2014 Aktivitas fisik membantu membakar kalori berlebih dan mencegah obesitas</li>
+<li><strong>Memperkuat jantung</strong> \u2014 Olahraga teratur menurunkan tekanan darah dan kadar kolesterol jahat (LDL)</li>
+<li><strong>Meningkatkan imunitas</strong> \u2014 Tubuh yang aktif memiliki sistem kekebalan yang lebih kuat</li>
+<li><strong>Mencegah penyakit kronis</strong> \u2014 Mengurangi risiko diabetes tipe 2, stroke, dan beberapa jenis kanker</li>
 </ul>
 
 <h3>Manfaat untuk Kesehatan Mental</h3>
 <ul>
-<li><strong>Mengurangi stres dan kecemasan</strong> — Olahraga memicu pelepasan endorfin, hormon yang membuat perasaan lebih baik</li>
-<li><strong>Meningkatkan kualitas tidur</strong> — Aktivitas fisik membantu mengatur ritme sirkadian tubuh</li>
-<li><strong>Meningkatkan kepercayaan diri</strong> — Pencapaian dalam olahraga memberikan rasa bangga dan motivasi</li>
-<li><strong>Melawan depresi</strong> — Penelitian menunjukkan olahraga teratur sama efektifnya dengan antidepresan ringan</li>
+<li><strong>Mengurangi stres dan kecemasan</strong> \u2014 Olahraga memicu pelepasan endorfin, hormon yang membuat perasaan lebih baik</li>
+<li><strong>Meningkatkan kualitas tidur</strong> \u2014 Aktivitas fisik membantu mengatur ritme sirkadian tubuh</li>
+<li><strong>Meningkatkan kepercayaan diri</strong> \u2014 Pencapaian dalam olahraga memberikan rasa bangga dan motivasi</li>
+<li><strong>Melawan depresi</strong> \u2014 Penelitian menunjukkan olahraga teratur sama efektifnya dengan antidepresan ringan</li>
 </ul>
 
 <h3>Tips Memulai</h3>
@@ -1740,8 +1777,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         {
             id: 3,
-            emoji: '🏋️',
-            banner: 'linear-gradient(135deg, #8b5cf6, #a78bfa)',
+            category: 'exercise',
             title: 'Pentingnya Olahraga untuk Kesehatan Optimal',
             source: 'Pemkab Sarolangun',
             sourceUrl: 'https://sarolangunkab.go.id/artikel/baca/pentingnya-olahraga-untuk-kesehatan-optimal',
@@ -1749,11 +1785,11 @@ document.addEventListener('DOMContentLoaded', () => {
             content: `<h3>Manfaat Kesehatan Fisik</h3>
 <p>Olahraga teratur membantu menjaga berat badan yang sehat, meningkatkan kekuatan otot, serta meningkatkan kesehatan jantung dan sistem kardiovaskular.</p>
 <ul>
-<li><strong>Meningkatkan kebugaran dan stamina</strong> — tubuh mampu menjalani aktivitas sehari-hari dengan lebih mudah dan berenergi</li>
-<li><strong>Memperkuat otot dan tulang</strong> — mengurangi risiko cedera dan osteoporosis</li>
-<li><strong>Menjaga kesehatan jantung</strong> — menurunkan tekanan darah, kolesterol, dan risiko penyakit jantung</li>
-<li><strong>Menurunkan berat badan</strong> — membakar kalori dan mengurangi risiko obesitas</li>
-<li><strong>Meningkatkan kualitas tidur</strong> — tidur lebih nyenyak dan berkualitas</li>
+<li><strong>Meningkatkan kebugaran dan stamina</strong> \u2014 tubuh mampu menjalani aktivitas sehari-hari dengan lebih mudah dan berenergi</li>
+<li><strong>Memperkuat otot dan tulang</strong> \u2014 mengurangi risiko cedera dan osteoporosis</li>
+<li><strong>Menjaga kesehatan jantung</strong> \u2014 menurunkan tekanan darah, kolesterol, dan risiko penyakit jantung</li>
+<li><strong>Menurunkan berat badan</strong> \u2014 membakar kalori dan mengurangi risiko obesitas</li>
+<li><strong>Meningkatkan kualitas tidur</strong> \u2014 tidur lebih nyenyak dan berkualitas</li>
 </ul>
 
 <h3>Manfaat Kesehatan Mental</h3>
@@ -1767,19 +1803,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <h3>Tips Memulai Rutinitas Olahraga</h3>
 <ul>
-<li><strong>Pilih aktivitas yang Anda nikmati</strong> — berjalan, berlari, bersepeda, atau berenang</li>
-<li><strong>Tetapkan tujuan realistis</strong> — spesifik dan terukur</li>
-<li><strong>Mulai secara perlahan</strong> — tingkatkan intensitas secara bertahap</li>
-<li><strong>Jadwalkan waktu</strong> — seperti janji penting lainnya</li>
-<li><strong>Temukan dukungan</strong> — berolahraga dengan teman lebih menyenangkan</li>
+<li><strong>Pilih aktivitas yang Anda nikmati</strong> \u2014 berjalan, berlari, bersepeda, atau berenang</li>
+<li><strong>Tetapkan tujuan realistis</strong> \u2014 spesifik dan terukur</li>
+<li><strong>Mulai secara perlahan</strong> \u2014 tingkatkan intensitas secara bertahap</li>
+<li><strong>Jadwalkan waktu</strong> \u2014 seperti janji penting lainnya</li>
+<li><strong>Temukan dukungan</strong> \u2014 berolahraga dengan teman lebih menyenangkan</li>
 </ul>
 
 <p><em>Sumber: Ringgana Wandy Wiguna</em></p>`
         },
         {
             id: 4,
-            emoji: '🧘',
-            banner: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+            category: 'wellness',
             title: 'Aktivitas Fisik untuk Kesehatan Tubuh dan Jiwa',
             source: 'Puskesmas Babakan Sari',
             sourceUrl: 'https://pkmbabakansaribdg.com/aktivitas-fisik-untuk-kesehatan-tubuh-dan-jiwa/',
@@ -1787,7 +1822,7 @@ document.addEventListener('DOMContentLoaded', () => {
             content: `<h3>Jenis Aktivitas Fisik</h3>
 <p>Menurut Kemenkes, kurangnya aktivitas fisik merupakan salah satu penyebab cukup tingginya PTM (Penyakit Tidak Menular) di Indonesia.</p>
 
-<p><strong>1. Aktivitas Fisik Harian</strong><br>Kegiatan sehari-hari seperti mencuci baju, mengepel, jalan kaki, berkebun, dan bermain dengan anak. Kalori yang terbakar bisa 50–200 kkal per kegiatan.</p>
+<p><strong>1. Aktivitas Fisik Harian</strong><br>Kegiatan sehari-hari seperti mencuci baju, mengepel, jalan kaki, berkebun, dan bermain dengan anak. Kalori yang terbakar bisa 50\u2013200 kkal per kegiatan.</p>
 
 <p><strong>2. Latihan Fisik</strong><br>Aktivitas terstruktur dan terencana seperti jalan kaki, jogging, push-up, peregangan, senam aerobik, dan bersepeda.</p>
 
@@ -1795,9 +1830,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <h3>Berdasarkan Intensitas</h3>
 <ul>
-<li><strong>Ringan</strong> — Mencuci piring, memasak, jalan santai, memancing, peregangan otot</li>
-<li><strong>Sedang</strong> — Berjalan cepat, bersepeda, naik tangga, yoga, menari, voli</li>
-<li><strong>Berat</strong> — Futsal, lari, berenang, naik gunung, lompat tali, bulutangkis</li>
+<li><strong>Ringan</strong> \u2014 Mencuci piring, memasak, jalan santai, memancing, peregangan otot</li>
+<li><strong>Sedang</strong> \u2014 Berjalan cepat, bersepeda, naik tangga, yoga, menari, voli</li>
+<li><strong>Berat</strong> \u2014 Futsal, lari, berenang, naik gunung, lompat tali, bulutangkis</li>
 </ul>
 
 <h3>Manfaat bagi Tubuh</h3>
@@ -1812,18 +1847,17 @@ document.addEventListener('DOMContentLoaded', () => {
 <h3>Prinsip BBTT</h3>
 <p>Untuk hasil maksimal, lakukan aktivitas fisik dengan prinsip:</p>
 <ul>
-<li><strong>Baik</strong> — sesuai kemampuan</li>
-<li><strong>Benar</strong> — bertahap mulai pemanasan hingga pendinginan</li>
-<li><strong>Terukur</strong> — diukur intensitas dan waktunya</li>
-<li><strong>Teratur</strong> — 3-5 kali seminggu, minimal 150 menit/minggu (30 menit/hari)</li>
+<li><strong>Baik</strong> \u2014 sesuai kemampuan</li>
+<li><strong>Benar</strong> \u2014 bertahap mulai pemanasan hingga pendinginan</li>
+<li><strong>Terukur</strong> \u2014 diukur intensitas dan waktunya</li>
+<li><strong>Teratur</strong> \u2014 3-5 kali seminggu, minimal 150 menit/minggu (30 menit/hari)</li>
 </ul>
 
 <p><em>Oleh: Dwi Fera Wittya Sari, S.KM dan Dini Susanti, AMK</em></p>`
         },
         {
             id: 5,
-            emoji: '📊',
-            banner: 'linear-gradient(135deg, #ef4444, #f87171)',
+            category: 'research',
             title: 'Hubungan Aktivitas Fisik dengan Kesehatan: Tinjauan Ilmiah',
             source: 'Jurnal FKM UMI',
             sourceUrl: 'https://jurnal.fkmumi.ac.id/index.php/woh/article/download/179/261',
@@ -1833,10 +1867,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <h3>Temuan Utama</h3>
 <ul>
-<li><strong>Penurunan risiko kardiovaskular</strong> — Individu yang aktif secara fisik memiliki risiko 20–35% lebih rendah terkena penyakit jantung</li>
-<li><strong>Kontrol gula darah</strong> — Aktivitas fisik teratur meningkatkan sensitivitas insulin hingga 40%</li>
-<li><strong>Kesehatan mental</strong> — Olahraga 30 menit/hari dapat mengurangi gejala depresi sebesar 26%</li>
-<li><strong>Mortalitas</strong> — Orang yang aktif secara fisik memiliki harapan hidup 3–7 tahun lebih panjang</li>
+<li><strong>Penurunan risiko kardiovaskular</strong> \u2014 Individu yang aktif secara fisik memiliki risiko 20\u201335% lebih rendah terkena penyakit jantung</li>
+<li><strong>Kontrol gula darah</strong> \u2014 Aktivitas fisik teratur meningkatkan sensitivitas insulin hingga 40%</li>
+<li><strong>Kesehatan mental</strong> \u2014 Olahraga 30 menit/hari dapat mengurangi gejala depresi sebesar 26%</li>
+<li><strong>Mortalitas</strong> \u2014 Orang yang aktif secara fisik memiliki harapan hidup 3\u20137 tahun lebih panjang</li>
 </ul>
 
 <h3>Rekomendasi Berdasarkan Penelitian</h3>
@@ -1851,7 +1885,42 @@ document.addEventListener('DOMContentLoaded', () => {
 <h3>Kesimpulan</h3>
 <p>Aktivitas fisik merupakan "obat" yang paling murah dan efektif untuk pencegahan berbagai penyakit kronis. Peningkatan aktivitas fisik di tingkat populasi dapat menurunkan beban penyakit secara signifikan dan meningkatkan kualitas hidup masyarakat Indonesia.</p>
 
-<p><em>Sumber: Window of Health — Jurnal Kesehatan, Vol. 1, No. 2</em></p>`
+<p><em>Sumber: Window of Health \u2014 Jurnal Kesehatan, Vol. 1, No. 2</em></p>`
+        },
+        {
+            id: 6,
+            category: 'global',
+            title: 'Dampak Aktivitas Fisik terhadap Kesehatan Jangka Panjang',
+            source: 'WHO (World Health Organization)',
+            sourceUrl: 'https://www.who.int/news-room/fact-sheets/detail/physical-activity',
+            excerpt: 'Aktivitas fisik membantu mencegah penyakit kronis seperti diabetes, jantung, dan obesitas serta meningkatkan kualitas hidup.',
+            content: `<h3>Fakta Utama dari WHO</h3>
+<p>Kurangnya aktivitas fisik merupakan faktor risiko utama penyakit tidak menular (PTM) seperti penyakit kardiovaskular, kanker, dan diabetes. Secara global, <strong>1 dari 4 orang dewasa</strong> tidak memenuhi rekomendasi aktivitas fisik.</p>
+
+<h3>Dampak Jangka Panjang</h3>
+<ul>
+<li><strong>Penyakit Kardiovaskular</strong> \u2014 Aktivitas fisik teratur menurunkan risiko penyakit jantung dan stroke hingga 35%</li>
+<li><strong>Diabetes Tipe 2</strong> \u2014 Olahraga meningkatkan sensitivitas insulin dan membantu mengontrol kadar gula darah, menurunkan risiko hingga 40%</li>
+<li><strong>Kanker</strong> \u2014 Aktivitas fisik terbukti menurunkan risiko kanker payudara dan usus besar hingga 20%</li>
+<li><strong>Obesitas</strong> \u2014 Membantu menjaga keseimbangan energi dan mencegah penumpukan lemak berlebih</li>
+<li><strong>Kesehatan Mental</strong> \u2014 Mengurangi risiko depresi dan gangguan kecemasan secara signifikan</li>
+</ul>
+
+<h3>Rekomendasi WHO untuk Orang Dewasa (18\u201364 tahun)</h3>
+<ul>
+<li><strong>150\u2013300 menit/minggu</strong> aktivitas aerobik intensitas sedang, ATAU</li>
+<li><strong>75\u2013150 menit/minggu</strong> aktivitas aerobik intensitas berat</li>
+<li>Latihan penguatan otot <strong>2 hari atau lebih per minggu</strong></li>
+<li>Batasi waktu duduk/sedenter \u2014 ganti dengan aktivitas ringan sekalipun</li>
+</ul>
+
+<h3>Manfaat Ekonomi</h3>
+<p>WHO memperkirakan bahwa kurangnya aktivitas fisik menelan biaya sistem kesehatan global sebesar <strong>USD 54 miliar per tahun</strong> dalam perawatan medis langsung, ditambah <strong>USD 14 miliar</strong> dalam produktivitas yang hilang. Investasi dalam promosi aktivitas fisik memberikan pengembalian yang signifikan.</p>
+
+<h3>Pesan Kunci</h3>
+<p>Setiap gerakan berarti. Bahkan peningkatan kecil dalam aktivitas fisik memberikan manfaat kesehatan. Tidak ada kata terlambat untuk memulai \u2014 manfaat kesehatan dapat dirasakan pada semua usia dan kondisi tubuh.</p>
+
+<p><em>Sumber: WHO Fact Sheet \u2014 Physical Activity (Updated 2024)</em></p>`
         }
     ];
 
@@ -1865,13 +1934,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         grid.innerHTML = '';
         items.forEach((art, i) => {
+            const cat = getCategoryInfo(art.category);
             grid.innerHTML += `
             <div class="article-card" onclick="openArticle(${art.id})" style="animation: qcBubblePop 0.3s ease-out ${i * 0.1}s both">
-                <div class="art-banner" style="background: ${art.banner}">
-                    <span>${art.emoji}</span>
+                <div class="art-banner" style="background: ${cat.gradient}">
+                    ${cat.icon}
                 </div>
                 <div class="art-body">
-                    <span class="art-source">📌 ${art.source}</span>
+                    <span class="art-source">${cat.label} &middot; ${art.source}</span>
                     <div class="art-title">${art.title}</div>
                     <div class="art-excerpt">${art.excerpt}</div>
                     <div class="art-read">
@@ -1903,10 +1973,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const art = artikelData.find(a => a.id === id);
         if (!art) return;
 
-        document.getElementById('artDetailBanner').style.background = art.banner;
-        document.getElementById('artDetailBanner').innerHTML = `<span>${art.emoji}</span>`;
+        const cat = getCategoryInfo(art.category);
+
+        document.getElementById('artDetailBanner').style.background = cat.gradient;
+        document.getElementById('artDetailBanner').innerHTML = cat.icon.replace(/width="40"/g, 'width="56"').replace(/height="40"/g, 'height="56"');
         document.getElementById('artDetailTitle').textContent = art.title;
-        document.getElementById('artDetailSource').innerHTML = `📌 ${art.source}`;
+        document.getElementById('artDetailSource').innerHTML = `${cat.label} &middot; ${art.source}`;
         document.getElementById('artDetailBody').innerHTML = art.content;
         document.getElementById('artDetailRef').href = art.sourceUrl;
 
