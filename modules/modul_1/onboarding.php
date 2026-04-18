@@ -11,17 +11,21 @@ $user = getCurrentUser();
 $pdo = getDBConnection();
 $isOnboarded = false;
 
+$isEditMode = isset($_GET['edit']) && $_GET['edit'] == '1';
+$existingData = null;
+
 try {
-    $stmt = $pdo->prepare("SELECT id FROM user_onboarding WHERE user_id = ? LIMIT 1");
+    $stmt = $pdo->prepare("SELECT * FROM user_onboarding WHERE user_id = ? ORDER BY id DESC LIMIT 1");
     $stmt->execute([$user['id']]);
-    if ($stmt->fetch()) {
+    $existingData = $stmt->fetch();
+    if ($existingData) {
         $isOnboarded = true;
     }
 } catch (PDOException $e) {
     // Table doesn't exist yet — treat as not onboarded
 }
 
-if ($isOnboarded) {
+if ($isOnboarded && !$isEditMode) {
     header('Location: dashboard.php');
     exit;
 }
@@ -38,15 +42,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $symptoms = $_POST['symptoms'] ?? '';
 
     try {
-        $stmtInsert = $pdo->prepare("INSERT INTO user_onboarding (user_id, role, full_name, patient_name, operation_type, surgery_date, pain_level, mobility, symptoms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmtInsert->execute([$user['id'], $role, $fullName, $patientName, $operationType, $surgeryDate, $painLevel, $mobility, $symptoms]);
-
-        header('Location: dashboard.php');
+        if ($isOnboarded && $isEditMode) {
+            $stmtUpdate = $pdo->prepare("UPDATE user_onboarding SET role=?, full_name=?, patient_name=?, operation_type=?, surgery_date=?, pain_level=?, mobility=?, symptoms=? WHERE id=?");
+            $stmtUpdate->execute([$role, $fullName, $patientName, $operationType, $surgeryDate, $painLevel, $mobility, $symptoms, $existingData['id']]);
+            header('Location: dashboard.php?page=profile');
+        } else {
+            $stmtInsert = $pdo->prepare("INSERT INTO user_onboarding (user_id, role, full_name, patient_name, operation_type, surgery_date, pain_level, mobility, symptoms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmtInsert->execute([$user['id'], $role, $fullName, $patientName, $operationType, $surgeryDate, $painLevel, $mobility, $symptoms]);
+            header('Location: dashboard.php');
+        }
         exit;
     } catch (PDOException $e) {
         die("Error saving onboarding data: " . $e->getMessage());
     }
 }
+
+$prefillJson = json_encode($existingData ? $existingData : null);
 
 $pageTitle = 'Onboarding - RuangPulih';
 ?>
@@ -218,13 +229,13 @@ $pageTitle = 'Onboarding - RuangPulih';
 
                         <!-- Card 3 -->
                         <label class="relative cursor-pointer">
-                            <input type="radio" name="operationType" value="amputation" class="peer sr-only">
+                            <input type="radio" name="operationType" value="orthopedic" class="peer sr-only">
                             <div class="h-full p-8 rounded-[16px] border-2 border-[#DAE3EC] peer-checked:border-[#D1D9CA] peer-checked:bg-[#ECF2E6] peer-checked:shadow-lg hover:border-[#D1D9CA] transition-all bg-white flex flex-col justify-center items-center text-center">
                                 <div class="w-14 h-14 bg-orange-50 text-orange-400 rounded-xl flex items-center justify-center mb-5 shrink-0 opacity-80">
                                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                                 </div>
-                                <h3 class="text-xl font-extrabold text-[#728BA9] mb-3 leading-tight">Tindakan<br>Amputasi</h3>
-                                <p class="text-sm text-[#7F7F7F] font-medium leading-relaxed">Fokus terhadap penyembuhan luka pasca amputasi, phantom pain, & mobilisasi aman.</p>
+                                <h3 class="text-xl font-extrabold text-[#728BA9] mb-3 leading-tight">Tindakan<br>Ortopedi</h3>
+                                <p class="text-sm text-[#7F7F7F] font-medium leading-relaxed">Fokus terhadap penyembuhan luka insisi tulang, nyeri sendi, & pemulihan mobilitas.</p>
                             </div>
                         </label>
                     </div>
@@ -477,6 +488,58 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // Prefill data logically if we are in Edit Mode
+    const prefillData = <?= $prefillJson ?>;
+    if (prefillData) {
+        if (prefillData.role) {
+            const roleRadio = document.querySelector(`input[name="role"][value="${prefillData.role}"]`);
+            if (roleRadio) roleRadio.checked = true;
+        }
+        
+        const fullNameInput = document.querySelector('input[name="fullName"]');
+        if (fullNameInput) fullNameInput.value = prefillData.full_name || '';
+        
+        const patientNameInput = document.querySelector('input[name="patientName"]');
+        if (patientNameInput) patientNameInput.value = prefillData.patient_name || '';
+        
+        if (prefillData.operation_type) {
+             const opRadio = document.querySelector(`input[name="operationType"][value="${prefillData.operation_type}"]`);
+             if (opRadio) opRadio.checked = true;
+        }
+        
+        if (prefillData.surgery_date) {
+            elements.surgeryDate.value = prefillData.surgery_date;
+        }
+        
+        if (prefillData.pain_level !== null) {
+            elements.painSlider.value = prefillData.pain_level;
+            elements.painVal.textContent = prefillData.pain_level;
+        }
+        
+        if (prefillData.mobility) {
+             const mobRadio = document.querySelector(`input[name="mobility"][value="${prefillData.mobility}"]`);
+             if (mobRadio) mobRadio.checked = true;
+        }
+        
+        const symptomsInput = document.querySelector('textarea[name="symptoms"]');
+        if (symptomsInput) symptomsInput.value = prefillData.symptoms || '';
+        
+        // Trigger DOM changes
+        setTimeout(() => {
+            const checkedRole = document.querySelector('input[name="role"]:checked');
+            if (checkedRole) checkedRole.dispatchEvent(new Event('change'));
+            if (elements.surgeryDate.value) elements.surgeryDate.dispatchEvent(new Event('change'));
+            
+            // If we are in edit mode, it makes sense to change the URL param to submit the edit state correctly
+            const formObj = document.getElementById('onboarding-form');
+            if (window.location.search.includes('edit=1')) {
+                formObj.action = "onboarding.php?edit=1";
+                elements.btnSubmit.textContent = "Simpan Perubahan";
+                document.querySelector('#step-1 h2').textContent = "Edit Data Pemulihan";
+            }
+        }, 100);
+    }
 });
 </script>
 
