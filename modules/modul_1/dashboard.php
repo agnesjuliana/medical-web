@@ -1,13 +1,80 @@
 <?php
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../components/components.php';
+require_once __DIR__ . '/../../config/database.php';
 
 requireLogin();
 startSession();
 
 $user = getCurrentUser();
-$pageTitle = 'Dashboard RuangPulih';
+$pdo = getDBConnection();
+
 $page = $_GET['page'] ?? 'home';
+
+// Fetch Onboarding Data
+$opType = '';
+$role = '';
+$userName = $user['name'] ?? 'Guest';
+$patientName = 'Budi (Pasien)';
+$surgeryDate = '';
+
+// Check preview mode first
+if (isset($_GET['preview_role']) || isset($_GET['preview_op'])) {
+    $role = $_GET['preview_role'] ?? 'pasien';
+    $opType = $_GET['preview_op'] ?? 'cabg';
+    if ($role === 'caregiver') {
+        $patientName = 'Pasien (Budi)';
+    }
+    $surgeryDate = date('Y-m-d', strtotime('-2 days')); // Mock 2 days ago
+} else {
+    // Try to get from Database
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM user_onboarding WHERE user_id = ? ORDER BY id DESC LIMIT 1");
+        $stmt->execute([$user['id']]);
+        $onboarding = $stmt->fetch();
+        
+        if ($onboarding) {
+            $role = $onboarding['role'] ?? 'pasien';
+            $opType = $onboarding['operation_type'] ?? 'cabg';
+            $userName = $onboarding['full_name'] ?: $user['name'];
+            $surgeryDate = $onboarding['surgery_date'];
+            if ($role === 'caregiver') {
+                $patientName = $onboarding['patient_name'] ?: 'Pasien';
+            }
+        } else {
+            // Un-onboarded, fallback to defaults
+            $role = 'pasien';
+            $opType = 'cabg';
+            $surgeryDate = date('Y-m-d', strtotime('-1 days'));
+        }
+    } catch (PDOException $e) {
+        $role = 'pasien';
+        $opType = 'cabg';
+        $surgeryDate = date('Y-m-d', strtotime('-1 days'));
+    }
+}
+
+// Calculate days post op
+$dayPostOp = 1;
+if ($surgeryDate) {
+    $dStart = new DateTime($surgeryDate);
+    $dEnd  = new DateTime();
+    $dStart->setTime(0,0,0);
+    $dEnd->setTime(0,0,0);
+    $diff = $dStart->diff($dEnd);
+    $dayPostOp = $diff->days + 1; // Hari ke-1 adalah hari H+1
+    if ($dStart > $dEnd) $dayPostOp = 0;
+}
+
+// Operation type display strings
+$opDisplay = [
+    'cabg' => 'Jantung (CABG)',
+    'sc' => 'Sectio Caesarea',
+    'amputation' => 'Amputasi'
+];
+$opName = $opDisplay[$opType] ?? 'Operasi';
+
+$pageTitle = 'Dashboard RuangPulih';
 ?>
 <?php require_once __DIR__ . '/../../layout/header.php'; ?>
 
@@ -81,71 +148,225 @@ $page = $_GET['page'] ?? 'home';
     <main class="flex-1 p-8">
         <?php if ($page === 'home'): ?>
             <!-- HOME VIEW -->
-            <header>
-                <h2 class="text-2xl font-bold text-gray-800">Selamat datang, Budi</h2>
-                <p class="text-gray-500 mt-1">Hari ke-2 pasca operasi</p>
+            <header class="flex items-start justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Halo, <?= htmlspecialchars($userName) ?></h2>
+                    <?php if ($role === 'caregiver'): ?>
+                        <p class="text-[#728BA9] font-semibold mt-1">Pantau perkembangan <?= htmlspecialchars($patientName) ?></p>
+                        <p class="text-gray-400 text-sm mt-0.5">Hari ke-<?= $dayPostOp ?> pasca operasi <?= $opName ?></p>
+                    <?php else: ?>
+                        <p class="text-gray-500 mt-1">Hari ke-<?= $dayPostOp ?> pasca operasi <?= $opName ?></p>
+                    <?php endif; ?>
+                </div>
+                <?php if ($role === 'caregiver'): ?>
+                    <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#ECF2E6] text-[#5A6C7A] text-xs font-bold border border-[#D1D9CA] uppercase tracking-wider">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        Mode Caregiver
+                    </span>
+                <?php endif; ?>
             </header>
 
+            <?php if ($opType === 'cabg'): ?>
+            <!-- ============ CABG DASHBOARD ============ -->
             <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Left Column: Recovery Hari Ini (Spans 2 cols) -->
-                <div class="lg:col-span-2 bg-[#ECF2E6] rounded-2xl p-8 relative overflow-hidden flex flex-col justify-start min-h-[340px]">
-                    <div class="absolute right-0 top-0 w-64 h-64 bg-[#D1D9CA] rounded-full opacity-40 -translate-y-1/4 translate-x-1/4"></div>
-                    <div class="absolute right-20 top-20 w-80 h-80 bg-[#D1D9CA] rounded-full opacity-20"></div>
-                    
-                    <div class="relative z-10 w-full">
-                        <h3 class="text-xl font-bold text-[#5A6C7A] mb-4">Recovery Hari Ini</h3>
-                        
-                        <div class="flex items-center bg-white rounded-full h-6 w-full max-w-sm mb-6 pr-4">
-                            <div class="bg-gradient-to-r from-[#D1D9CA] to-[#B8C9DD] h-full rounded-full w-1/2"></div>
-                            <span class="ml-auto text-[#728BA9] font-bold text-sm">50%</span>
-                        </div>
 
-                        <ul class="space-y-4">
-                            <li class="flex items-center gap-4">
-                                <div class="w-6 h-6 rounded bg-[#D1DFEC] text-white flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                </div>
-                                <span class="text-[#5A6C7A] font-medium">Latihan pernapasan</span>
-                            </li>
-                            <li class="flex items-center gap-4">
-                                <div class="w-6 h-6 rounded bg-[#D1DFEC] text-white flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                </div>
-                                <span class="text-[#5A6C7A] font-medium">Jalan kaki 5 menit</span>
-                            </li>
-                            <li class="flex items-center gap-4">
-                                <div class="w-6 h-6 rounded bg-white flex items-center justify-center flex-shrink-0"></div>
-                                <span class="text-[#5A6C7A] font-medium">Minum obat</span>
-                            </li>
-                            <li class="flex items-center gap-4">
-                                <div class="w-6 h-6 rounded bg-white flex items-center justify-center flex-shrink-0"></div>
-                                <span class="text-[#5A6C7A] font-medium">Latihan ...</span>
-                            </li>
+                <!-- Vitals Row (full width) -->
+                <div class="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- SpO2 -->
+                    <div class="bg-[#F8FCFF] rounded-2xl p-6 border border-[#DAE3EC] relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-[#B8C9DD] rounded-full opacity-10 -translate-y-1/2 translate-x-1/2"></div>
+                        <p class="text-xs font-bold text-[#728BA9] uppercase tracking-wider mb-1">SpO₂</p>
+                        <p class="text-4xl font-extrabold text-[#728BA9]">98<span class="text-lg font-bold">%</span></p>
+                        <p class="text-xs text-[#A3ACA0] font-medium mt-1">Normal ≥ 95%</p>
+                    </div>
+                    <!-- Heart Rate -->
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Detak Jantung</p>
+                        <p class="text-4xl font-extrabold text-gray-700">82 <span class="text-lg font-bold text-gray-400">bpm</span></p>
+                        <p class="text-xs text-[#A3ACA0] font-medium mt-1">Normal 60–100 bpm</p>
+                    </div>
+                    <!-- Chest Pain -->
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Nyeri Dada</p>
+                        <p class="text-4xl font-extrabold text-gray-700">3<span class="text-lg font-bold text-gray-400">/10</span></p>
+                        <p class="text-xs text-[#A3ACA0] font-medium mt-1">Ringan — dalam batas wajar</p>
+                    </div>
+                </div>
+
+                <!-- Recovery Checklist (2 col) -->
+                <div class="lg:col-span-2 bg-[#ECF2E6] rounded-2xl p-8 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-64 h-64 bg-[#D1D9CA] rounded-full opacity-40 -translate-y-1/4 translate-x-1/4"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-lg font-bold text-[#5A6C7A] mb-4"><?= $role === 'caregiver' ? 'Checklist Pasien Hari Ini' : 'Recovery Hari Ini' ?></h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Pastikan pasien latihan pernapasan (deep breathing)' : 'Latihan pernapasan (deep breathing) 5–10 rep/jam' ?></span></li>
+                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Dampingi pasien jalan kaki 5 menit' : 'Jalan kaki 5 menit dengan pendamping' ?></span></li>
+                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Ingatkan pasien minum obat' : 'Minum obat sesuai jadwal' ?></span></li>
+                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Bantu pasien batuk efektif (tahan dada)' : 'Batuk efektif 2–3x (dengan menahan dada)' ?></span></li>
                         </ul>
                     </div>
                 </div>
 
-                <!-- Right Column: Status Terkini (Spans 1 col) -->
-                <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-8 flex flex-col justify-start">
-                    <h3 class="text-lg font-bold text-gray-700 mb-6">Status Terkini</h3>
-                    
-                    <div class="space-y-4">
-                        <div class="bg-red-50 text-red-600 rounded-xl p-4 flex items-start gap-3 border border-red-100/50">
-                            <span class="text-lg leading-none">⚠️</span>
-                            <div class="text-sm font-medium">
-                                <span class="font-bold">Luka:</span> Belum diperiksa hari ini
-                            </div>
-                        </div>
-                        
-                        <div class="bg-[#F8FCFF] text-[#728BA9] rounded-xl p-4 flex items-start gap-3 border border-[#E2E8F0]">
-                            <span class="text-lg leading-none">📺</span>
-                            <div class="text-sm font-medium">
-                                <span class="font-bold">Fisioterapi:</span> 1 Video belum ditonton
-                            </div>
+                <!-- Alert (1 col) -->
+                <div class="flex flex-col gap-4">
+                    <div class="bg-red-50 rounded-2xl p-6 border border-red-100 flex-1">
+                        <h3 class="text-sm font-bold text-red-700 mb-3 flex items-center gap-2"><span>🚨</span> Red Flag</h3>
+                        <ul class="space-y-2 text-sm text-red-700 font-medium">
+                            <li><?= $role === 'caregiver' ? 'Jika SpO₂ pasien < 92%, segera hubungi RS' : 'Jika SpO₂ kamu < 92%, hentikan aktivitas' ?></li>
+                            <li><?= $role === 'caregiver' ? 'Perhatikan jika pasien sesak napas tiba-tiba' : 'Lapor jika ada sesak napas mendadak' ?></li>
+                        </ul>
+                    </div>
+                    <div class="bg-[#F8FCFF] rounded-2xl p-6 border border-[#DAE3EC]">
+                        <h3 class="text-sm font-bold text-[#728BA9] mb-2">📋 Quick Actions</h3>
+                        <div class="space-y-2">
+                            <a href="dashboard.php?page=roadmap" class="block text-sm font-semibold text-[#728BA9] hover:text-[#5A6C7A] transition-colors">→ Lihat Roadmap Hari Ini</a>
+                            <a href="dashboard.php?page=monitoring" class="block text-sm font-semibold text-[#728BA9] hover:text-[#5A6C7A] transition-colors">→ Catat Tanda Vital</a>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <?php elseif ($opType === 'sc'): ?>
+            <!-- ============ SECTIO CAESAREA DASHBOARD ============ -->
+            <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Bleeding Tracker (dominant, 2 col) -->
+                <div class="lg:col-span-2 bg-purple-50/60 rounded-2xl p-8 border border-purple-100 relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-purple-200 rounded-full opacity-20"></div>
+                    <h3 class="text-lg font-bold text-purple-800 mb-5 relative z-10">🩸 Pemantauan Perdarahan (Lochia)</h3>
+                    <div class="grid grid-cols-3 gap-4 relative z-10">
+                        <div class="bg-white rounded-xl p-4 text-center border border-purple-100">
+                            <p class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-1">Volume</p>
+                            <p class="text-2xl font-extrabold text-purple-700">Sedang</p>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 text-center border border-purple-100">
+                            <p class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-1">Warna</p>
+                            <p class="text-2xl font-extrabold text-purple-700">Merah</p>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 text-center border border-purple-100">
+                            <p class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-1">Gumpalan</p>
+                            <p class="text-2xl font-extrabold text-purple-700">Tidak</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-purple-500 font-medium mt-4 relative z-10"><?= $role === 'caregiver' ? 'Pantau penggantian pembalut pasien setiap 4–6 jam.' : 'Ganti pembalut setiap 4–6 jam dan catat perubahannya.' ?></p>
+                </div>
+
+                <!-- Wound Status (1 col) -->
+                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                    <h3 class="text-sm font-bold text-gray-700 mb-4">🩹 Kondisi Luka SC</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center"><span class="text-sm text-gray-500 font-medium">Kemerahan</span><span class="text-sm font-bold text-green-600">Normal</span></div>
+                        <div class="flex justify-between items-center"><span class="text-sm text-gray-500 font-medium">Bengkak</span><span class="text-sm font-bold text-green-600">Tidak ada</span></div>
+                        <div class="flex justify-between items-center"><span class="text-sm text-gray-500 font-medium">Cairan/nanah</span><span class="text-sm font-bold text-green-600">Tidak ada</span></div>
+                        <div class="flex justify-between items-center"><span class="text-sm text-gray-500 font-medium">Jahitan</span><span class="text-sm font-bold text-[#728BA9]">Utuh</span></div>
+                    </div>
+                </div>
+
+                <!-- Checklist (2 col) -->
+                <div class="lg:col-span-2 bg-[#ECF2E6] rounded-2xl p-8 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-48 h-48 bg-[#D1D9CA] rounded-full opacity-30 -translate-y-1/4 translate-x-1/4"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-lg font-bold text-[#5A6C7A] mb-4"><?= $role === 'caregiver' ? 'Checklist Pasien Hari Ini' : 'Recovery Hari Ini' ?></h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Bantu pasien mobilisasi ringan (duduk → berdiri)' : 'Mobilisasi ringan: duduk → berdiri perlahan' ?></span></li>
+                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Ingatkan pasien menyusui / pompa ASI' : 'Menyusui / pompa ASI sesuai jadwal' ?></span></li>
+                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Pastikan pasien minum obat pereda nyeri' : 'Minum obat pereda nyeri sesuai resep' ?></span></li>
+                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Periksa luka SC pasien secara visual' : 'Periksa luka SC di cermin (kemerahan/cairan)' ?></span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Alert + Vitals (1 col) -->
+                <div class="flex flex-col gap-4">
+                    <div class="bg-red-50 rounded-2xl p-6 border border-red-100">
+                        <h3 class="text-sm font-bold text-red-700 mb-3 flex items-center gap-2"><span>🚨</span> Red Flag</h3>
+                        <ul class="space-y-2 text-sm text-red-700 font-medium">
+                            <li><?= $role === 'caregiver' ? 'Jika perdarahan sangat banyak / gumpalan besar → bawa ke RS' : 'Jika perdarahan sangat banyak atau ada gumpalan besar → ke RS' ?></li>
+                            <li><?= $role === 'caregiver' ? 'Jika pasien demam > 38°C, segera lapor dokter' : 'Jika demam > 38°C, hubungi dokter segera' ?></li>
+                        </ul>
+                    </div>
+                    <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Suhu Tubuh</p>
+                        <p class="text-3xl font-extrabold text-gray-700">36.8<span class="text-base font-bold text-gray-400">°C</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <?php else: ?>
+            <!-- ============ AMPUTATION DASHBOARD ============ -->
+            <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Wound Monitor (dominant, 2 col) -->
+                <div class="lg:col-span-2 bg-orange-50/60 rounded-2xl p-8 border border-orange-100 relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-orange-200 rounded-full opacity-20"></div>
+                    <h3 class="text-lg font-bold text-orange-800 mb-5 relative z-10">🩹 Monitoring Stump / Luka Amputasi</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 relative z-10">
+                        <div class="bg-white rounded-xl p-4 text-center border border-orange-100">
+                            <p class="text-xs font-bold text-orange-400 uppercase tracking-wider mb-1">Warna Kulit</p>
+                            <p class="text-lg font-extrabold text-orange-700">Normal</p>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 text-center border border-orange-100">
+                            <p class="text-xs font-bold text-orange-400 uppercase tracking-wider mb-1">Bengkak</p>
+                            <p class="text-lg font-extrabold text-orange-700">Ringan</p>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 text-center border border-orange-100">
+                            <p class="text-xs font-bold text-orange-400 uppercase tracking-wider mb-1">Cairan</p>
+                            <p class="text-lg font-extrabold text-green-600">Tidak ada</p>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 text-center border border-orange-100">
+                            <p class="text-xs font-bold text-orange-400 uppercase tracking-wider mb-1">Bau</p>
+                            <p class="text-lg font-extrabold text-green-600">Tidak ada</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-orange-500 font-medium mt-4 relative z-10"><?= $role === 'caregiver' ? 'Periksa visual kondisi stump pasien setiap pagi dan malam.' : 'Periksa stump setiap pagi dan malam. Catat setiap perubahan.' ?></p>
+                </div>
+
+                <!-- Pain Tracker (1 col) -->
+                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col">
+                    <h3 class="text-sm font-bold text-gray-700 mb-4">⚡ Pain Tracker</h3>
+                    <div class="space-y-4 flex-1">
+                        <div>
+                            <div class="flex justify-between mb-1"><span class="text-sm text-gray-500 font-medium">Nyeri Stump</span><span class="text-sm font-bold text-gray-700">4/10</span></div>
+                            <div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-orange-400 h-2 rounded-full" style="width:40%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><span class="text-sm text-gray-500 font-medium">Phantom Pain</span><span class="text-sm font-bold text-gray-700">6/10</span></div>
+                            <div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-red-400 h-2 rounded-full" style="width:60%"></div></div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 font-medium mt-4"><?= $role === 'caregiver' ? 'Tanyakan intensitas phantom pain secara berkala.' : 'Catat jika phantom pain muncul tiba-tiba atau makin kuat.' ?></p>
+                </div>
+
+                <!-- Checklist (2 col) -->
+                <div class="lg:col-span-2 bg-[#ECF2E6] rounded-2xl p-8 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-48 h-48 bg-[#D1D9CA] rounded-full opacity-30 -translate-y-1/4 translate-x-1/4"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-lg font-bold text-[#5A6C7A] mb-4"><?= $role === 'caregiver' ? 'Checklist Pasien Hari Ini' : 'Recovery Hari Ini' ?></h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Bantu pasien posisi elevated pada stump' : 'Posisi elevated pada stump (tinggikan)' ?></span></li>
+                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Dampingi pasien latihan mobilisasi ringan' : 'Latihan mobilisasi ringan dengan pendamping' ?></span></li>
+                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Ingatkan pasien minum obat sesuai jadwal' : 'Minum obat pereda nyeri sesuai resep' ?></span></li>
+                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Periksa balutan luka stump, laporkan perubahan' : 'Periksa balutan stump (ada rembesan/bau?)' ?></span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Alert + Mobility (1 col) -->
+                <div class="flex flex-col gap-4">
+                    <div class="bg-red-50 rounded-2xl p-6 border border-red-100">
+                        <h3 class="text-sm font-bold text-red-700 mb-3 flex items-center gap-2"><span>🚨</span> Red Flag</h3>
+                        <ul class="space-y-2 text-sm text-red-700 font-medium">
+                            <li><?= $role === 'caregiver' ? 'Jika ada perdarahan aktif dari stump → tekan & ke RS' : 'Jika ada perdarahan aktif, tekan dengan kain bersih & ke RS' ?></li>
+                            <li><?= $role === 'caregiver' ? 'Perhatikan tanda infeksi: merah, bengkak, panas lokal' : 'Tanda infeksi: warna kemerahan meluas, panas, dan berbau' ?></li>
+                        </ul>
+                    </div>
+                    <div class="bg-[#F8FCFF] rounded-2xl p-5 border border-[#DAE3EC]">
+                        <h3 class="text-sm font-bold text-[#728BA9] mb-2">🦽 Mobilitas</h3>
+                        <p class="text-sm text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Pasien saat ini dalam tahap: transfer kursi roda.' : 'Tahap kamu saat ini: transfer kursi roda.' ?></p>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
 
         <?php elseif ($page === 'roadmap'): ?>
             <!-- ROADMAP VIEW -->

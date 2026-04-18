@@ -1,11 +1,53 @@
 <?php
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../components/components.php';
+require_once __DIR__ . '/../../config/database.php';
 
 requireLogin();
 startSession();
 
 $user = getCurrentUser();
+
+$pdo = getDBConnection();
+$isOnboarded = false;
+
+try {
+    $stmt = $pdo->prepare("SELECT id FROM user_onboarding WHERE user_id = ? LIMIT 1");
+    $stmt->execute([$user['id']]);
+    if ($stmt->fetch()) {
+        $isOnboarded = true;
+    }
+} catch (PDOException $e) {
+    // Table doesn't exist yet — treat as not onboarded
+}
+
+if ($isOnboarded) {
+    header('Location: dashboard.php');
+    exit;
+}
+
+// Handle form submission (POST)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $role = $_POST['role'] ?? null;
+    $fullName = $_POST['fullName'] ?? null;
+    $patientName = $_POST['patientName'] ?? null;
+    $operationType = $_POST['operationType'] ?? null;
+    $surgeryDate = $_POST['surgeryDate'] ?? null;
+    $painLevel = isset($_POST['painLevel']) ? (int)$_POST['painLevel'] : 0;
+    $mobility = $_POST['mobility'] ?? null;
+    $symptoms = $_POST['symptoms'] ?? '';
+
+    try {
+        $stmtInsert = $pdo->prepare("INSERT INTO user_onboarding (user_id, role, full_name, patient_name, operation_type, surgery_date, pain_level, mobility, symptoms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmtInsert->execute([$user['id'], $role, $fullName, $patientName, $operationType, $surgeryDate, $painLevel, $mobility, $symptoms]);
+
+        header('Location: dashboard.php');
+        exit;
+    } catch (PDOException $e) {
+        die("Error saving onboarding data: " . $e->getMessage());
+    }
+}
+
 $pageTitle = 'Onboarding - RuangPulih';
 ?>
 <?php require_once __DIR__ . '/../../layout/header.php'; ?>
@@ -89,7 +131,7 @@ $pageTitle = 'Onboarding - RuangPulih';
         <!-- Main Card Container -->
         <div class="bg-white rounded-[24px] shadow-[0_15px_50px_rgb(0,0,0,0.05)] p-10 md:p-14 min-h-[500px] flex flex-col border border-white/60 relative overflow-hidden backdrop-blur-sm shadow-xl">
             
-            <form id="onboarding-form" action="dashboard.php" method="GET" class="flex-1 flex flex-col step-container justify-between h-full">
+            <form id="onboarding-form" action="onboarding.php" method="POST" class="flex-1 flex flex-col step-container justify-between h-full">
                 
                 <!-- STEP 1: ROLE SELECTION -->
                 <div id="step-1" class="step-block active step-enter">
@@ -130,9 +172,15 @@ $pageTitle = 'Onboarding - RuangPulih';
                         <p class="text-[#7F7F7F] font-medium text-lg">Mari kenalan lebih jauh.</p>
                     </div>
                     
-                    <div class="max-w-md mx-auto py-10 w-full mb-10">
-                        <label class="block text-[#728BA9] font-bold mb-4 text-justify text-lg text-center">Nama Lengkap</label>
-                        <input type="text" name="fullName" placeholder="Masukkan nama kamu" class="w-full px-6 py-5 rounded-[16px] border-2 border-[#DAE3EC] focus:border-[#728BA9] focus:outline-none focus:ring-[6px] focus:ring-[#F8FCFF] transition-all text-[#5A6C7A] text-xl shadow-sm placeholder-[#CDCDCD]" required autocomplete="off">
+                    <div class="max-w-md mx-auto py-10 w-full mb-10 space-y-8">
+                        <div>
+                            <label class="block text-[#728BA9] font-bold mb-4 text-lg text-center">Nama Lengkap</label>
+                            <input type="text" name="fullName" placeholder="Masukkan nama kamu" class="w-full px-6 py-5 rounded-[16px] border-2 border-[#DAE3EC] focus:border-[#728BA9] focus:outline-none focus:ring-[6px] focus:ring-[#F8FCFF] transition-all text-[#5A6C7A] text-xl shadow-sm placeholder-[#CDCDCD]" required autocomplete="off">
+                        </div>
+                        <div id="patient-name-field" class="hidden">
+                            <label class="block text-[#728BA9] font-bold mb-4 text-lg text-center">Nama Pasien yang Dipantau</label>
+                            <input type="text" name="patientName" placeholder="Masukkan nama pasien" class="w-full px-6 py-5 rounded-[16px] border-2 border-[#DAE3EC] focus:border-[#728BA9] focus:outline-none focus:ring-[6px] focus:ring-[#F8FCFF] transition-all text-[#5A6C7A] text-xl shadow-sm placeholder-[#CDCDCD]" autocomplete="off">
+                        </div>
                     </div>
                 </div>
 
@@ -297,6 +345,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update Pain Slider value
     elements.painSlider.addEventListener('input', (e) => {
         elements.painVal.textContent = e.target.value;
+    });
+
+    // Toggle patient name field based on role selection
+    const roleRadios = document.querySelectorAll('input[name="role"]');
+    const patientNameField = document.getElementById('patient-name-field');
+    roleRadios.forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (radio.value === 'caregiver' && radio.checked) {
+                patientNameField.classList.remove('hidden');
+            } else {
+                patientNameField.classList.add('hidden');
+            }
+        });
     });
 
     // Update Day Counter dynamically
