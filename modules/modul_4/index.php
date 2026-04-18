@@ -383,6 +383,214 @@ $pageTitle = 'CalorieCare - Modul 4';
         }
     }
     /* ========== END SMART HEALTH ASSISTANT STYLES ========== */
+
+    /* ========== ARTICLE SECTION STYLES ========== */
+    .article-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+    }
+    .dark .article-card { background: #1f2937; border-color: #374151; }
+    .article-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+        border-color: #16a34a;
+    }
+    .dark .article-card:hover { box-shadow: 0 16px 40px rgba(0,0,0,0.3); }
+    .article-card .art-banner {
+        height: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        position: relative;
+    }
+    .article-card .art-body {
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .article-card .art-source {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #16a34a;
+        background: #f0fdf4;
+        padding: 3px 10px;
+        border-radius: 99px;
+        margin-bottom: 10px;
+        width: fit-content;
+    }
+    .dark .article-card .art-source { background: rgba(22,163,74,0.15); color: #86efac; }
+    .article-card .art-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1f2937;
+        line-height: 1.4;
+        margin-bottom: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .dark .article-card .art-title { color: #f3f4f6; }
+    .article-card .art-excerpt {
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.6;
+        flex: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .dark .article-card .art-excerpt { color: #9ca3af; }
+    .article-card .art-read {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #16a34a;
+        margin-top: 14px;
+        transition: gap 0.2s;
+    }
+    .article-card:hover .art-read { gap: 8px; }
+
+    /* Article Detail Overlay */
+    #articleDetail {
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 40px 16px;
+        overflow-y: auto;
+        animation: artFadeIn 0.3s ease;
+    }
+    #articleDetail.open { display: flex; }
+    @keyframes artFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    .art-detail-box {
+        background: white;
+        border-radius: 20px;
+        max-width: 720px;
+        width: 100%;
+        padding: 0;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+        animation: artSlideUp 0.35s cubic-bezier(0.16,1,0.3,1);
+    }
+    .dark .art-detail-box { background: #111827; }
+    @keyframes artSlideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .art-detail-header {
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 56px;
+        position: relative;
+    }
+    .art-detail-content {
+        padding: 32px;
+    }
+    .art-detail-content h2 {
+        font-size: 22px;
+        font-weight: 800;
+        color: #111827;
+        margin-bottom: 6px;
+        line-height: 1.3;
+    }
+    .dark .art-detail-content h2 { color: #f9fafb; }
+    .art-detail-content .art-d-source {
+        font-size: 12px;
+        color: #16a34a;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .art-detail-content .art-d-body {
+        font-size: 14.5px;
+        color: #374151;
+        line-height: 1.85;
+    }
+    .dark .art-detail-content .art-d-body { color: #d1d5db; }
+    .art-detail-content .art-d-body h3 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #111827;
+        margin: 20px 0 8px 0;
+    }
+    .dark .art-detail-content .art-d-body h3 { color: #f3f4f6; }
+    .art-detail-content .art-d-body ul {
+        padding-left: 20px;
+        margin: 8px 0;
+    }
+    .art-detail-content .art-d-body ul li {
+        margin-bottom: 6px;
+        position: relative;
+        padding-left: 6px;
+    }
+    .art-detail-content .art-d-body ul li::marker {
+        color: #16a34a;
+    }
+    .art-detail-footer {
+        padding: 16px 32px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .art-btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 20px;
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        background: white;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'Poppins',sans-serif;
+    }
+    .dark .art-btn-back { background: #1f2937; border-color: #4b5563; color: #d1d5db; }
+    .art-btn-back:hover { border-color: #16a34a; color: #16a34a; }
+    .art-ref-link {
+        font-size: 12px;
+        color: #6b7280;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .art-ref-link:hover { color: #16a34a; }
+    .dark .art-ref-link { color: #9ca3af; }
+
+    @media (max-width: 640px) {
+        #articleDetail { padding: 16px 8px; }
+        .art-detail-content { padding: 20px; }
+        .art-detail-footer { padding: 12px 20px 20px; flex-direction: column; }
+    }
+    /* ========== END ARTICLE STYLES ========== */
 </style>
 
 <?php require_once __DIR__ . '/../../layout/navbar.php'; ?>
@@ -776,6 +984,58 @@ $pageTitle = 'CalorieCare - Modul 4';
         </div>
     </section>
     <!-- ========== END ACTIVITY HISTORY ========== -->
+
+    <!-- ========== ARTIKEL KESEHATAN SECTION ========== -->
+    <section id="artikelSection" class="py-20 px-6 bg-gray-50 dark:bg-gray-800 transition-colors duration-300">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12 fade-in">
+                <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4 translatable"
+                    data-en="📰 Health Articles"
+                    data-id="📰 Artikel Kesehatan">📰 Health Articles</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 translatable"
+                    data-en="Health insights from trusted Indonesian sources"
+                    data-id="Wawasan kesehatan dari sumber terpercaya Indonesia">Health insights from trusted Indonesian sources</p>
+            </div>
+
+            <!-- Article Cards Grid (shows first 3) -->
+            <div id="articleGrid" class="grid md:grid-cols-3 gap-6"></div>
+
+            <!-- Show All / Show Less Button -->
+            <div class="text-center mt-8">
+                <button id="btnToggleArticles"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 transition-all shadow-sm hover:shadow-md">
+                    <span class="translatable" data-en="Show All Articles" data-id="Lihat Semua Artikel">Show All Articles</span>
+                    <svg class="w-4 h-4 transition-transform" id="toggleArrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Article Detail Overlay -->
+    <div id="articleDetail">
+        <div class="art-detail-box">
+            <div class="art-detail-header" id="artDetailBanner"></div>
+            <div class="art-detail-content">
+                <h2 id="artDetailTitle"></h2>
+                <div class="art-d-source" id="artDetailSource"></div>
+                <div class="art-d-body" id="artDetailBody"></div>
+            </div>
+            <div class="art-detail-footer">
+                <button class="art-btn-back" id="btnCloseArticle">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    <span class="translatable" data-en="Back" data-id="Kembali">Back</span>
+                </button>
+                <a class="art-ref-link" id="artDetailRef" href="#" target="_blank" rel="noopener">
+                    <span class="translatable" data-en="View original source ↗" data-id="Lihat sumber asli ↗">View original source ↗</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- ========== END ARTIKEL KESEHATAN ========== -->
 
     <!-- ========== QUICK CHAT FLOATING WIDGET ========== -->
     <button id="qchat-toggle" title="Quick Health Chat">
@@ -1409,6 +1669,273 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial render
     renderQuickChatOptions();
+
+    // ================================================================
+    // 10. ARTIKEL KESEHATAN (Inline, No External Redirect)
+    // ================================================================
+    const artikelData = [
+        {
+            id: 1,
+            emoji: '🏃',
+            banner: 'linear-gradient(135deg, #059669, #10b981)',
+            title: 'Berapa Banyak Aktivitas Fisik yang Anda Butuhkan?',
+            source: 'Kemenkes RI',
+            sourceUrl: 'https://keslan.kemkes.go.id/view_artikel/2459/berapa-banyak-aktivitas-fisik-yang-anda-butuhkan',
+            excerpt: 'WHO merekomendasikan 150–300 menit aktivitas aerobik intensitas sedang per minggu untuk orang dewasa.',
+            content: `<h3>Rekomendasi WHO untuk Aktivitas Fisik</h3>
+<p>Organisasi Kesehatan Dunia (WHO) merekomendasikan agar orang dewasa berusia 18–64 tahun melakukan:</p>
+<ul>
+<li><strong>150–300 menit</strong> aktivitas fisik aerobik intensitas sedang per minggu, ATAU</li>
+<li><strong>75–150 menit</strong> aktivitas fisik aerobik intensitas berat per minggu</li>
+<li>Kombinasi keduanya juga direkomendasikan</li>
+</ul>
+
+<h3>Aktivitas Penguatan Otot</h3>
+<p>Selain aerobik, WHO juga menyarankan latihan penguatan otot untuk semua kelompok otot utama sebanyak <strong>2 hari atau lebih per minggu</strong>. Contohnya:</p>
+<ul>
+<li>Angkat beban atau latihan resistance</li>
+<li>Push-up, sit-up, dan squat</li>
+<li>Yoga dan pilates</li>
+</ul>
+
+<h3>Untuk Anak dan Remaja (5–17 tahun)</h3>
+<ul>
+<li>Minimal <strong>60 menit per hari</strong> aktivitas fisik intensitas sedang hingga berat</li>
+<li>Aktivitas aerobik intensitas berat sebaiknya dilakukan minimal <strong>3 kali per minggu</strong></li>
+</ul>
+
+<h3>Manfaat Utama</h3>
+<p>Aktivitas fisik yang teratur terbukti dapat mengurangi risiko penyakit jantung, diabetes tipe 2, beberapa jenis kanker, serta meningkatkan kesehatan mental dan kualitas tidur. Setiap gerakan berarti — bahkan aktivitas ringan lebih baik daripada tidak bergerak sama sekali.</p>
+
+<p><em>Catatan: Konsultasikan dengan tenaga medis sebelum memulai program olahraga baru, terutama jika memiliki kondisi kesehatan tertentu.</em></p>`
+        },
+        {
+            id: 2,
+            emoji: '💪',
+            banner: 'linear-gradient(135deg, #0ea5e9, #06b6d4)',
+            title: 'Manfaat Aktivitas Fisik: Sehat, Bugar, Bahagia',
+            source: 'Halodoc',
+            sourceUrl: 'https://www.halodoc.com/artikel/manfaat-aktivitas-fisik-sehat-bugar-bahagia',
+            excerpt: 'Aktivitas fisik tidak hanya menyehatkan tubuh, tapi juga meningkatkan mood dan kebahagiaan secara keseluruhan.',
+            content: `<h3>Manfaat untuk Kesehatan Fisik</h3>
+<ul>
+<li><strong>Menjaga berat badan ideal</strong> — Aktivitas fisik membantu membakar kalori berlebih dan mencegah obesitas</li>
+<li><strong>Memperkuat jantung</strong> — Olahraga teratur menurunkan tekanan darah dan kadar kolesterol jahat (LDL)</li>
+<li><strong>Meningkatkan imunitas</strong> — Tubuh yang aktif memiliki sistem kekebalan yang lebih kuat</li>
+<li><strong>Mencegah penyakit kronis</strong> — Mengurangi risiko diabetes tipe 2, stroke, dan beberapa jenis kanker</li>
+</ul>
+
+<h3>Manfaat untuk Kesehatan Mental</h3>
+<ul>
+<li><strong>Mengurangi stres dan kecemasan</strong> — Olahraga memicu pelepasan endorfin, hormon yang membuat perasaan lebih baik</li>
+<li><strong>Meningkatkan kualitas tidur</strong> — Aktivitas fisik membantu mengatur ritme sirkadian tubuh</li>
+<li><strong>Meningkatkan kepercayaan diri</strong> — Pencapaian dalam olahraga memberikan rasa bangga dan motivasi</li>
+<li><strong>Melawan depresi</strong> — Penelitian menunjukkan olahraga teratur sama efektifnya dengan antidepresan ringan</li>
+</ul>
+
+<h3>Tips Memulai</h3>
+<p>Tidak perlu langsung intensitas tinggi. Mulailah dengan <strong>jalan kaki 15-20 menit per hari</strong>, lalu tingkatkan secara bertahap. Yang terpenting adalah konsistensi, bukan intensitas. Pilih aktivitas yang kamu nikmati agar mudah dijadikan kebiasaan.</p>
+
+<p>Ingat: <strong>Bergerak sedikit lebih baik daripada tidak bergerak sama sekali!</strong></p>`
+        },
+        {
+            id: 3,
+            emoji: '🏋️',
+            banner: 'linear-gradient(135deg, #8b5cf6, #a78bfa)',
+            title: 'Pentingnya Olahraga untuk Kesehatan Optimal',
+            source: 'Pemkab Sarolangun',
+            sourceUrl: 'https://sarolangunkab.go.id/artikel/baca/pentingnya-olahraga-untuk-kesehatan-optimal',
+            excerpt: 'Olahraga merupakan bagian integral dari gaya hidup sehat yang memberikan manfaat bagi kesehatan fisik dan mental.',
+            content: `<h3>Manfaat Kesehatan Fisik</h3>
+<p>Olahraga teratur membantu menjaga berat badan yang sehat, meningkatkan kekuatan otot, serta meningkatkan kesehatan jantung dan sistem kardiovaskular.</p>
+<ul>
+<li><strong>Meningkatkan kebugaran dan stamina</strong> — tubuh mampu menjalani aktivitas sehari-hari dengan lebih mudah dan berenergi</li>
+<li><strong>Memperkuat otot dan tulang</strong> — mengurangi risiko cedera dan osteoporosis</li>
+<li><strong>Menjaga kesehatan jantung</strong> — menurunkan tekanan darah, kolesterol, dan risiko penyakit jantung</li>
+<li><strong>Menurunkan berat badan</strong> — membakar kalori dan mengurangi risiko obesitas</li>
+<li><strong>Meningkatkan kualitas tidur</strong> — tidur lebih nyenyak dan berkualitas</li>
+</ul>
+
+<h3>Manfaat Kesehatan Mental</h3>
+<p>Berolahraga melepaskan endorfin, neurotransmiter alami yang dikenal sebagai &ldquo;hormon bahagia&rdquo;, yang dapat meningkatkan perasaan positif dan mengurangi rasa sakit.</p>
+<ul>
+<li>Mengurangi stres dan kecemasan</li>
+<li>Meningkatkan fokus dan konsentrasi</li>
+<li>Meningkatkan kepercayaan diri</li>
+<li>Mengurangi risiko depresi</li>
+</ul>
+
+<h3>Tips Memulai Rutinitas Olahraga</h3>
+<ul>
+<li><strong>Pilih aktivitas yang Anda nikmati</strong> — berjalan, berlari, bersepeda, atau berenang</li>
+<li><strong>Tetapkan tujuan realistis</strong> — spesifik dan terukur</li>
+<li><strong>Mulai secara perlahan</strong> — tingkatkan intensitas secara bertahap</li>
+<li><strong>Jadwalkan waktu</strong> — seperti janji penting lainnya</li>
+<li><strong>Temukan dukungan</strong> — berolahraga dengan teman lebih menyenangkan</li>
+</ul>
+
+<p><em>Sumber: Ringgana Wandy Wiguna</em></p>`
+        },
+        {
+            id: 4,
+            emoji: '🧘',
+            banner: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+            title: 'Aktivitas Fisik untuk Kesehatan Tubuh dan Jiwa',
+            source: 'Puskesmas Babakan Sari',
+            sourceUrl: 'https://pkmbabakansaribdg.com/aktivitas-fisik-untuk-kesehatan-tubuh-dan-jiwa/',
+            excerpt: 'Kurangnya aktivitas fisik merupakan salah satu penyebab tingginya Penyakit Tidak Menular (PTM) di Indonesia.',
+            content: `<h3>Jenis Aktivitas Fisik</h3>
+<p>Menurut Kemenkes, kurangnya aktivitas fisik merupakan salah satu penyebab cukup tingginya PTM (Penyakit Tidak Menular) di Indonesia.</p>
+
+<p><strong>1. Aktivitas Fisik Harian</strong><br>Kegiatan sehari-hari seperti mencuci baju, mengepel, jalan kaki, berkebun, dan bermain dengan anak. Kalori yang terbakar bisa 50–200 kkal per kegiatan.</p>
+
+<p><strong>2. Latihan Fisik</strong><br>Aktivitas terstruktur dan terencana seperti jalan kaki, jogging, push-up, peregangan, senam aerobik, dan bersepeda.</p>
+
+<p><strong>3. Olahraga</strong><br>Aktivitas fisik terstruktur dengan aturan dan tujuan prestasi, seperti sepak bola, bulu tangkis, basket, dan berenang.</p>
+
+<h3>Berdasarkan Intensitas</h3>
+<ul>
+<li><strong>Ringan</strong> — Mencuci piring, memasak, jalan santai, memancing, peregangan otot</li>
+<li><strong>Sedang</strong> — Berjalan cepat, bersepeda, naik tangga, yoga, menari, voli</li>
+<li><strong>Berat</strong> — Futsal, lari, berenang, naik gunung, lompat tali, bulutangkis</li>
+</ul>
+
+<h3>Manfaat bagi Tubuh</h3>
+<ul>
+<li>Mengendalikan kadar kolesterol dan stres</li>
+<li>Mengurangi kecemasan</li>
+<li>Memperbaiki kelenturan sendi dan kekuatan otot</li>
+<li>Memperbaiki postur tubuh</li>
+<li>Menurunkan risiko osteoporosis pada wanita</li>
+</ul>
+
+<h3>Prinsip BBTT</h3>
+<p>Untuk hasil maksimal, lakukan aktivitas fisik dengan prinsip:</p>
+<ul>
+<li><strong>Baik</strong> — sesuai kemampuan</li>
+<li><strong>Benar</strong> — bertahap mulai pemanasan hingga pendinginan</li>
+<li><strong>Terukur</strong> — diukur intensitas dan waktunya</li>
+<li><strong>Teratur</strong> — 3-5 kali seminggu, minimal 150 menit/minggu (30 menit/hari)</li>
+</ul>
+
+<p><em>Oleh: Dwi Fera Wittya Sari, S.KM dan Dini Susanti, AMK</em></p>`
+        },
+        {
+            id: 5,
+            emoji: '📊',
+            banner: 'linear-gradient(135deg, #ef4444, #f87171)',
+            title: 'Hubungan Aktivitas Fisik dengan Kesehatan: Tinjauan Ilmiah',
+            source: 'Jurnal FKM UMI',
+            sourceUrl: 'https://jurnal.fkmumi.ac.id/index.php/woh/article/download/179/261',
+            excerpt: 'Penelitian menunjukkan korelasi kuat antara tingkat aktivitas fisik dengan penurunan risiko penyakit kronis.',
+            content: `<h3>Latar Belakang Penelitian</h3>
+<p>Penelitian dari Fakultas Kesehatan Masyarakat Universitas Muslim Indonesia ini mengkaji hubungan antara tingkat aktivitas fisik dengan berbagai indikator kesehatan. Data menunjukkan bahwa gaya hidup sedenter (kurang gerak) merupakan faktor risiko utama penyakit tidak menular.</p>
+
+<h3>Temuan Utama</h3>
+<ul>
+<li><strong>Penurunan risiko kardiovaskular</strong> — Individu yang aktif secara fisik memiliki risiko 20–35% lebih rendah terkena penyakit jantung</li>
+<li><strong>Kontrol gula darah</strong> — Aktivitas fisik teratur meningkatkan sensitivitas insulin hingga 40%</li>
+<li><strong>Kesehatan mental</strong> — Olahraga 30 menit/hari dapat mengurangi gejala depresi sebesar 26%</li>
+<li><strong>Mortalitas</strong> — Orang yang aktif secara fisik memiliki harapan hidup 3–7 tahun lebih panjang</li>
+</ul>
+
+<h3>Rekomendasi Berdasarkan Penelitian</h3>
+<p>Berdasarkan tinjauan literatur, peneliti merekomendasikan:</p>
+<ul>
+<li>Aktivitas fisik intensitas sedang minimal <strong>150 menit per minggu</strong></li>
+<li>Mengurangi waktu duduk berkepanjangan (setiap 30 menit, berdiri dan bergerak)</li>
+<li>Kombinasi latihan aerobik dan latihan resistensi untuk hasil optimal</li>
+<li>Pendekatan bertahap untuk individu yang baru memulai program olahraga</li>
+</ul>
+
+<h3>Kesimpulan</h3>
+<p>Aktivitas fisik merupakan "obat" yang paling murah dan efektif untuk pencegahan berbagai penyakit kronis. Peningkatan aktivitas fisik di tingkat populasi dapat menurunkan beban penyakit secara signifikan dan meningkatkan kualitas hidup masyarakat Indonesia.</p>
+
+<p><em>Sumber: Window of Health — Jurnal Kesehatan, Vol. 1, No. 2</em></p>`
+        }
+    ];
+
+    let showAllArticles = false;
+
+    function renderArticles() {
+        const grid = document.getElementById('articleGrid');
+        const btn = document.getElementById('btnToggleArticles');
+        const arrow = document.getElementById('toggleArrow');
+        const items = showAllArticles ? artikelData : artikelData.slice(0, 3);
+
+        grid.innerHTML = '';
+        items.forEach((art, i) => {
+            grid.innerHTML += `
+            <div class="article-card" onclick="openArticle(${art.id})" style="animation: qcBubblePop 0.3s ease-out ${i * 0.1}s both">
+                <div class="art-banner" style="background: ${art.banner}">
+                    <span>${art.emoji}</span>
+                </div>
+                <div class="art-body">
+                    <span class="art-source">📌 ${art.source}</span>
+                    <div class="art-title">${art.title}</div>
+                    <div class="art-excerpt">${art.excerpt}</div>
+                    <div class="art-read">
+                        <span class="translatable" data-en="Read summary" data-id="Baca ringkasan">Read summary</span>
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        // Update button text
+        const spanEl = btn.querySelector('.translatable');
+        if (showAllArticles) {
+            spanEl.setAttribute('data-en', 'Show Less');
+            spanEl.setAttribute('data-id', 'Tampilkan Sedikit');
+            arrow.style.transform = 'rotate(180deg)';
+        } else {
+            spanEl.setAttribute('data-en', 'Show All Articles');
+            spanEl.setAttribute('data-id', 'Lihat Semua Artikel');
+            arrow.style.transform = 'rotate(0deg)';
+        }
+        updateLanguage();
+    }
+
+    // Make openArticle globally accessible
+    window.openArticle = function(id) {
+        const art = artikelData.find(a => a.id === id);
+        if (!art) return;
+
+        document.getElementById('artDetailBanner').style.background = art.banner;
+        document.getElementById('artDetailBanner').innerHTML = `<span>${art.emoji}</span>`;
+        document.getElementById('artDetailTitle').textContent = art.title;
+        document.getElementById('artDetailSource').innerHTML = `📌 ${art.source}`;
+        document.getElementById('artDetailBody').innerHTML = art.content;
+        document.getElementById('artDetailRef').href = art.sourceUrl;
+
+        const overlay = document.getElementById('articleDetail');
+        overlay.classList.add('open');
+        overlay.scrollTop = 0;
+        document.body.style.overflow = 'hidden';
+    };
+
+    function closeArticle() {
+        document.getElementById('articleDetail').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    document.getElementById('btnCloseArticle').addEventListener('click', closeArticle);
+    document.getElementById('articleDetail').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('articleDetail')) closeArticle();
+    });
+
+    document.getElementById('btnToggleArticles').addEventListener('click', () => {
+        showAllArticles = !showAllArticles;
+        renderArticles();
+        if (!showAllArticles) {
+            document.getElementById('artikelSection').scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+
+    // Render articles on load
+    renderArticles();
 
     // Setel bahasa awal
     updateLanguage();
