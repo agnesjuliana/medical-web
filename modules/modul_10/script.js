@@ -33,7 +33,26 @@ if (calorieForm) {
         }
         
         const totalCalories = Math.round(bmr * activity);
-        
+        const totalCalories = Math.round(bmr * activity);
+        fetch('simpan_kalori.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                usia: age,
+                gender: gender,
+                berat: weight,
+                tinggi: height,
+                aktivitas: activity,
+                kalori: totalCalories
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log("Data berhasil disimpan:", data);
+        })
+        .catch(err => console.error("Error:", err));
         // Estimasi Makronutrisi
         const protein = Math.round((totalCalories * 0.25) / 4); // 25% Protein
         const carbs = Math.round((totalCalories * 0.50) / 4);   // 50% Karbohidrat
