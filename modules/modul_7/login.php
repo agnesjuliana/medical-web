@@ -1,6 +1,6 @@
 <?php
 /**
- * Modul 7 — Login / Profil Pasien
+ * Modul 7 — Lengkapi Profil Pasien (Skin Context)
  */
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../components/components.php';
@@ -10,15 +10,14 @@ startSession();
 
 $pageTitle = 'Lengkapi Profil - Dermalyze.AI';
 require_once __DIR__ . '/../../layout/header.php';
-// Tidak perlu navbar jika ingin fokus seperti landing page, namun kita konsisten dengan sistem.
 require_once __DIR__ . '/../../layout/navbar.php';
 ?>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
     body {
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #FFF5F7 0%, #F0F7FF 100%);
+        font-family: 'Quicksand', sans-serif;
     }
 
     .profile-container {
@@ -27,7 +26,7 @@ require_once __DIR__ . '/../../layout/navbar.php';
         background: #ffffff;
         border-radius: 40px; 
         padding: 50px 40px;
-        box-shadow: 0 25px 50px -12px rgba(255, 183, 206, 0.25); /* Shadow Pink */
+        box-shadow: 0 25px 50px -12px rgba(255, 183, 206, 0.25);
         text-align: center;
         position: relative;
         overflow: hidden;
@@ -45,7 +44,7 @@ require_once __DIR__ . '/../../layout/navbar.php';
     }
 
     .form-title {
-       font-size: 2.2rem;
+       font-size: 2rem;
         font-weight: 800;
         color: #7D6E7D; 
         margin-bottom: 10px;
@@ -54,44 +53,55 @@ require_once __DIR__ . '/../../layout/navbar.php';
 
     .form-subtitle {
         color: #A79BA7;
-        font-size: 1rem;
-        margin-bottom: 40px;
+        font-size: 0.95rem;
+        margin-bottom: 35px;
     }
 
     .input-group {
-        margin-bottom: 25px;
+        margin-bottom: 20px;
         text-align: left;
     }
 
-    .custom-input {
-       width: 100%;
-        padding: 18px 24px;
+    .input-label {
+        display: block;
+        margin-left: 20px;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #FFB7CE;
+        text-transform: uppercase;
+    }
+
+    .custom-input, .custom-select {
+        width: 100%;
+        padding: 16px 24px;
         border-radius: 40px;
-        border: 2px solid #FFF0F5; /* Border pink muda banget */
+        border: 2px solid #FFF0F5;
         background: #FFFBFC;
         font-size: 1rem;
         color: #7D6E7D;
         transition: all 0.3s;
-        text-align: center;
-        /* Mengikuti referensi gambar */
+        appearance: none; /* Hilangkan arrow default select */
     }
 
-    .custom-input:focus {
+    /* Khusus select biar teksnya di tengah */
+    .custom-select {
+        text-align-last: center;
+        cursor: pointer;
+    }
+
+    .custom-input:focus, .custom-select:focus {
         outline: none;
-        border-color: #FFB7CE; /* Pink pas ngetik */
+        border-color: #FFB7CE;
         background: #ffffff;
         box-shadow: 0 0 0 4px rgba(255, 183, 206, 0.15);
-    }
-
-    .custom-input::placeholder {
-        color: #94a3b8;
     }
 
     .btn-group {
         display: flex;
         flex-direction: column;
         gap: 15px;
-        margin-top: 40px;
+        margin-top: 35px;
     }
 
     .btn-next {
@@ -105,31 +115,23 @@ require_once __DIR__ . '/../../layout/navbar.php';
         cursor: pointer;
         transition: all 0.3s;
         box-shadow: 0 10px 25px rgba(255, 183, 206, 0.3);
-        width: 100%;
     }
 
     .btn-next:hover {
         transform: translateY(-2px);
         box-shadow: 0 15px 30px rgba(255, 183, 206, 0.5);
-        filter: brightness(1.05);
     }
 
     .btn-back {
-     background: #FDF2F5;
+        background: #FDF2F5;
         color: #FFB7CE;
-        padding: 18px 24px;
+        padding: 15px 24px;
         border-radius: 40px;
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 700;
         border: none;
         cursor: pointer;
         transition: all 0.3s;
-        width: 100%;
-    }
-
-    .btn-back:hover {
-        background: #FFE4EC;
-        color: #FF8AAB;
     }
 
     .terms-box {
@@ -137,76 +139,72 @@ require_once __DIR__ . '/../../layout/navbar.php';
         align-items: flex-start;
         gap: 12px;
         text-align: left;
-        margin-top: 25px;
-        margin-bottom: 10px;
-        
+        margin-top: 20px;
     }
 
     .terms-text {
-        font-size: 0.85rem;
-        color: #64748b;
-        line-height: 1.5;
-    }
-
-    .terms-text a {
-        color: #FFB7CE;
-        font-weight: 600;
-        text-decoration: none;
+        font-size: 0.8rem;
+        color: #94a3b8;
+        line-height: 1.4;
     }
 
     .custom-checkbox {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
         border-radius: 6px;
-        border: 2px solid #cbd5e1;
-        background: #f8fafc;
+        border: 2px solid #FFD1DC;
         cursor: pointer;
-        appearance: none;
-        position: relative;
-        flex-shrink: 0;
-        margin-top: 2px;
-    }
-
-    .custom-checkbox:checked {
-        background: #FFB7CE;  /
-        border-color: #FFB7CE;
-    }
-
-    .custom-checkbox:checked::after {
-        content: '✓';
-        position: absolute;
-        color: white;
-        font-size: 14px;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        accent-color: #FFB7CE;
     }
 </style>
 
 <div class="profile-container">
-    <h1 class="form-title">Complete<br>your profile</h1>
-    <p class="form-subtitle">Lengkapi identitas Anda sebelum analisis.</p>
+    <h1 class="form-title">Kenalan Yuk! ✨</h1>
+    <p class="form-subtitle">Bantu AI kami mengenal kulitmu lebih dekat.</p>
 
-    <form action="scanner.php" method="GET">
+    <form action="scanner.php" method="GET" class="space-y-4">
         <div class="input-group">
-            <input type="text" name="name" class="custom-input" placeholder="Name" required autofocus>
+            <input type="text" name="name" class="custom-input" placeholder="Nama Lengkap" required autofocus>
         </div>
 
         <div class="input-group">
-            <input type="email" name="email" class="custom-input" placeholder="Email" required>
+            <input type="number" name="age" class="custom-input" placeholder="Usia Kamu (Tahun)" required>
+        </div>
+
+        <div class="input-group">
+            <label class="input-label">Tipe Kulit</label>
+            <select name="skin_type" class="custom-select" required>
+                <option value="" disabled selected>Pilih Tipe Kulit</option>
+                <option value="oily">Berminyak (Oily)</option>
+                <option value="dry">Kering (Dry)</option>
+                <option value="combination">Kombinasi (Combination)</option>
+                <option value="normal">Normal</option>
+                <option value="sensitive">Sensitif</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label class="input-label">Masalah Utama</label>
+            <select name="concern" class="custom-select" required>
+                <option value="" disabled selected>Apa keluhan utamamu?</option>
+                <option value="acne">Jerawat Aktif</option>
+                <option value="blackheads">Komedo / Blackheads</option>
+                <option value="redness">Kemerahan / Iritasi</option>
+                <option value="scars">Bekas Jerawat</option>
+                <option value="dullness">Kulit Kusam</option>
+            </select>
         </div>
 
         <div class="terms-box">
             <input type="checkbox" id="terms" name="terms" class="custom-checkbox" required>
             <label for="terms" class="terms-text">
-                I have read and agree to Dermalyze.AI's Terms of Use and consent to the processing of my personal data
-                in accordance with <a href="#">[Privacy Policy]</a>.
+                Saya setuju memberikan data diri untuk keperluan analisis kulit di Dermalyze.AI.
             </label>
         </div>
 
         <div class="btn-group">
-            <button type="button" class="btn-back" onclick="window.location.href='index.php'">BACK</button>
-            <button type="submit" class="btn-next">NEXT</button>
+            <button type="submit" class="btn-next">SIAP, SCAN WAJAHKU!</button>
+            <button type="button" class="btn-back" onclick="window.location.href='index.php'">KEMBALI</button>
         </div>
     </form>
 </div>
