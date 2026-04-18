@@ -1,28 +1,11 @@
 import { useEffect, useState } from "react";
-import TabBar from "@/components/navigation/tabBar";
-import Header from "@/components/header/Header";
-import type { TabItem } from "@/components/navigation/tabBar";
-import { Home, User, Settings, Bell } from "lucide-react";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./components/ui";
+import { AuthLayout } from "./components/auth/AuthLayout";
+import { LoginForm } from "./components/auth/LoginForm";
+import { RegisterForm } from "./components/auth/RegisterForm";
+import { OnboardingWizard } from "./components/onboarding/OnboardingWizard";
+import CalorieResultScreen from "./screens/CalorieResultScreen";
+import HomeScreen from "./screens/Home";
+import type { CalorieResult } from "./lib/calorieCalculator";
 import "./App.css";
 
 interface User {
@@ -31,178 +14,110 @@ interface User {
   email: string;
 }
 
-const NAV_TABS: TabItem[] = [
-  { id: "home", label: "Home", icon: <Home size={20} /> },
-  { id: "profile", label: "Profile", icon: <User size={20} /> },
-  { id: "settings", label: "Settings", icon: <Settings size={20} /> },
-  { id: "alerts", label: "Alerts", icon: <Bell size={20} /> },
-];
+// Default data for immediate dashboard access if none exists
+const DEFAULT_CALORIE_RESULT: CalorieResult = {
+  bmr: 1750,
+  tdee: 2100,
+  daily_calorie_target: 1800,
+  calorie_deficit_or_surplus: -300,
+  weight_difference_kg: 5,
+  estimated_weeks: 10,
+  protein_grams: 135,
+  carbs_grams: 225,
+  fat_grams: 45,
+  fiber_target_grams: 25,
+  sugar_limit_grams: 45,
+  sodium_limit_mg: 2300,
+  bmi: 24.2,
+  bmi_category: 'Normal',
+  current_weight_kg: 70,
+  target_weight_kg: 65,
+  goal: 'lose',
+};
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [count, setCount] = useState(0);
-  const [message, setMessage] = useState("");
-  const [activeTab, setActiveTab] = useState("home");
+  const [, _setUser] = useState<User | null>(null);
+  const [authView, setAuthView] = useState<"login" | "register">("login");
+  
+  // Persistent states
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('nutritrack_auth') === 'true';
+  });
+  const [isOnboarded, setIsOnboarded] = useState(() => {
+    return localStorage.getItem('nutritrack_onboarded') === 'true';
+  });
+  const [calorieResult, setCalorieResult] = useState<CalorieResult | null>(() => {
+    const saved = localStorage.getItem('nutritrack_calorie_result');
+    return saved ? JSON.parse(saved) : DEFAULT_CALORIE_RESULT;
+  });
+  const [showCalorieResult, setShowCalorieResult] = useState(false);
+
+  // Sync with localStorage
+  useEffect(() => {
+    localStorage.setItem('nutritrack_auth', isAuthenticated.toString());
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    // Get user data passed from PHP
-    const userData = (window as any).__USER__ as User | null;
-    setUser(userData);
-  }, []);
+    localStorage.setItem('nutritrack_onboarded', isOnboarded.toString());
+  }, [isOnboarded]);
 
-  return (
-    <div className="min-h-screen p-4 pb-24 md:pb-4">
-      <div className="max-w-4xl mx-auto">
-        {/* TabBar — fixed bottom on mobile, top-centered on desktop */}
-        <div className="mb-8">
-          <TabBar
-            tabs={NAV_TABS}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            onSidebarToggle={() => console.log("sidebar toggled")}
-            onSearch={() => console.log("search clicked")}
+  useEffect(() => {
+    if (calorieResult) {
+      localStorage.setItem('nutritrack_calorie_result', JSON.stringify(calorieResult));
+    }
+  }, [calorieResult]);
+
+  // Demo Login Handler
+  const handleAuthSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
+  // --- Screen: Auth ---
+  if (!isAuthenticated) {
+    return (
+      <AuthLayout>
+        {authView === "login" ? (
+          <LoginForm
+            onToggleForm={() => setAuthView("register")}
+            onSubmit={handleAuthSuccess}
           />
-        </div>
+        ) : (
+          <RegisterForm
+            onToggleForm={() => setAuthView("login")}
+            onSubmit={handleAuthSuccess}
+          />
+        )}
+      </AuthLayout>
+    );
+  }
 
-        {/* Header */}
-        <Header
-          title="Modul 8"
-          subtitle="React + Vite + TypeScript with shadcn/ui"
-        />
+  // --- Screen: Onboarding ---
+  if (isAuthenticated && !isOnboarded && !showCalorieResult) {
+    return (
+      <OnboardingWizard
+        onComplete={(result: CalorieResult) => {
+          setCalorieResult(result);
+          setShowCalorieResult(true);
+        }}
+      />
+    );
+  }
 
-        {/* Grid Layout */}
-        <div className="grid gap-6">
-          {/* User Info Card */}
-          {user && (
-            <Card className="border-slate-700 bg-slate-800">
-              <CardHeader>
-                <CardTitle className="text-white">
-                  Welcome, {user.name}!
-                </CardTitle>
-                <CardDescription>Your account information</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-slate-300">
-                  <span className="font-medium">ID:</span> {user.id}
-                </p>
-                <p className="text-slate-300">
-                  <span className="font-medium">Email:</span> {user.email}
-                </p>
-              </CardContent>
-            </Card>
-          )}
+  // --- Screen: Calorie Result (between onboarding and dashboard) ---
+  if (isAuthenticated && showCalorieResult && calorieResult) {
+    return (
+      <CalorieResultScreen
+        result={calorieResult}
+        onContinue={() => {
+          setShowCalorieResult(false);
+          setIsOnboarded(true);
+        }}
+      />
+    );
+  }
 
-          {/* shadcn/ui Components Demo */}
-          <Card className="border-slate-700 bg-slate-800">
-            <CardHeader>
-              <CardTitle className="text-white">shadcn/ui Components</CardTitle>
-              <CardDescription>Interactive component examples</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Buttons */}
-              <div className="space-y-2">
-                <Label className="text-white text-base font-semibold">
-                  Button Variants
-                </Label>
-                <div className="flex gap-2 flex-wrap">
-                  <Button variant="default">Default</Button>
-                  <Button variant="secondary">Secondary</Button>
-                  <Button variant="outline">Outline</Button>
-                  <Button variant="ghost">Ghost</Button>
-                  <Button variant="destructive">Destructive</Button>
-                </div>
-              </div>
-
-              {/* Input */}
-              <div className="space-y-2">
-                <Label htmlFor="message" className="text-white">
-                  Message
-                </Label>
-                <Input
-                  id="message"
-                  placeholder="Type a message..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="bg-slate-700 border-slate-600"
-                />
-              </div>
-
-              {/* Counter with Button */}
-              <div className="space-y-2">
-                <Label className="text-white text-base font-semibold">
-                  Counter
-                </Label>
-                <Button
-                  onClick={() => setCount((c) => c + 1)}
-                  className="w-full"
-                >
-                  Count: {count}
-                </Button>
-              </div>
-
-              {/* Dialog Example */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full">
-                    Open Dialog
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-slate-800 border-slate-700">
-                  <DialogHeader>
-                    <DialogTitle className="text-white">
-                      Dialog Example
-                    </DialogTitle>
-                    <DialogDescription>
-                      This is a shadcn/ui dialog component
-                    </DialogDescription>
-                  </DialogHeader>
-                  <p className="text-slate-300">
-                    This dialog demonstrates the shadcn/ui Dialog component with
-                    Radix UI.
-                  </p>
-                </DialogContent>
-              </Dialog>
-
-              {/* Dropdown Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full">
-                    Open Menu
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-slate-800 border-slate-700">
-                  <DropdownMenuItem className="text-slate-200 focus:bg-slate-700">
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-slate-200 focus:bg-slate-700">
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-slate-200 focus:bg-slate-700">
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </CardContent>
-          </Card>
-
-          {/* Info Card */}
-          <Card className="border-blue-700 bg-blue-900/20">
-            <CardHeader>
-              <CardTitle className="text-blue-300">
-                shadcn/ui Setup Complete
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-blue-200 space-y-2 text-sm">
-              <p>✓ Installed Radix UI and dependencies</p>
-              <p>✓ Created utility functions and components</p>
-              <p>✓ Button, Card, Input, Label, Dialog, DropdownMenu</p>
-              <p>✓ Full TypeScript support with Tailwind CSS</p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
-  );
+  const finalResult = calorieResult || DEFAULT_CALORIE_RESULT;
+  return <HomeScreen calorieResult={finalResult} />;
 }
 
 export default App;

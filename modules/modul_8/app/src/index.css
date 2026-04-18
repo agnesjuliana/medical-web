@@ -1,5 +1,44 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-base: var(--base);
+  --color-surface: var(--surface);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+}
+
+:root {
+  /* Default: Dark Mode (Cyan) */
+  --primary: #06b6d4;
+  --primary-hover: #0891b2;
+  --base: #0b0f19;
+  --surface: #1f2937;
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+  color-scheme: dark;
+}
+
+/* Optional Light Mode override if browser/system asks, or via .light class */
+@media (prefers-color-scheme: light) {
+  .system-light {
+    --primary: #10b981;
+    --primary-hover: #059669;
+    --base: #f9fafb;
+    --surface: #ffffff;
+    --text-main: #111827;
+    --text-muted: #6b7280;
+    color-scheme: light;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-base text-text-main antialiased transition-colors duration-500;
+  }
+}
+
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
