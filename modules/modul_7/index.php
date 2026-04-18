@@ -54,10 +54,6 @@ require_once __DIR__ . '/../../layout/navbar.php';
             <svg class="w-4 h-4" stroke="currentColor" fill="none">
                 <path d="M9 5l7 7-7 7" stroke-width="2" stroke-linecap="round" />
             </svg>
-            <span>Analisis</span>
-            <svg class="w-4 h-4" stroke="currentColor" fill="none">
-                <path d="M9 5l7 7-7 7" stroke-width="2" stroke-linecap="round" />
-            </svg>
             <span class="text-cyan-600 font-bold">Dermalyze.AI Dashboard</span>
         </div>
 
