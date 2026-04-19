@@ -27,7 +27,8 @@ interface SourceData {
 }
 
 interface PlanData {
-  goalLbs: number;
+  targetWeight: number;
+  targetUnit: string;
   goalDate: string;
   macros: MacroData[];
   healthScore: number;
@@ -161,7 +162,8 @@ function GoalItem({ item }: { item: GoalItemData }) {
 // ─── Default mock plan data ───────────────────────────────────────────────────
 
 const DEFAULT_PLAN: PlanData = {
-  goalLbs: 11.0,
+  targetWeight: 11.0,
+  targetUnit: "lbs",
   goalDate: "28 May",
   macros: [
     {
@@ -285,7 +287,7 @@ export default function OnboardingResults({
 
         {/* Goal pill */}
         <span className="px-5 py-2 rounded-full bg-white shadow-sm border border-slate-100 text-sm font-semibold text-slate-700">
-          {plan.goalLbs} lbs by {plan.goalDate}
+          {plan.targetWeight} {plan.targetUnit} by {plan.goalDate}
         </span>
       </section>
 
