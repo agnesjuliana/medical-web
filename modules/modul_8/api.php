@@ -325,12 +325,48 @@ try {
                 'fats_g' => $targets['fats_g'] - $consumed['fats_g']
             ];
 
+            // --- Health Score Computation ---
+            // Compute calorie deviation percentage
+            $calDev = round(
+                abs($consumed['calories'] - $targets['calories'])
+                / max($targets['calories'], 1) * 100,
+                2
+            );
+
+            // Compute macro deviation percentage (average of protein, carbs, fats)
+            $proteinDev = abs($consumed['protein_g'] - $targets['protein_g'])
+                          / max($targets['protein_g'], 1) * 100;
+            $carbsDev   = abs($consumed['carbs_g'] - $targets['carbs_g'])
+                          / max($targets['carbs_g'], 1) * 100;
+            $fatsDev    = abs($consumed['fats_g'] - $targets['fats_g'])
+                          / max($targets['fats_g'], 1) * 100;
+            $macroDev   = round(($proteinDev + $carbsDev + $fatsDev) / 3, 2);
+
+            // Compute score: start at 100, penalize deviations, clamp 0-100
+            $healthScore = 100 - min(30, $calDev * 0.5) - min(30, $macroDev * 0.5);
+            $healthScore = (int) max(0, min(100, $healthScore));
+
+            // Upsert health score into m8_daily_health_scores
+            $stmt = $pdo->prepare('
+                INSERT INTO m8_daily_health_scores
+                    (user_id, log_date, score, calorie_deviation_pct, macro_deviation_pct)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT (user_id, log_date) DO UPDATE SET
+                    score                 = EXCLUDED.score,
+                    calorie_deviation_pct = EXCLUDED.calorie_deviation_pct,
+                    macro_deviation_pct   = EXCLUDED.macro_deviation_pct,
+                    computed_at           = NOW(),
+                    updated_at            = NOW()
+            ');
+            $stmt->execute([$userId, $date, $healthScore, $calDev, $macroDev]);
+
             json_success([
                 'date' => $date,
                 'targets' => $targets,
                 'consumed' => $consumed,
                 'remaining' => $remaining,
-                'recent_meals' => $recent_meals
+                'recent_meals' => $recent_meals,
+                'health_score' => $healthScore
             ]);
             break;
 
@@ -525,12 +561,206 @@ try {
             }
             break;
 
+        case 'get_ai_quota':
+            $stmt = $pdo->prepare('
+                SELECT scan_count
+                FROM m8_ai_scan_quota
+                WHERE user_id = ? AND log_date = CURRENT_DATE
+            ');
+            $stmt->execute([$userId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $scanCount = $row ? (int) $row['scan_count'] : 0;
+
+            json_success([
+                'used'      => $scanCount,
+                'limit'     => 20,
+                'remaining' => max(0, 20 - $scanCount)
+            ]);
+            break;
+
+        case 'ai_scan_food':
+            // 3a. Validate image_b64
+            $image_b64 = $body['image_b64'] ?? '';
+            if (empty($image_b64)) {
+                json_error('image_b64 required', 422);
+            }
+
+            // Validate it's a data URI
+            if (strpos($image_b64, 'data:image/') !== 0) {
+                json_error('image_b64 must be a data:image/ URI', 422);
+            }
+
+            // Extract raw base64 data — regex tolerates optional params (e.g. ;charset=utf-8)
+            $rawB64 = preg_replace('/^data:image\/[a-z]+(?:;[^,]+)*;base64,/', '', $image_b64);
+            if (base64_decode($rawB64, true) === false) {
+                json_error('Invalid image encoding', 422);
+            }
+
+            // Extract the MIME type for the API call (e.g., "image/jpeg")
+            preg_match('/^data:(image\/[a-z]+)(?:;[^,]+)*;base64,/', $image_b64, $mimeMatch);
+            $mediaType = $mimeMatch[1] ?? 'image/jpeg';
+
+            // 3b. Rate limit check (atomic with row locking)
+            $pdo->beginTransaction();
+
+            $stmt = $pdo->prepare('
+                SELECT scan_count
+                FROM m8_ai_scan_quota
+                WHERE user_id = ? AND log_date = CURRENT_DATE
+                FOR UPDATE
+            ');
+            $stmt->execute([$userId]);
+            $quotaRow = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $currentCount = $quotaRow ? (int) $quotaRow['scan_count'] : 0;
+
+            if ($currentCount >= 20) {
+                $pdo->rollBack();
+                json_error('Daily AI scan limit reached (20/day)', 429);
+            }
+
+            // 3c. UPSERT quota (increment by 1)
+            $stmt = $pdo->prepare('
+                INSERT INTO m8_ai_scan_quota (user_id, log_date, scan_count)
+                VALUES (?, CURRENT_DATE, 1)
+                ON CONFLICT (user_id, log_date) DO UPDATE
+                    SET scan_count = m8_ai_scan_quota.scan_count + 1,
+                        updated_at = NOW()
+            ');
+            $stmt->execute([$userId]);
+            $pdo->commit();
+
+            // 3d. Read Gemini API key
+            $apiKey = getenv('GEMINI_API_KEY');
+            if (empty($apiKey)) {
+                json_error('AI service not configured', 503);
+            }
+
+            // 3e. Build the Gemini generateContent payload
+            // responseMimeType forces JSON output, avoiding markdown code-fence wrapping
+            $payload = [
+                'systemInstruction' => [
+                    'parts' => [[
+                        'text' => 'You are a food nutrition expert. When given a food photo, identify all visible food items and estimate their nutritional content. Always respond with valid JSON only — no prose, no markdown code fences.',
+                    ]],
+                ],
+                'contents' => [[
+                    'role'  => 'user',
+                    'parts' => [
+                        [
+                            'inlineData' => [
+                                'mimeType' => $mediaType,
+                                'data'     => $rawB64,
+                            ],
+                        ],
+                        [
+                            'text' => 'Analyze this food photo and return JSON with this exact schema: {"items":[{"name":"string","estimated_grams":number,"calories":number,"protein_g":number,"carbs_g":number,"fats_g":number,"confidence":number}],"notes":"string"}. confidence is 0.0-1.0. Return ONLY valid JSON.',
+                        ],
+                    ],
+                ]],
+                'generationConfig' => [
+                    'maxOutputTokens' => 1024,
+                    'responseMimeType' => 'application/json',
+                ],
+            ];
+
+            // 3f. Send cURL request to Gemini REST endpoint
+            $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . urlencode($apiKey);
+            $ch = curl_init($geminiUrl);
+            curl_setopt_array($ch, [
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => json_encode($payload),
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 30,
+                CURLOPT_HTTPHEADER     => [
+                    'Content-Type: application/json',
+                ],
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($response === false || $httpCode !== 200) {
+                json_error('AI service error, please try again or log manually', 502);
+            }
+
+            // 3g. Parse the Gemini response
+            $geminiData = json_decode($response, true);
+            $text = $geminiData['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
+            // Strip markdown code fences as a safety net (responseMimeType should prevent this)
+            $text = preg_replace('/```(?:json)?\s*(.*?)\s*```/s', '$1', $text);
+
+            $prediction = json_decode($text, true);
+            if ($prediction === null || !isset($prediction['items'])) {
+                json_error('AI could not parse the food image. Please log manually.', 422);
+            }
+
+            // 3h. Validate each item — skip malformed items instead of rejecting all
+            $validItems = [];
+            foreach ($prediction['items'] as $item) {
+                if (
+                    !isset($item['name']) || !is_string($item['name']) ||
+                    !isset($item['calories']) || !is_numeric($item['calories']) ||
+                    !isset($item['protein_g']) || !is_numeric($item['protein_g']) ||
+                    !isset($item['carbs_g']) || !is_numeric($item['carbs_g']) ||
+                    !isset($item['fats_g']) || !is_numeric($item['fats_g']) ||
+                    !isset($item['confidence']) || !is_numeric($item['confidence'])
+                ) {
+                    continue; // Skip this malformed item
+                }
+                $validItems[] = [
+                    'name'            => $item['name'],
+                    'estimated_grams' => isset($item['estimated_grams']) && is_numeric($item['estimated_grams'])
+                                         ? (float) $item['estimated_grams']
+                                         : null,
+                    'calories'        => (int) $item['calories'],
+                    'protein_g'       => round((float) $item['protein_g'], 1),
+                    'carbs_g'         => round((float) $item['carbs_g'], 1),
+                    'fats_g'          => round((float) $item['fats_g'], 1),
+                    'confidence'      => round((float) $item['confidence'], 2),
+                ];
+            }
+
+            $prediction['items'] = $validItems;
+
+            json_success($prediction);
+            break;
+
+        case 'get_health_scores':
+            $days = (int) ($_GET['days'] ?? 7);
+            // Clamp between 1 and 30
+            $days = max(1, min(30, $days));
+
+            $stmt = $pdo->prepare('
+                SELECT log_date, score, calorie_deviation_pct,
+                       macro_deviation_pct, computed_at
+                FROM m8_daily_health_scores
+                WHERE user_id = ?
+                ORDER BY log_date DESC
+                LIMIT ?
+            ');
+            // Explicit PARAM_INT binding — avoids SQL type errors when emulated prepares are off
+            $stmt->bindValue(1, $userId, PDO::PARAM_INT);
+            $stmt->bindValue(2, $days, PDO::PARAM_INT);
+            $stmt->execute();
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Type conversion
+            foreach ($rows as &$row) {
+                $row['score'] = (int) $row['score'];
+                $row['calorie_deviation_pct'] = round((float) $row['calorie_deviation_pct'], 2);
+                $row['macro_deviation_pct'] = round((float) $row['macro_deviation_pct'], 2);
+            }
+            unset($row);
+
+            json_success($rows);
+            break;
+
         case 'save_food':
         case 'delete_saved_food':
         case 'list_weight_logs':
-        case 'get_health_scores':
-        case 'ai_scan_food':
-        case 'get_ai_quota':
             // To be implemented in future tasks
             json_success(['message' => 'Action ' . $action . ' is not yet implemented']);
             break;
