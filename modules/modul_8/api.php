@@ -88,6 +88,8 @@ try {
             $row['step_goal'] = (int) $row['step_goal'];
 
             // Parse PostgreSQL TEXT[] into PHP array
+            // Note: This parser is safe because save_profile enforces that barrier items
+            // cannot contain {, }, ", or \ characters (checked via strpbrk).
             if ($row['barriers'] === '{}' || empty($row['barriers'])) {
                 $row['barriers'] = [];
             } else {
@@ -114,9 +116,20 @@ try {
             if (!in_array($gender, ['male', 'female'])) {
                 json_error('Invalid field: gender', 422);
             }
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth_date)) {
+
+            // Validate birth_date: proper calendar date, not future
+            $birth = DateTimeImmutable::createFromFormat('Y-m-d', $birth_date);
+            $birthErrors = DateTimeImmutable::getLastErrors();
+            if (
+                !$birth ||
+                $birthErrors['warning_count'] > 0 ||
+                $birthErrors['error_count'] > 0 ||
+                $birth->format('Y-m-d') !== $birth_date ||
+                $birth > new DateTimeImmutable('today')
+            ) {
                 json_error('Invalid field: birth_date', 422);
             }
+
             if (!is_numeric($height_cm) || $height_cm <= 0) {
                 json_error('Invalid field: height_cm', 422);
             }
@@ -135,8 +148,18 @@ try {
             if (!is_int($step_goal) && !ctype_digit((string)$step_goal)) {
                 json_error('Invalid field: step_goal', 422);
             }
+
+            // Validate barriers: must be array of strings with safe characters
             if (!is_array($barriers)) {
                 json_error('Invalid field: barriers', 422);
+            }
+            foreach ($barriers as $item) {
+                if (!is_string($item)) {
+                    json_error('Invalid field: barriers', 422);
+                }
+                if (strpbrk($item, "{}\",\\") !== false) {
+                    json_error('Invalid field: barriers', 422);
+                }
             }
 
             // Normalize values
@@ -146,7 +169,7 @@ try {
             $step_goal = (int) $step_goal;
 
             // Compute TDEE + macros
-            $age = (int) date_diff(date_create($birth_date), date_create('today'))->y;
+            $age = $birth->diff(new DateTimeImmutable('today'))->y;
 
             // BMR (Mifflin-St Jeor)
             $bmr = (10 * $weight_kg) + (6.25 * $height_cm) - (5 * $age);
@@ -256,7 +279,8 @@ try {
 
             // Query recent meals (last 5)
             $stmt = $pdo->prepare('
-                SELECT *
+                SELECT id, meal_type, name, calories, protein_g, carbs_g, fats_g,
+                       photo_url, source, created_at
                 FROM m8_meals
                 WHERE user_id = ? AND log_date = ?
                 ORDER BY created_at DESC
