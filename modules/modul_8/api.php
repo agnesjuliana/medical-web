@@ -591,14 +591,14 @@ try {
                 json_error('image_b64 must be a data:image/ URI', 422);
             }
 
-            // Extract raw base64 data (strip "data:image/jpeg;base64," prefix)
-            $rawB64 = preg_replace('/^data:image\/[a-z]+;base64,/', '', $image_b64);
+            // Extract raw base64 data — regex tolerates optional params (e.g. ;charset=utf-8)
+            $rawB64 = preg_replace('/^data:image\/[a-z]+(?:;[^,]+)*;base64,/', '', $image_b64);
             if (base64_decode($rawB64, true) === false) {
                 json_error('Invalid image encoding', 422);
             }
 
             // Extract the MIME type for the API call (e.g., "image/jpeg")
-            preg_match('/^data:(image\/[a-z]+);base64,/', $image_b64, $mimeMatch);
+            preg_match('/^data:(image\/[a-z]+)(?:;[^,]+)*;base64,/', $image_b64, $mimeMatch);
             $mediaType = $mimeMatch[1] ?? 'image/jpeg';
 
             // 3b. Rate limit check (atomic with row locking)
@@ -686,6 +686,9 @@ try {
             $anthropicData = json_decode($response, true);
             $text = $anthropicData['content'][0]['text'] ?? '';
 
+            // Strip markdown code fences if Claude wraps its JSON response in them
+            $text = preg_replace('/```(?:json)?\s*(.*?)\s*```/s', '$1', $text);
+
             $prediction = json_decode($text, true);
             if ($prediction === null || !isset($prediction['items'])) {
                 json_error('AI could not parse the food image. Please log manually.', 422);
@@ -735,7 +738,10 @@ try {
                 ORDER BY log_date DESC
                 LIMIT ?
             ');
-            $stmt->execute([$userId, $days]);
+            // Explicit PARAM_INT binding — avoids SQL type errors when emulated prepares are off
+            $stmt->bindValue(1, $userId, PDO::PARAM_INT);
+            $stmt->bindValue(2, $days, PDO::PARAM_INT);
+            $stmt->execute();
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Type conversion
