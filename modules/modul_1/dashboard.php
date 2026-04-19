@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../components/components.php';
 require_once __DIR__ . '/../../config/database.php';
@@ -18,857 +18,1054 @@ $userName = $user['name'] ?? 'Guest';
 $patientName = 'Budi (Pasien)';
 $surgeryDate = '';
 
-// Check preview mode first
 if (isset($_GET['preview_role']) || isset($_GET['preview_op'])) {
     $role = $_GET['preview_role'] ?? 'pasien';
     $opType = $_GET['preview_op'] ?? 'cabg';
-    if ($role === 'caregiver') {
-        $patientName = 'Pasien (Budi)';
-    }
-    $surgeryDate = date('Y-m-d', strtotime('-2 days')); // Mock 2 days ago
+    if ($role === 'caregiver') $patientName = 'Pasien (Budi)';
+    $surgeryDate = date('Y-m-d', strtotime('-2 days'));
 } else {
-    // Try to get from Database
     try {
         $stmt = $pdo->prepare("SELECT * FROM user_onboarding WHERE user_id = ? ORDER BY id DESC LIMIT 1");
         $stmt->execute([$user['id']]);
         $onboarding = $stmt->fetch();
-        
         if ($onboarding) {
             $role = $onboarding['role'] ?? 'pasien';
             $opType = $onboarding['operation_type'] ?? 'cabg';
             $userName = $onboarding['full_name'] ?: $user['name'];
             $surgeryDate = $onboarding['surgery_date'];
-            if ($role === 'caregiver') {
-                $patientName = $onboarding['patient_name'] ?: 'Pasien';
-            }
+            if ($role === 'caregiver') $patientName = $onboarding['patient_name'] ?: 'Pasien';
         } else {
-            // Un-onboarded, fallback to defaults
-            $role = 'pasien';
-            $opType = 'cabg';
+            $role = 'pasien'; $opType = 'cabg';
             $surgeryDate = date('Y-m-d', strtotime('-1 days'));
         }
     } catch (PDOException $e) {
-        $role = 'pasien';
-        $opType = 'cabg';
+        $role = 'pasien'; $opType = 'cabg';
         $surgeryDate = date('Y-m-d', strtotime('-1 days'));
     }
 }
 
-// Handle Monitoring Data Submission
+// Handle Monitoring Submit
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_monitoring') {
     $today = date('Y-m-d');
-    
-    // Generic
-    $r_spo2 = isset($_POST['spo2']) && $_POST['spo2'] !== '' ? (int)$_POST['spo2'] : null;
-    $r_hr = isset($_POST['heart_rate']) && $_POST['heart_rate'] !== '' ? (int)$_POST['heart_rate'] : null;
-    $r_pain = isset($_POST['pain_level']) && $_POST['pain_level'] !== '' ? (int)$_POST['pain_level'] : null;
-    
-    // SC
-    $r_temp = isset($_POST['temp']) && $_POST['temp'] !== '' ? (float)$_POST['temp'] : null;
-    $r_bVol = $_POST['blood_volume'] ?? null;
-    $r_bCol = $_POST['blood_color'] ?? null;
-    $r_bClot = $_POST['blood_clots'] ?? null;
-    
-    // Amputation
-    $r_stump = isset($_POST['stump_pain']) && $_POST['stump_pain'] !== '' ? (int)$_POST['stump_pain'] : null;
-    $r_phantom = isset($_POST['phantom_pain']) && $_POST['phantom_pain'] !== '' ? (int)$_POST['phantom_pain'] : null;
-    $r_wCol = $_POST['wound_color'] ?? null;
+    $r_spo2   = isset($_POST['spo2'])        && $_POST['spo2']        !== '' ? (int)$_POST['spo2']        : null;
+    $r_hr     = isset($_POST['heart_rate'])  && $_POST['heart_rate']  !== '' ? (int)$_POST['heart_rate']  : null;
+    $r_pain   = isset($_POST['pain_level'])  && $_POST['pain_level']  !== '' ? (int)$_POST['pain_level']  : null;
+    $r_temp   = isset($_POST['temp'])        && $_POST['temp']        !== '' ? (float)$_POST['temp']      : null;
+    $r_bVol   = $_POST['blood_volume']  ?? null;
+    $r_bCol   = $_POST['blood_color']   ?? null;
+    $r_bClot  = $_POST['blood_clots']   ?? null;
+    $r_stump  = isset($_POST['stump_pain'])   && $_POST['stump_pain']   !== '' ? (int)$_POST['stump_pain']   : null;
+    $r_phantom= isset($_POST['phantom_pain']) && $_POST['phantom_pain'] !== '' ? (int)$_POST['phantom_pain'] : null;
+    $r_wCol   = $_POST['wound_color']    ?? null;
     $r_wSwell = $_POST['wound_swelling'] ?? null;
-    $r_wFluid = $_POST['wound_fluid'] ?? null;
-    $r_wOdor = $_POST['wound_odor'] ?? null;
-
+    $r_wFluid = $_POST['wound_fluid']    ?? null;
+    $r_wOdor  = $_POST['wound_odor']     ?? null;
     try {
-        $stmtIns = $pdo->prepare("INSERT INTO user_daily_monitoring 
-            (user_id, record_date, spo2, heart_rate, pain_level, temp, blood_volume, blood_color, blood_clots, stump_pain, phantom_pain, wound_color, wound_swelling, wound_fluid, wound_odor) 
+        $stmtIns = $pdo->prepare("INSERT INTO user_daily_monitoring
+            (user_id, record_date, spo2, heart_rate, pain_level, temp, blood_volume, blood_color, blood_clots, stump_pain, phantom_pain, wound_color, wound_swelling, wound_fluid, wound_odor)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE 
-            spo2=VALUES(spo2), heart_rate=VALUES(heart_rate), pain_level=VALUES(pain_level), temp=VALUES(temp), blood_volume=VALUES(blood_volume), blood_color=VALUES(blood_color), blood_clots=VALUES(blood_clots), stump_pain=VALUES(stump_pain), phantom_pain=VALUES(phantom_pain), wound_color=VALUES(wound_color), wound_swelling=VALUES(wound_swelling), wound_fluid=VALUES(wound_fluid), wound_odor=VALUES(wound_odor)
-            ");
-        $stmtIns->execute([$user['id'], $today, $r_spo2, $r_hr, $r_pain, $r_temp, $r_bVol, $r_bCol, $r_bClot, $r_stump, $r_phantom, $r_wCol, $r_wSwell, $r_wFluid, $r_wOdor]);
-        header("Location: dashboard.php?page=home");
-        exit;
+            ON DUPLICATE KEY UPDATE
+            spo2=VALUES(spo2), heart_rate=VALUES(heart_rate), pain_level=VALUES(pain_level), temp=VALUES(temp),
+            blood_volume=VALUES(blood_volume), blood_color=VALUES(blood_color), blood_clots=VALUES(blood_clots),
+            stump_pain=VALUES(stump_pain), phantom_pain=VALUES(phantom_pain), wound_color=VALUES(wound_color),
+            wound_swelling=VALUES(wound_swelling), wound_fluid=VALUES(wound_fluid), wound_odor=VALUES(wound_odor)");
+        $stmtIns->execute([$user['id'],$today,$r_spo2,$r_hr,$r_pain,$r_temp,$r_bVol,$r_bCol,$r_bClot,$r_stump,$r_phantom,$r_wCol,$r_wSwell,$r_wFluid,$r_wOdor]);
+        header("Location: dashboard.php?page=home"); exit;
     } catch (PDOException $e) {
-        $errorMsg = "Error saving monitoring data: " . $e->getMessage();
+        $errorMsg = "Error: " . $e->getMessage();
     }
 }
 
-// Fetch today's monitoring data
+// Fetch today monitoring
 $todayMonitoring = null;
 try {
     $today = date('Y-m-d');
     $stmtMon = $pdo->prepare("SELECT * FROM user_daily_monitoring WHERE user_id = ? AND record_date = ? LIMIT 1");
     $stmtMon->execute([$user['id'], $today]);
     $todayMonitoring = $stmtMon->fetch(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    // Just ignore if table missing
-}
+} catch (PDOException $e) {}
 
-// Calculate days post op
+// Days post-op
 $dayPostOp = 1;
 if ($surgeryDate) {
-    $dStart = new DateTime($surgeryDate);
-    $dEnd  = new DateTime();
-    $dStart->setTime(0,0,0);
-    $dEnd->setTime(0,0,0);
+    $dStart = new DateTime($surgeryDate); $dEnd = new DateTime();
+    $dStart->setTime(0,0,0); $dEnd->setTime(0,0,0);
     $diff = $dStart->diff($dEnd);
-    $dayPostOp = $diff->days + 1; // Hari ke-1 adalah hari H+1
+    $dayPostOp = $diff->days + 1;
     if ($dStart > $dEnd) $dayPostOp = 0;
 }
 
-// Operation type display strings
-$opDisplay = [
-    'cabg' => 'Jantung (CABG)',
-    'sc' => 'Sectio Caesarea',
-    'amputation' => 'Ortopedi'
-];
+$opDisplay = ['cabg' => 'Jantung (CABG)', 'sc' => 'Sectio Caesarea', 'amputation' => 'Ortopedi'];
 $opName = $opDisplay[$opType] ?? 'Operasi';
-
 $pageTitle = 'Dashboard RuangPulih';
 ?>
 <?php require_once __DIR__ . '/../../layout/header.php'; ?>
 
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
-    body, body *, .font-sans {
-        font-family: 'Poppins', sans-serif !important;
-    }
-    .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-    }
-    
-    /* Simple Custom Checkbox via CSS since we aren't sure if tailwind forms plugin is loaded */
-    input[type="checkbox"] {
-        accent-color: #98b0c4;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+*, body { font-family: 'Poppins', sans-serif !important; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
+
+@keyframes floatAnim { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.float-el { animation: floatAnim 6s ease-in-out infinite; }
+
+.glass-card {
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 32px rgba(114,139,169,0.08);
+}
+
+.nav-link { display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; border-radius:0.75rem; transition:all 0.2s; font-size:0.875rem; font-weight:600; }
+.nav-active { background:#728BA9; color:#fff; box-shadow:0 4px 16px rgba(114,139,169,0.35); }
+.nav-inactive { color:#7F7F7F; }
+.nav-inactive:hover { background:rgba(255,255,255,0.5); color:#728BA9; }
+
+#video-modal { display:none; }
+#video-modal.open { display:flex; }
+
+.radio-card input[type="radio"] { display:none; }
+.radio-card input[type="radio"]:checked + label { background:#728BA9; color:#fff; border-color:#728BA9; }
+.radio-card label { display:block; padding:0.5rem 0.5rem; border-radius:0.6rem; border:1.5px solid #DAE3EC; cursor:pointer; font-size:0.75rem; font-weight:600; color:#5A6C7A; text-align:center; transition:all 0.2s; }
+.radio-card label:hover { border-color:#728BA9; }
 </style>
 
-<div class="flex min-h-screen bg-gray-50">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <!-- Logo & Subtitle -->
-        <div class="px-6 py-8">
+<!-- ===== VIDEO MODAL ===== -->
+<div id="video-modal" class="fixed inset-0 z-[100] items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 relative">
+        <button onclick="closeVideoModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600 transition-all font-bold">âœ•</button>
+        <p class="font-extrabold text-[#728BA9] text-lg mb-4" id="vmod-title">Panduan</p>
+        <div class="aspect-video rounded-2xl overflow-hidden bg-black">
+            <iframe id="vmod-frame" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+
+<div class="flex min-h-screen overflow-hidden" style="background:linear-gradient(135deg,#F8FCFF 0%,#ECF2E6 50%,#F8FCFF 100%);">
+
+    <!-- Ambient bg -->
+    <div class="fixed top-0 left-[15%] w-80 h-80 rounded-full pointer-events-none" style="background:rgba(184,201,221,0.12);filter:blur(80px);"></div>
+    <div class="fixed bottom-0 right-[5%] w-96 h-96 rounded-full pointer-events-none" style="background:rgba(209,217,202,0.15);filter:blur(100px);"></div>
+    <!-- Floating doodle -->
+    <div class="fixed top-[20%] right-[32%] w-16 h-16 float-el pointer-events-none" style="opacity:0.08;animation-duration:8s;transform:rotate(20deg);">
+        <svg fill="none" stroke="#728BA9" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+    </div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="w-64 shrink-0 flex flex-col sticky top-0 h-screen z-20" style="background:rgba(255,255,255,0.68);backdrop-filter:blur(24px);border-right:1px solid rgba(255,255,255,0.9);box-shadow:4px 0 30px rgba(114,139,169,0.06);">
+        <div class="px-6 py-8 shrink-0">
             <a href="index.php" class="flex items-center gap-3">
-                <img src="assets/images/logo.png" alt="RuangPulih Logo" class="h-8 opacity-80">
+                <img src="assets/images/logo.png" alt="logo" class="h-8 opacity-80" style="mix-blend-mode:multiply;">
                 <div>
-                    <h1 class="text-xl font-bold text-[#b1c3ce] leading-none">Ruang<span class="text-[#98b0c4]">Pulih</span></h1>
-                    <p class="text-[0.6rem] text-gray-400 mt-1 uppercase tracking-tight">Pasca-Operasi & Rehabilitasi Mandiri</p>
+                    <p class="text-xl font-extrabold leading-none" style="color:#728BA9;">Ruang<span style="color:#A3ACA0;">Pulih</span></p>
+                    <p class="text-[0.58rem] mt-1 uppercase tracking-widest" style="color:#A3ACA0;">Pasca-Operasi</p>
                 </div>
             </a>
         </div>
 
-        <!-- Navigation Menu -->
-        <nav class="flex-1 px-4 space-y-1 flex flex-col py-4">
-            <a href="dashboard.php?page=home" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors <?= $page === 'home' ? 'bg-[#e2e8f0] text-[#5A6C7A] font-bold' : 'text-gray-500 hover:bg-gray-50' ?>">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                </svg>
+        <nav class="flex-1 px-4 flex flex-col gap-1.5 py-2 overflow-hidden">
+            <a href="dashboard.php?page=home"       class="nav-link <?= $page==='home'       ? 'nav-active' : 'nav-inactive' ?>">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                 Home
             </a>
-
-            <a href="dashboard.php?page=roadmap" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors <?= $page === 'roadmap' ? 'bg-[#e2e8f0] text-[#5A6C7A] font-bold' : 'text-gray-500 hover:bg-gray-50' ?>">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"></path>
-                </svg>
-                Recovery Roadmap
+            <a href="dashboard.php?page=roadmap"    class="nav-link <?= $page==='roadmap'    ? 'nav-active' : 'nav-inactive' ?>">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9h6m-6-4h6"/></svg>
+                Roadmap
             </a>
-
-            <a href="dashboard.php?page=monitoring" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors <?= $page === 'monitoring' ? 'bg-[#e2e8f0] text-[#5A6C7A] font-bold' : 'text-gray-500 hover:bg-gray-50' ?>">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"></path>
-                </svg>
+            <a href="dashboard.php?page=monitoring" class="nav-link <?= $page==='monitoring' ? 'nav-active' : 'nav-inactive' ?>">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 Monitoring
             </a>
-
-            <a href="dashboard.php?page=content" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors <?= $page === 'content' ? 'bg-[#e2e8f0] text-[#5A6C7A] font-bold' : 'text-gray-500 hover:bg-gray-50' ?>">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"></path>
-                </svg>
-                Content Library
+            <a href="dashboard.php?page=content"    class="nav-link <?= $page==='content'    ? 'nav-active' : 'nav-inactive' ?>">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Library
             </a>
-
-            <!-- Profile Section pushed to bottom -->
-            <a href="dashboard.php?page=profile" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors <?= $page === 'profile' ? 'bg-[#e2e8f0] text-[#5A6C7A] font-bold' : 'text-gray-500 hover:bg-gray-50' ?> !mt-auto">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"></path>
-                </svg>
-                Profile
-            </a>
-
-            <!-- Exit Link -->
-            <a href="index.php" class="flex items-center gap-3 px-4 py-3 text-[#728BA9] hover:bg-gray-50 rounded-lg transition-colors font-bold mt-1">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H9m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h6a3 3 0 013 3v1"></path>
-                </svg>
-                Exit
-            </a>
+            <div class="flex-1"></div>
+            <div class="border-t border-white/60 pt-2 flex flex-col gap-1.5">
+                <a href="dashboard.php?page=profile" class="nav-link <?= $page==='profile' ? 'nav-active' : 'nav-inactive' ?>">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                    Profil
+                </a>
+                <a href="index.php" class="nav-link nav-inactive hover:!bg-red-50 hover:!text-red-500">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H9m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h6a3 3 0 013 3v1"/></svg>
+                    Keluar
+                </a>
+            </div>
         </nav>
     </aside>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 p-8">
-        <?php if ($page === 'home'): ?>
-            <!-- HOME VIEW -->
-            <header class="flex items-start justify-between">
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Halo, <?= htmlspecialchars($userName) ?></h2>
-                    <?php if ($role === 'caregiver'): ?>
-                        <p class="text-[#728BA9] font-semibold mt-1">Pantau perkembangan <?= htmlspecialchars($patientName) ?></p>
-                        <p class="text-gray-400 text-sm mt-0.5">Hari ke-<?= $dayPostOp ?> pasca operasi <?= $opName ?></p>
+    <!-- ===== CONTENT ===== -->
+    <main class="flex-1 overflow-y-auto h-screen px-8 py-10">
+
+        <!-- Persistent Red Flag Button -->
+        <button onclick="document.getElementById('rf-modal').classList.remove('hidden'); document.getElementById('rf-modal').classList.add('flex');"
+            class="fixed top-7 right-8 z-50 flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-bold text-sm transition-all transform hover:-translate-y-0.5"
+            style="background:#ef4444;box-shadow:0 8px 24px rgba(239,68,68,0.4);">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            Red Flag
+        </button>
+
+        <!-- Red Flag Modal -->
+        <div id="rf-modal" class="hidden fixed inset-0 z-[90] items-center justify-center p-4" style="background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);">
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative">
+                <button onclick="document.getElementById('rf-modal').classList.add('hidden'); document.getElementById('rf-modal').classList.remove('flex');"
+                    class="absolute top-4 right-4 w-9 h-9 rounded-full bg-gray-100 hover:bg-red-100 text-gray-500 hover:text-red-600 flex items-center justify-center font-bold transition-all">âœ•</button>
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0"><svg class="w-6 h-6" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+                    <div>
+                        <h3 class="font-extrabold text-red-700 text-xl">Kondisi Darurat!</h3>
+                        <p class="text-red-400 text-sm font-medium">Segera ambil tindakan jika muncul tanda ini</p>
+                    </div>
+                </div>
+                <ul class="space-y-3 text-sm text-red-800 font-medium mb-6">
+                    <?php if ($opType === 'cabg'): ?>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> SpOâ‚‚ di bawah 92% â€” hentikan semua aktivitas</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Sesak napas tiba-tiba atau nyeri dada sangat berat</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Detak jantung tidak teratur (&gt;120 bpm)</li>
+                    <?php elseif ($opType === 'sc'): ?>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Perdarahan sangat banyak atau gumpalan darah besar</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Demam tinggi di atas 38.5Â°C</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Luka terbuka atau mengeluarkan nanah berbau</li>
                     <?php else: ?>
-                        <p class="text-gray-500 mt-1">Hari ke-<?= $dayPostOp ?> pasca operasi <?= $opName ?></p>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Perdarahan aktif dari area operasi</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Area luka merah, panas, membengkak luas</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Nyeri tidak terkontrol meski sudah minum obat</li>
                     <?php endif; ?>
+                </ul>
+                <a href="tel:119" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl text-white font-extrabold text-lg transition-all" style="background:#ef4444;">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.338c0-1.14.88-2.073 2.019-2.128a48.974 48.974 0 0119.462 0 2.126 2.126 0 012.019 2.128 4.487 4.487 0 01-1.268 3.217l-3.02 3.297a4.5 4.5 0 00-1.09 2.85v1.478m0 0a48.667 48.667 0 01-2.658-.813m-2.658.813a48.8 48.8 0 01-2.658-.813m0-1.478a4.5 4.5 0 00-1.09-2.85l-3.02-3.297a4.487 4.487 0 01-1.268-3.217"/></svg>
+                    Hubungi 119 â€” IGD Darurat
+                </a>
+            </div>
+        </div>
+
+        <?php if ($page === 'home'): ?>
+        <!-- ============================================================
+             HOME â€” COMMAND CENTER
+        ============================================================ -->
+        <div class="max-w-5xl mx-auto">
+            <!-- Greeting -->
+            <div class="flex items-start justify-between mb-8">
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-widest mb-1" style="color:#A3ACA0;"><?= date('l, d F Y') ?></p>
+                    <h2 class="text-3xl font-extrabold" style="color:#728BA9;">Halo, <?= htmlspecialchars(explode(' ',$userName)[0]) ?></h2>
+                    <p class="font-medium mt-1" style="color:#7F7F7F;">
+                        <?php if ($role==='caregiver'): ?>Memantau <strong style="color:#728BA9;"><?= htmlspecialchars($patientName) ?></strong> â€” <?php endif; ?>
+                        Hari ke-<strong style="color:#728BA9;"><?= $dayPostOp ?></strong> pasca operasi <?= $opName ?>
+                    </p>
                 </div>
-                <?php if ($role === 'caregiver'): ?>
-                    <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#ECF2E6] text-[#5A6C7A] text-xs font-bold border border-[#D1D9CA] uppercase tracking-wider">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                        Mode Caregiver
-                    </span>
+                <?php if ($role==='caregiver'): ?>
+                <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-extrabold uppercase border tracking-wider" style="background:#ECF2E6;color:#5A6C7A;border-color:#D1D9CA;"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Caregiver</span>
                 <?php endif; ?>
-            </header>
-
-            <?php if ($opType === 'cabg'): ?>
-            <!-- ============ CABG DASHBOARD ============ -->
-            <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                <!-- Vitals Row (full width) -->
-                <div class="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <!-- SpO2 -->
-                    <div class="bg-[#F8FCFF] rounded-2xl p-6 border border-[#DAE3EC] relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-24 h-24 bg-[#B8C9DD] rounded-full opacity-10 -translate-y-1/2 translate-x-1/2"></div>
-                        <p class="text-xs font-bold text-[#728BA9] uppercase tracking-wider mb-1">SpO₂</p>
-                        <p class="text-4xl font-extrabold text-[#728BA9]"><?= isset($todayMonitoring['spo2']) && $todayMonitoring['spo2'] !== null ? htmlspecialchars($todayMonitoring['spo2']) : '--' ?><span class="text-lg font-bold">%</span></p>
-                        <p class="text-xs text-[#A3ACA0] font-medium mt-1">Normal ≥ 95%</p>
-                    </div>
-                    <!-- Heart Rate -->
-                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Detak Jantung</p>
-                        <p class="text-4xl font-extrabold text-gray-700"><?= isset($todayMonitoring['heart_rate']) && $todayMonitoring['heart_rate'] !== null ? htmlspecialchars($todayMonitoring['heart_rate']) : '--' ?> <span class="text-lg font-bold text-gray-400">bpm</span></p>
-                        <p class="text-xs text-[#A3ACA0] font-medium mt-1">Normal 60–100 bpm</p>
-                    </div>
-                    <!-- Chest Pain -->
-                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Nyeri Dada</p>
-                        <p class="text-4xl font-extrabold text-gray-700"><?= isset($todayMonitoring['pain_level']) && $todayMonitoring['pain_level'] !== null ? htmlspecialchars($todayMonitoring['pain_level']) : '--' ?><span class="text-lg font-bold text-gray-400">/10</span></p>
-                        <p class="text-xs text-[#A3ACA0] font-medium mt-1">Ringan — dalam batas wajar</p>
-                    </div>
-                </div>
-
-                <!-- Recovery Checklist (2 col) -->
-                <div class="lg:col-span-2 bg-[#ECF2E6] rounded-2xl p-8 relative overflow-hidden">
-                    <div class="absolute right-0 top-0 w-64 h-64 bg-[#D1D9CA] rounded-full opacity-40 -translate-y-1/4 translate-x-1/4"></div>
-                    <div class="relative z-10">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-lg font-bold text-[#5A6C7A]"><?= $role === 'caregiver' ? 'Checklist Pasien Hari Ini' : 'Recovery Hari Ini' ?></h3>
-                            <span class="text-sm font-bold text-[#98b0c4] task-progress-text">0%</span>
-                        </div>
-                        <div class="w-full bg-[#D1D9CA]/50 rounded-full h-2 mb-5">
-                            <div class="bg-[#98b0c4] h-2 rounded-full transition-all duration-300 task-progress-bar" style="width: 0%"></div>
-                        </div>
-                        <ul class="space-y-3">
-                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 task-checkbox"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Pastikan pasien latihan pernapasan (deep breathing)' : 'Latihan pernapasan (deep breathing) 5–10 rep/jam' ?></span></li>
-                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 task-checkbox"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Dampingi pasien jalan kaki 5 menit' : 'Jalan kaki 5 menit dengan pendamping' ?></span></li>
-                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 task-checkbox"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Ingatkan pasien minum obat' : 'Minum obat sesuai jadwal' ?></span></li>
-                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 task-checkbox"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Bantu pasien batuk efektif (tahan dada)' : 'Batuk efektif 2–3x (dengan menahan dada)' ?></span></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Alert (1 col) -->
-                <div class="flex flex-col gap-4">
-                    <div class="bg-red-50 rounded-2xl p-6 border border-red-100 flex-1">
-                        <h3 class="text-sm font-bold text-red-700 mb-3 flex items-center gap-2"><span>🚨</span> Red Flag</h3>
-                        <ul class="space-y-2 text-sm text-red-700 font-medium">
-                            <li><?= $role === 'caregiver' ? 'Jika SpO₂ pasien < 92%, segera hubungi RS' : 'Jika SpO₂ kamu < 92%, hentikan aktivitas' ?></li>
-                            <li><?= $role === 'caregiver' ? 'Perhatikan jika pasien sesak napas tiba-tiba' : 'Lapor jika ada sesak napas mendadak' ?></li>
-                        </ul>
-                    </div>
-                    <div class="bg-[#F8FCFF] rounded-2xl p-6 border border-[#DAE3EC]">
-                        <h3 class="text-sm font-bold text-[#728BA9] mb-2">📋 Quick Actions</h3>
-                        <div class="space-y-2">
-                            <a href="dashboard.php?page=roadmap" class="block text-sm font-semibold text-[#728BA9] hover:text-[#5A6C7A] transition-colors">→ Lihat Roadmap Hari Ini</a>
-                            <a href="dashboard.php?page=monitoring" class="block text-sm font-semibold text-[#728BA9] hover:text-[#5A6C7A] transition-colors">→ Catat Tanda Vital</a>
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            <?php elseif ($opType === 'sc'): ?>
-            <!-- ============ SECTIO CAESAREA DASHBOARD ============ -->
-            <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                <!-- Bleeding Tracker (dominant, 2 col) -->
-                <div class="lg:col-span-2 bg-purple-50/60 rounded-2xl p-8 border border-purple-100 relative overflow-hidden">
-                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-purple-200 rounded-full opacity-20"></div>
-                    <h3 class="text-lg font-bold text-purple-800 mb-5 relative z-10">🩸 Pemantauan Perdarahan (Lochia)</h3>
-                    <div class="grid grid-cols-3 gap-4 relative z-10">
-                        <div class="bg-white rounded-xl p-4 text-center border border-purple-100">
-                            <p class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-1">Volume</p>
-                            <p class="text-2xl font-extrabold text-purple-700 <?= empty($todayMonitoring['blood_volume']) ? 'opacity-30' : '' ?>"><?= htmlspecialchars($todayMonitoring['blood_volume'] ?? '--') ?></p>
-                        </div>
-                        <div class="bg-white rounded-xl p-4 text-center border border-purple-100">
-                            <p class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-1">Warna</p>
-                            <p class="text-2xl font-extrabold text-purple-700 <?= empty($todayMonitoring['blood_color']) ? 'opacity-30' : '' ?>"><?= htmlspecialchars($todayMonitoring['blood_color'] ?? '--') ?></p>
-                        </div>
-                        <div class="bg-white rounded-xl p-4 text-center border border-purple-100">
-                            <p class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-1">Gumpalan</p>
-                            <p class="text-2xl font-extrabold text-purple-700 <?= empty($todayMonitoring['blood_clots']) ? 'opacity-30' : '' ?>"><?= htmlspecialchars($todayMonitoring['blood_clots'] ?? '--') ?></p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-purple-500 font-medium mt-4 relative z-10"><?= $role === 'caregiver' ? 'Pantau penggantian pembalut pasien setiap 4–6 jam.' : 'Ganti pembalut setiap 4–6 jam dan catat perubahannya.' ?></p>
+            <!-- Priority Banner -->
+            <?php if (!$todayMonitoring): ?>
+            <a href="dashboard.php?page=monitoring" class="flex items-center gap-4 p-5 mb-6 rounded-2xl border transition-all group" style="background:#fffbeb;border-color:#fcd34d;">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style="background:#fef3c7;"><svg class="w-6 h-6" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+                <div class="flex-1">
+                    <p class="font-extrabold" style="color:#92400e;">Anda belum mengisi log pemantauan hari ini!</p>
+                    <p class="text-sm font-medium mt-0.5" style="color:#b45309;">Data kesehatan belum tercatat â€” isi sekarang agar bisa dipantau.</p>
                 </div>
-
-                <!-- Wound Status (1 col) -->
-                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                    <h3 class="text-sm font-bold text-gray-700 mb-4">🩹 Kondisi Luka SC</h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center"><span class="text-sm text-gray-500 font-medium">Kemerahan</span><span class="text-sm font-bold text-green-600">Normal</span></div>
-                        <div class="flex justify-between items-center"><span class="text-sm text-gray-500 font-medium">Bengkak</span><span class="text-sm font-bold text-green-600">Tidak ada</span></div>
-                        <div class="flex justify-between items-center"><span class="text-sm text-gray-500 font-medium">Cairan/nanah</span><span class="text-sm font-bold text-green-600">Tidak ada</span></div>
-                        <div class="flex justify-between items-center"><span class="text-sm text-gray-500 font-medium">Jahitan</span><span class="text-sm font-bold text-[#728BA9]">Utuh</span></div>
-                    </div>
-                </div>
-
-                <!-- Checklist (2 col) -->
-                <div class="lg:col-span-2 bg-[#ECF2E6] rounded-2xl p-8 relative overflow-hidden">
-                    <div class="absolute right-0 top-0 w-48 h-48 bg-[#D1D9CA] rounded-full opacity-30 -translate-y-1/4 translate-x-1/4"></div>
-                    <div class="relative z-10">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-lg font-bold text-[#5A6C7A]"><?= $role === 'caregiver' ? 'Checklist Pasien Hari Ini' : 'Recovery Hari Ini' ?></h3>
-                            <span class="text-sm font-bold text-[#98b0c4] task-progress-text">0%</span>
-                        </div>
-                        <div class="w-full bg-[#D1D9CA]/50 rounded-full h-2 mb-5">
-                            <div class="bg-[#98b0c4] h-2 rounded-full transition-all duration-300 task-progress-bar" style="width: 0%"></div>
-                        </div>
-                        <ul class="space-y-3">
-                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 task-checkbox"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Bantu pasien mobilisasi ringan (duduk → berdiri)' : 'Mobilisasi ringan: duduk → berdiri perlahan' ?></span></li>
-                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 task-checkbox"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Ingatkan pasien menyusui / pompa ASI' : 'Menyusui / pompa ASI sesuai jadwal' ?></span></li>
-                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 task-checkbox"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Pastikan pasien minum obat pereda nyeri' : 'Minum obat pereda nyeri sesuai resep' ?></span></li>
-                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 task-checkbox"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Periksa luka SC pasien secara visual' : 'Periksa luka SC di cermin (kemerahan/cairan)' ?></span></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Alert + Vitals (1 col) -->
-                <div class="flex flex-col gap-4">
-                    <div class="bg-red-50 rounded-2xl p-6 border border-red-100">
-                        <h3 class="text-sm font-bold text-red-700 mb-3 flex items-center gap-2"><span>🚨</span> Red Flag</h3>
-                        <ul class="space-y-2 text-sm text-red-700 font-medium">
-                            <li><?= $role === 'caregiver' ? 'Jika perdarahan sangat banyak / gumpalan besar → bawa ke RS' : 'Jika perdarahan sangat banyak atau ada gumpalan besar → ke RS' ?></li>
-                            <li><?= $role === 'caregiver' ? 'Jika pasien demam > 38°C, segera lapor dokter' : 'Jika demam > 38°C, hubungi dokter segera' ?></li>
-                        </ul>
-                    </div>
-                    <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Suhu Tubuh</p>
-                        <p class="text-3xl font-extrabold text-gray-700 <?= !isset($todayMonitoring['temp']) ? 'opacity-30' : '' ?>"><?= isset($todayMonitoring['temp']) ? htmlspecialchars($todayMonitoring['temp']) : '--' ?><span class="text-base font-bold text-gray-400">°C</span></p>
-                    </div>
-                </div>
-            </div>
-
+                <span class="px-4 py-2 rounded-full text-white font-bold text-sm shrink-0 transition-all" style="background:#f59e0b;">Isi Sekarang â†’</span>
+            </a>
             <?php else: ?>
-            <!-- ============ ORTOPEDI DASHBOARD ============ -->
-            <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                <!-- Wound Monitor (dominant, 2 col) -->
-                <div class="lg:col-span-2 bg-orange-50/60 rounded-2xl p-8 border border-orange-100 relative overflow-hidden">
-                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-orange-200 rounded-full opacity-20"></div>
-                    <h3 class="text-lg font-bold text-orange-800 mb-5 relative z-10">🩹 Monitoring Luka Ortopedi / Pasca Operasi Tulang</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 relative z-10">
-                        <div class="bg-white rounded-xl p-4 text-center border border-orange-100">
-                            <p class="text-xs font-bold text-orange-400 uppercase tracking-wider mb-1">Warna Kulit</p>
-                            <p class="text-lg font-extrabold text-orange-700 <?= empty($todayMonitoring['wound_color']) ? 'opacity-30' : '' ?>"><?= htmlspecialchars($todayMonitoring['wound_color'] ?? '--') ?></p>
-                        </div>
-                        <div class="bg-white rounded-xl p-4 text-center border border-orange-100">
-                            <p class="text-xs font-bold text-orange-400 uppercase tracking-wider mb-1">Bengkak</p>
-                            <p class="text-lg font-extrabold text-orange-700 <?= empty($todayMonitoring['wound_swelling']) ? 'opacity-30' : '' ?>"><?= htmlspecialchars($todayMonitoring['wound_swelling'] ?? '--') ?></p>
-                        </div>
-                        <div class="bg-white rounded-xl p-4 text-center border border-orange-100">
-                            <p class="text-xs font-bold text-orange-400 uppercase tracking-wider mb-1">Cairan</p>
-                            <p class="text-lg font-extrabold text-green-600 <?= empty($todayMonitoring['wound_fluid']) ? 'opacity-30' : '' ?>"><?= htmlspecialchars($todayMonitoring['wound_fluid'] ?? '--') ?></p>
-                        </div>
-                        <div class="bg-white rounded-xl p-4 text-center border border-orange-100">
-                            <p class="text-xs font-bold text-orange-400 uppercase tracking-wider mb-1">Bau</p>
-                            <p class="text-lg font-extrabold text-green-600 <?= empty($todayMonitoring['wound_odor']) ? 'opacity-30' : '' ?>"><?= htmlspecialchars($todayMonitoring['wound_odor'] ?? '--') ?></p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-orange-500 font-medium mt-4 relative z-10"><?= $role === 'caregiver' ? 'Periksa visual kondisi area operasi pasien setiap pagi & malam.' : 'Periksa area operasi setiap pagi dan malam. Catat setiap perubahan.' ?></p>
-                </div>
-
-                <!-- Pain Tracker (1 col) -->
-                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col">
-                    <h3 class="text-sm font-bold text-gray-700 mb-4">⚡ Pain Tracker</h3>
-                    <div class="space-y-4 flex-1">
-                        <div>
-                            <div class="flex justify-between mb-1"><span class="text-sm text-gray-500 font-medium">Nyeri Area Operasi</span><span class="text-sm font-bold text-gray-700"><?= isset($todayMonitoring['stump_pain']) ? htmlspecialchars($todayMonitoring['stump_pain']).'/10' : '--' ?></span></div>
-                            <div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-orange-400 h-2 rounded-full" style="width:<?= isset($todayMonitoring['stump_pain']) ? ((int)$todayMonitoring['stump_pain']*10).'%' : '0%' ?>"></div></div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between mb-1"><span class="text-sm text-gray-500 font-medium">Nyeri Sendi</span><span class="text-sm font-bold text-gray-700"><?= isset($todayMonitoring['phantom_pain']) ? htmlspecialchars($todayMonitoring['phantom_pain']).'/10' : '--' ?></span></div>
-                            <div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-red-400 h-2 rounded-full" style="width:<?= isset($todayMonitoring['phantom_pain']) ? ((int)$todayMonitoring['phantom_pain']*10).'%' : '0%' ?>"></div></div>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-400 font-medium mt-4"><?= $role === 'caregiver' ? 'Tanyakan intensitas nyeri sendi secara berkala.' : 'Catat jika nyeri sendi muncul tiba-tiba atau makin kuat.' ?></p>
-                </div>
-
-                <!-- Checklist (2 col) -->
-                <div class="lg:col-span-2 bg-[#ECF2E6] rounded-2xl p-8 relative overflow-hidden">
-                    <div class="absolute right-0 top-0 w-48 h-48 bg-[#D1D9CA] rounded-full opacity-30 -translate-y-1/4 translate-x-1/4"></div>
-                    <div class="relative z-10">
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-lg font-bold text-[#5A6C7A]"><?= $role === 'caregiver' ? 'Checklist Pasien Hari Ini' : 'Recovery Hari Ini' ?></h3>
-                            <span class="text-sm font-bold text-[#98b0c4] task-progress-text">0%</span>
-                        </div>
-                        <div class="w-full bg-[#D1D9CA]/50 rounded-full h-2 mb-5">
-                            <div class="bg-[#98b0c4] h-2 rounded-full transition-all duration-300 task-progress-bar" style="width: 0%"></div>
-                        </div>
-                        <ul class="space-y-3">
-                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 task-checkbox"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Bantu baringkan di posisi yang tepat (mengurangi tekan)' : 'Posisi rebahan sesuai anjuran' ?></span></li>
-                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 task-checkbox"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Dampingi pasien latihan jalan dgn alat bantu' : 'Latihan jalan dgn alat bantu' ?></span></li>
-                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 task-checkbox"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Ingatkan pasien minum obat sesuai jadwal' : 'Minum obat pereda nyeri sesuai resep' ?></span></li>
-                            <li class="flex items-center gap-3"><input type="checkbox" class="w-5 h-5 task-checkbox"> <span class="text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Periksa balutan luka ortopedi, laporkan perubahan' : 'Periksa kondisi luka/perban (ada rembesan/bau?)' ?></span></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Alert + Mobility (1 col) -->
-                <div class="flex flex-col gap-4">
-                    <div class="bg-red-50 rounded-2xl p-6 border border-red-100">
-                        <h3 class="text-sm font-bold text-red-700 mb-3 flex items-center gap-2"><span>🚨</span> Red Flag</h3>
-                        <ul class="space-y-2 text-sm text-red-700 font-medium">
-                            <li><?= $role === 'caregiver' ? 'Jika ada perdarahan aktif dari stump → tekan & ke RS' : 'Jika ada perdarahan aktif, tekan dengan kain bersih & ke RS' ?></li>
-                            <li><?= $role === 'caregiver' ? 'Perhatikan tanda infeksi: merah, bengkak, panas lokal' : 'Tanda infeksi: warna kemerahan meluas, panas, dan berbau' ?></li>
-                        </ul>
-                    </div>
-                    <div class="bg-[#F8FCFF] rounded-2xl p-5 border border-[#DAE3EC]">
-                        <h3 class="text-sm font-bold text-[#728BA9] mb-2">🦽 Mobilitas</h3>
-                        <p class="text-sm text-[#5A6C7A] font-medium"><?= $role === 'caregiver' ? 'Pasien saat ini dalam tahap: transfer kursi roda.' : 'Tahap kamu saat ini: transfer kursi roda.' ?></p>
-                    </div>
+            <div class="flex items-center gap-4 p-5 mb-6 rounded-2xl border" style="background:#ECF2E6;border-color:#D1D9CA;">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style="background:#D1D9CA;"><svg class="w-6 h-6" fill="none" stroke="#4ade80" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg></div>
+                <div>
+                    <p class="font-extrabold" style="color:#5A6C7A;">Log pemantauan hari ini sudah terisi!</p>
+                    <p class="text-sm font-medium mt-0.5" style="color:#A3ACA0;">Data Anda sudah tercatat. Tetap pantau kondisi Anda.</p>
                 </div>
             </div>
             <?php endif; ?>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <?php if ($opType==='cabg'): ?>
+                <div class="glass-card p-6">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#728BA9;">SpOâ‚‚</p>
+                    <p class="text-4xl font-extrabold" style="color:#728BA9;"><?= isset($todayMonitoring['spo2'])&&$todayMonitoring['spo2']!==null ? htmlspecialchars($todayMonitoring['spo2']) : '--' ?><span class="text-lg">%</span></p>
+                    <p class="text-xs font-medium mt-1" style="color:#A3ACA0;">Normal â‰¥ 95%</p>
+                </div>
+                <div class="glass-card p-6">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#A3ACA0;">Detak Jantung</p>
+                    <p class="text-4xl font-extrabold" style="color:#5A6C7A;"><?= isset($todayMonitoring['heart_rate'])&&$todayMonitoring['heart_rate']!==null ? htmlspecialchars($todayMonitoring['heart_rate']) : '--' ?><span class="text-lg" style="color:#A3ACA0;"> bpm</span></p>
+                    <p class="text-xs font-medium mt-1" style="color:#A3ACA0;">Normal 60â€“100 bpm</p>
+                </div>
+                <div class="glass-card p-6">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#A3ACA0;">Nyeri Dada</p>
+                    <p class="text-4xl font-extrabold" style="color:#5A6C7A;"><?= isset($todayMonitoring['pain_level'])&&$todayMonitoring['pain_level']!==null ? htmlspecialchars($todayMonitoring['pain_level']) : '--' ?><span class="text-lg" style="color:#A3ACA0;">/10</span></p>
+                    <p class="text-xs font-medium mt-1" style="color:#A3ACA0;">Ringan &lt; 3, Sedang 4â€“6</p>
+                </div>
+                <?php elseif ($opType==='sc'): ?>
+                <div class="glass-card p-6">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#728BA9;">Suhu Tubuh</p>
+                    <p class="text-4xl font-extrabold" style="color:#728BA9;"><?= isset($todayMonitoring['temp'])&&$todayMonitoring['temp']!==null ? htmlspecialchars($todayMonitoring['temp']) : '--' ?><span class="text-lg">Â°C</span></p>
+                    <p class="text-xs font-medium mt-1" style="color:#A3ACA0;">Normal 36â€“37.5Â°C</p>
+                </div>
+                <div class="glass-card p-6">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#A3ACA0;">Volume Perdarahan</p>
+                    <p class="text-2xl font-extrabold mt-2" style="color:#5A6C7A;"><?= !empty($todayMonitoring['blood_volume']) ? htmlspecialchars($todayMonitoring['blood_volume']) : '--' ?></p>
+                    <p class="text-xs font-medium mt-1" style="color:#A3ACA0;">Ganti pembalut 4â€“6 jam</p>
+                </div>
+                <div class="glass-card p-6">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#A3ACA0;">Nyeri</p>
+                    <p class="text-4xl font-extrabold" style="color:#5A6C7A;"><?= isset($todayMonitoring['pain_level'])&&$todayMonitoring['pain_level']!==null ? htmlspecialchars($todayMonitoring['pain_level']) : '--' ?><span class="text-lg" style="color:#A3ACA0;">/10</span></p>
+                    <p class="text-xs font-medium mt-1" style="color:#A3ACA0;">Ringan &lt; 3</p>
+                </div>
+                <?php else: ?>
+                <div class="glass-card p-6">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#728BA9;">Nyeri Area Operasi</p>
+                    <p class="text-4xl font-extrabold" style="color:#728BA9;"><?= isset($todayMonitoring['stump_pain'])&&$todayMonitoring['stump_pain']!==null ? htmlspecialchars($todayMonitoring['stump_pain']) : '--' ?><span class="text-lg">/10</span></p>
+                    <p class="text-xs font-medium mt-1" style="color:#A3ACA0;">Catat setiap perubahan</p>
+                </div>
+                <div class="glass-card p-6">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#A3ACA0;">Nyeri Sendi</p>
+                    <p class="text-4xl font-extrabold" style="color:#5A6C7A;"><?= isset($todayMonitoring['phantom_pain'])&&$todayMonitoring['phantom_pain']!==null ? htmlspecialchars($todayMonitoring['phantom_pain']) : '--' ?><span class="text-lg" style="color:#A3ACA0;">/10</span></p>
+                    <p class="text-xs font-medium mt-1" style="color:#A3ACA0;">Ideal &lt; 3</p>
+                </div>
+                <div class="glass-card p-6">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#A3ACA0;">Kondisi Luka</p>
+                    <p class="text-xl font-extrabold mt-2" style="color:#5A6C7A;"><?= !empty($todayMonitoring['wound_color']) ? htmlspecialchars($todayMonitoring['wound_color']) : '--' ?></p>
+                    <p class="text-xs font-medium mt-1" style="color:#A3ACA0;">Periksa pagi & malam</p>
+                </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Checklist + Trend -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Checklist -->
+                <div class="lg:col-span-2 glass-card p-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-extrabold text-lg flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg><?= $role==='caregiver' ? 'Checklist Pasien Hari Ini' : 'Recovery Hari Ini' ?></h3>
+                        <span class="text-sm font-bold task-progress-text" style="color:#728BA9;">0%</span>
+                    </div>
+                    <div class="w-full rounded-full h-2.5 mb-6" style="background:rgba(218,227,236,0.6);">
+                        <div class="task-progress-bar h-2.5 rounded-full transition-all duration-500" style="width:0%;background:#728BA9;"></div>
+                    </div>
+                    <ul class="space-y-2">
+                        <?php if ($opType==='cabg'): ?>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;"><?= $role==='caregiver' ? 'Pastikan pasien latihan pernapasan dalam (5â€“10 rep/jam)' : 'Latihan pernapasan dalam 5â€“10 repetisi per jam' ?></span></li>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;"><?= $role==='caregiver' ? 'Dampingi pasien jalan kaki 5 menit' : 'Jalan kaki 5 menit dengan pendamping' ?></span></li>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;"><?= $role==='caregiver' ? 'Ingatkan pasien minum obat sesuai jadwal' : 'Minum obat sesuai jadwal dokter' ?></span></li>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;"><?= $role==='caregiver' ? 'Bantu pasien batuk efektif (tahan dada)' : 'Batuk efektif 2â€“3x (tahan dada dengan bantal)' ?></span></li>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;">Catat tanda vital di menu Monitoring</span></li>
+                        <?php elseif ($opType==='sc'): ?>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;"><?= $role==='caregiver' ? 'Bantu pasien mobilisasi ringan' : 'Mobilisasi ringan: duduk perlahan dari tempat tidur' ?></span></li>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;"><?= $role==='caregiver' ? 'Ingatkan pasien menyusui / pompa ASI' : 'Menyusui atau pompa ASI sesuai jadwal' ?></span></li>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;"><?= $role==='caregiver' ? 'Periksa luka SC pasien secara visual' : 'Periksa luka SC di cermin' ?></span></li>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;"><?= $role==='caregiver' ? 'Pastikan pasien minum obat pereda nyeri' : 'Minum obat pereda nyeri sesuai resep' ?></span></li>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;">Isi log monitoring harian</span></li>
+                        <?php else: ?>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;"><?= $role==='caregiver' ? 'Bantu pasien posisi rebahan sesuai anjuran' : 'Posisi rebahan sesuai anjuran dokter' ?></span></li>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;"><?= $role==='caregiver' ? 'Dampingi latihan jalan dengan alat bantu' : 'Latihan jalan dengan walker' ?></span></li>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;"><?= $role==='caregiver' ? 'Periksa balutan luka' : 'Periksa kondisi luka/perban' ?></span></li>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;"><?= $role==='caregiver' ? 'Ingatkan pasien minum obat' : 'Minum obat pereda nyeri' ?></span></li>
+                        <li class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/50 transition-all"><input type="checkbox" class="w-5 h-5 task-checkbox shrink-0"><span class="text-sm font-medium" style="color:#5A6C7A;">Isi log monitoring & foto luka</span></li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+
+                <!-- Pain Trend -->
+                <?php
+                $painToday = $todayMonitoring['pain_level'] ?? $todayMonitoring['stump_pain'] ?? null;
+                $trendData = [7, 5, 4, $painToday ?? 3];
+                $trendLabels = ['3h lalu', '2h lalu', 'Kemarin', 'Hari ini'];
+                ?>
+                <div class="glass-card p-8 flex flex-col">
+                    <h3 class="font-extrabold text-lg mb-1 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/></svg> Tren Nyeri</h3>
+                    <p class="text-xs font-medium mb-6" style="color:#A3ACA0;">Riwayat 3 hari terakhir</p>
+                    <div class="flex-1 flex items-end gap-3">
+                        <?php foreach ($trendData as $i => $v): ?>
+                        <div class="flex-1 flex flex-col items-center gap-2">
+                            <span class="text-xs font-extrabold" style="color:#5A6C7A;"><?= $v ?></span>
+                            <div class="w-full rounded-t-lg transition-all" style="height:<?= max(16, ($v/10)*90) ?>px;background:<?= $i===3 ? '#728BA9' : '#DAE3EC' ?>;"></div>
+                            <span class="text-[10px] font-bold text-center leading-tight" style="color:#A3ACA0;"><?= $trendLabels[$i] ?></span>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <p class="text-xs font-medium mt-4 pt-3" style="border-top:1px solid rgba(218,227,236,0.5);color:#A3ACA0;">
+                        <?php if ($painToday !== null && $painToday <= 3): ?><span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="#16a34a" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg><span style="color:#16a34a;font-weight:700;">Nyeri ringan</span></span> â€” batas normal
+                        <?php elseif ($painToday !== null && $painToday <= 6): ?><span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01"/></svg><span style="color:#d97706;font-weight:700;">Nyeri sedang</span></span> â€” pantau lebih ketat
+                        <?php elseif ($painToday !== null): ?><span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span style="color:#dc2626;font-weight:700;">Nyeri berat</span></span> â€” hubungi dokter
+                        <?php else: ?>Belum ada data hari ini<?php endif; ?>
+                    </p>
+                    <a href="dashboard.php?page=monitoring" class="mt-4 block text-center py-2.5 rounded-xl font-bold text-sm text-white transition-all hover:-translate-y-0.5" style="background:#728BA9;">
+                        + Catat Sekarang
+                    </a>
+                </div>
+            </div>
+        </div>
+
 
         <?php elseif ($page === 'roadmap'): ?>
-            <!-- ROADMAP VIEW -->
-            <header>
-                <h2 class="text-2xl font-bold text-gray-800">Roadmap Pemulihan Anda</h2>
-                <p class="text-[#728BA9] mt-1 font-medium">Protokol: Pasca Operasi Jantung (CABG) - Hari 1-3</p>
-            </header>
+        <!-- ============================================================
+             ROADMAP - RECOVERY TIMELINE
+        ============================================================ -->
+        <?php
+        $C_ACTIVE  = '#728BA9';
+        $C_DONE    = '#5A6C7A';
+        $C_FUTURE  = '#A3ACA0';
+        $BG_ACTIVE = 'rgba(114,139,169,0.12)';
+        $BG_DONE   = 'rgba(90,108,122,0.09)';
+        $BG_FUTURE = 'rgba(218,227,236,0.18)';
+        $BAR_ACTIVE = '#728BA9';
+        $BAR_DONE   = '#B8C9DD';
+        $BAR_FUTURE = '#DAE3EC';
 
-            <div class="mt-8 space-y-6 max-w-4xl">
-                
-                <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-8">
-                    <h3 class="text-xl font-bold text-[#5A6C7A] mb-4">Posisi Tidur</h3>
-                    <p class="text-gray-800 text-lg font-semibold mb-4">Semi-Fowler 30–45°</p>
-                    <div class="inline-flex items-center gap-3 bg-[#F8FCFF] text-[#728BA9] text-sm px-5 py-3 rounded-xl font-medium border border-[#E2E8F0]">
-                        <span class="text-lg">ℹ️</span> 
-                        <span><strong class="font-bold">Info Penting:</strong> Gunakan bantal untuk menyangga dada saat batuk.</span>
+        if ($opType === 'cabg') {
+            $phases = [
+                ['id'=>'p1','name'=>'Fase Akut','range'=>'Hari 1 s/d 7','days'=>[1,7],'badge'=>'Kritis - Rawat Ketat',
+                 'desc'=>'Fase paling krusial. Tubuh belum stabil - fokus pada pemulihan luka, stabilitas pernapasan, dan pencegahan komplikasi.',
+                 'goals'=>['SpO2 stabil >= 95%','Nyeri dada terkontrol < 5/10','Tidak ada tanda infeksi luka','Mobilisasi bertahap dimulai'],
+                 'activities'=>[['Latihan pernapasan dalam 5-10 rep/jam','Pagi & Siang'],['Batuk efektif 2-3x (tahan dada bantal)','Pagi & Siang'],['Duduk di tepi tempat tidur 15 menit','Siang'],['Cek SpO2 dan catat di Monitoring','Pagi & Malam'],['Minum obat sesuai jadwal dokter','Pagi, Siang, Malam'],['Tidur posisi semi-fowler (30-45 derajat)','Malam']],
+                 'restrictions'=>['Tidak angkat beban > 1 kg','Tidak mengemudi','Tidak aktivitas fisik berat','Tidak menekan area luka dada'],
+                 'warning'=>['SpO2 < 92% segera hubungi dokter','Demam > 38 derajat C lebih dari 2 hari','Luka kemerahan, bengkak, atau mengeluarkan cairan','Nyeri dada seperti tertindih batu'],
+                 'vid'=>'hz4bgO-Smk0','vtitle'=>'Latihan Pernapasan Pasca CABG'],
+                ['id'=>'p2','name'=>'Fase Mobilisasi','range'=>'Hari 8 s/d 21','days'=>[8,21],'badge'=>'Progresif - Gerak Bertahap',
+                 'desc'=>'Mulai meningkatkan aktivitas secara bertahap. Luka mulai menutup, tubuh beradaptasi. Jalan kaki menjadi latihan utama.',
+                 'goals'=>['Jalan kaki 5-10 menit tanpa henti','Naik 1 lantai tangga (hari ke-14+)','Luka dada mulai kering dan menutup','Tidur nyenyak minimal 7 jam'],
+                 'activities'=>[['Jalan kaki 5 menit pagi dan sore','Pagi & Sore'],['Latihan pernapasan dalam 3-5x/hari','Pagi & Sore'],['Mandi sendiri dengan bantuan minimal','Pagi'],['Duduk makan di meja (bukan di kasur)','Siang'],['Pantau detak jantung setelah jalan kaki','Siang'],['Kurangi obat nyeri jika sudah tolerable','Konsultasi dokter']],
+                 'restrictions'=>['Tidak angkat beban > 2-3 kg','Tidak mengemudi kendaraan','Tidak berenang atau olahraga berat','Tidak push-up atau gerakan dada ekstrem'],
+                 'warning'=>['Sesak napas setelah jalan kaki pendek','Detak jantung > 120 bpm saat istirahat','Pembengkakan di kaki atau pergelangan','Nyeri di betis (tanda trombosis)'],
+                 'vid'=>'sAx8_UXak1Q','vtitle'=>'Olahraga Pasca Operasi Jantung'],
+                ['id'=>'p3','name'=>'Fase Rehabilitasi','range'=>'Hari 22 s/d 56','days'=>[22,56],'badge'=>'Pemulihan Aktif',
+                 'desc'=>'Program rehabilitasi jantung terstruktur. Aktivitas harian meningkat signifikan. Kontrol dokter rutin sangat penting.',
+                 'goals'=>['Jalan kaki 20-30 menit per hari','Kembali aktivitas ringan di rumah','Kontrol ekokardiografi (EKG)','Mandiri penuh tanpa bantuan'],
+                 'activities'=>[['Jalan kaki 20-30 menit 5x/minggu','Pagi'],['Latihan aerobik ringan (sepeda statis)','Siang (hari ke-35+)'],['Kontrol ke poliklinik jantung','Sesuai jadwal'],['EKG dan lab darah rutin','Jadwal dokter'],['Pola makan jantung sehat (rendah lemak jenuh)','Setiap hari'],['Berhenti merokok sepenuhnya','Permanen']],
+                 'restrictions'=>['Tidak mengangkat beban > 5 kg','Tidak olahraga kontak fisik','Tidak alkohol','Tidak hubungan seksual berlebihan (konsultasi dokter)'],
+                 'warning'=>['Nyeri dada tiba-tiba saat aktivitas','Pusing atau pingsan','Irama jantung tidak teratur','Sesak napas saat berbaring'],
+                 'vid'=>'ZibrJpra3FA','vtitle'=>'Rehabilitasi Jantung Fase I'],
+                ['id'=>'p4','name'=>'Pemulihan Penuh','range'=>'Hari 57+','days'=>[57,999],'badge'=>'Kembali Normal',
+                 'desc'=>'Mayoritas pasien dapat kembali ke aktivitas normal termasuk kerja ringan. Tetap jaga gaya hidup jantung sehat seumur hidup.',
+                 'goals'=>['Kembali bekerja (ringan)','Olahraga teratur 150 menit/minggu','Berat badan ideal','Kadar kolesterol dan tekanan darah terkontrol'],
+                 'activities'=>[['Olahraga 30 menit/hari (jalan, renang, sepeda)','Pagi'],['Diet jantung sehat seumur hidup','Setiap hari'],['Kontrol dokter berkala (3-6 bulan)','Rutin'],['Cek tekanan darah dan gula darah','Bulanan'],['Kelola stres (meditasi, napas dalam)','Setiap hari'],['Patuh obat jangka panjang (aspirin, statin dll)','Seumur hidup']],
+                 'restrictions'=>['Hindari merokok selamanya','Batasi garam dan lemak jenuh','Kontrol stres berlebihan','Konsultasi sebelum aktivitas fisik intens baru'],
+                 'warning'=>['Nyeri dada atau sesak tanpa sebab','Tekanan darah tidak terkontrol','Kadar gula darah melonjak','Berhenti minum obat tanpa seizin dokter'],
+                 'vid'=>null,'vtitle'=>''],
+            ];
+        } elseif ($opType === 'sc') {
+            $phases = [
+                ['id'=>'p1','name'=>'Fase Pasca Operasi','range'=>'Hari 1 s/d 3','days'=>[1,3],'badge'=>'Masa Kritis',
+                 'desc'=>'Periode paling awal setelah operasi SC. Fokus pada manajemen nyeri, pemantauan perdarahan, dan mobilisasi dini bertahap.',
+                 'goals'=>['Bisa duduk sendiri dari kasur','Perdarahan terkontrol (tidak melebihi pembalut 1 jam)','Nyeri < 5/10 dengan obat','Mulai menyusui / pompa ASI'],
+                 'activities'=>[['Mobilisasi dini: duduk perlahan dari kasur','Pagi hari ke-2'],['Menyusui / pompa ASI setiap 2-3 jam','Sepanjang hari'],['Pantau volume dan warna perdarahan','Setiap ganti pembalut'],['Minum air putih 8 gelas/hari','Sepanjang hari'],['Minum obat analgesik sesuai resep','Pagi, Siang, Malam'],['Periksa luka SC di cermin','Pagi & Malam']],
+                 'restrictions'=>['Tidak berdiri terlalu lama (> 10 menit)','Tidak angkat beban > 2 kg','Tidak membasahi luka operasi','Tidak hubungan seksual'],
+                 'warning'=>['Perdarahan sangat banyak (1 pembalut habis < 1 jam)','Demam > 38.5 derajat C','Luka SC terbuka atau mengeluarkan nanah','Nyeri yang tidak berkurang dengan obat'],
+                 'vid'=>'KG_SsDOfwpI','vtitle'=>'Perawatan Luka Caesar'],
+                ['id'=>'p2','name'=>'Fase Penyembuhan Luka','range'=>'Hari 4 s/d 14','days'=>[4,14],'badge'=>'Pemulihan Awal',
+                 'desc'=>'Luka jahitan mulai menutup. Perdarahan berkurang menjadi flek coklat. Aktivitas harian mulai meningkat bertahap.',
+                 'goals'=>['Bisa berdiri dan berjalan mandiri','Perdarahan berubah coklat/kuning (bukan merah segar)','Luka SC kering dan tidak bernanah','ASI mulai lancar'],
+                 'activities'=>[['Berjalan mandiri di dalam rumah','Pagi & Sore'],['Mandi dengan hati-hati (jaga luka tetap kering)','Pagi'],['Lanjutkan menyusui/pompa ASI rutin','Setiap 2-3 jam'],['Makanan bergizi tinggi protein untuk penyembuhan luka','Setiap makan'],['Senam kegel untuk pemulihan dasar panggul','Pagi & Malam'],['Konsultasi dokter kandungan (kontrol luka)','Hari ke-7 s/d 10']],
+                 'restrictions'=>['Tidak angkat beban > 3 kg','Tidak naik tangga berulang kali','Tidak berendam di bak mandi/kolam renang','Tidak olahraga berat'],
+                 'warning'=>['Luka SC kemerahan atau membengkak','Suhu tubuh > 38 derajat C lebih dari 2 hari','Bau tidak sedap dari area luka','Perdarahan merah segar kembali setelah berkurang'],
+                 'vid'=>'P7hrkSlr3vo','vtitle'=>'4 Tips Cepat Pulih Pasca SC'],
+                ['id'=>'p3','name'=>'Fase Pemulihan','range'=>'Hari 15 s/d 42','days'=>[15,42],'badge'=>'Kembali Aktif',
+                 'desc'=>'Luka sudah menutup sempurna. Aktivitas fisik dapat meningkat secara progresif. Fokus pada kekuatan core dan pemulihan hormonal.',
+                 'goals'=>['Luka SC menutup sempurna (tidak ada keropeng)','Bisa merawat bayi secara mandiri','Mulai olahraga ringan (jalan kaki > 15 menit)','Kembali ke rutinitas ringan'],
+                 'activities'=>[['Jalan kaki 10-20 menit setiap pagi','Pagi'],['Senam nifas / yoga lembut post partum','Siang'],['Pola makan bergizi untuk kualitas ASI','Setiap hari'],['Konsultasi laktasi jika ASI bermasalah','Jika diperlukan'],['Kontrol kandungan (periksa luka dan rahim)','Hari ke-28 s/d 42'],['Kelola stres dan baby blues','Setiap hari']],
+                 'restrictions'=>['Tidak sit-up atau plank','Tidak berlari/melompat','Tidak berjemur luka langsung ke matahari','Tidak berhubungan seksual (< 6 minggu)'],
+                 'warning'=>['Demam tinggi mendadak','Nyeri panggul yang tidak normal','Perdarahan berat setelah bercak ringan','Tanda depresi pasca melahirkan (sedih terus-menerus)'],
+                 'vid'=>'c3NRSqZooyk','vtitle'=>'Tips Cepat Pulih Pasca Sesar'],
+                ['id'=>'p4','name'=>'Pemulihan Penuh','range'=>'Hari 43+','days'=>[43,999],'badge'=>'Pulih Sepenuhnya',
+                 'desc'=>'Tubuh sudah pulih. Bekas luka menjadi semakin memudar. Hubungan seksual dan olahraga intens sudah bisa dilakukan kembali.',
+                 'goals'=>['Bekas luka memudar dan rata','Kembali bekerja (jika ada)','Olahraga reguler 3-4x/minggu','Konsultasi KB pasca melahirkan'],
+                 'activities'=>[['Olahraga aerobik moderat (renang, jogging ringan)','Bebas'],['Latihan kekuatan core secara bertahap','Pagi'],['Gunakan krim/gel bekas luka (vitamin E, silikon)','Pagi & Malam'],['Kontrol kandungan 3 bulanan','Rutin'],['Diskusi rencana kehamilan berikutnya','Dengan dokter'],['Pertahankan pola makan sehat','Setiap hari']],
+                 'restrictions'=>['Jarak kehamilan minimal 18-24 bulan','Konsultasi dokter sebelum olahraga intens pertama','Pantau tekanan darah','Tetap perhatikan bekas luka'],
+                 'warning'=>['Nyeri hebat di area bekas SC lama','Perdarahan tidak normal','Tanda infeksi bekas luka terlambat','Tekanan darah tidak stabil'],
+                 'vid'=>null,'vtitle'=>''],
+            ];
+        } else {
+            $phases = [
+                ['id'=>'p1','name'=>'Fase Imobilisasi','range'=>'Hari 1 s/d 7','days'=>[1,7],'badge'=>'Istirahat Total',
+                 'desc'=>'Area operasi harus diistirahatkan. Fokus pada manajemen nyeri, pencegahan infeksi luka, dan posisi yang benar sesuai instruksi dokter.',
+                 'goals'=>['Nyeri < 5/10 dengan obat','Luka tidak menunjukkan tanda infeksi','Posisi tubuh benar (sesuai instruksi)','Bisa mobilisasi ke kamar mandi dengan alat bantu'],
+                 'activities'=>[['Periksa luka/perban setiap pagi dan malam','Pagi & Malam'],['Latihan isometrik ringan (kencangkan otot tanpa bergerak)','Setiap 2 jam'],['Posisi rebahan sesuai instruksi dokter','Sepanjang hari'],['Minum obat analgesik tepat waktu','Pagi, Siang, Malam'],['Kompres dingin di area bengkak (20 mnt, 3x/hari)','Pagi, Siang, Malam'],['Pantau sirkulasi (warna, suhu, rasa jari)','Setiap 4 jam']],
+                 'restrictions'=>['Tidak menumpu berat badan penuh','Tidak putar atau tekuk sendi operasi','Tidak basahi area gips/luka','Tidak duduk di kursi rendah tanpa bantuan'],
+                 'warning'=>['Jari-jari bengkak atau biru/pucat (tanda pembuluh tersumbat)','Nyeri yang tidak berkurang dengan obat','Demam > 38.5 derajat C','Luka mengeluarkan cairan berwarna/berbau'],
+                 'vid'=>'wch7bNy0EWE','vtitle'=>'Panduan Pasca Operasi Ortopedi'],
+                ['id'=>'p2','name'=>'Rehabilitasi Awal','range'=>'Hari 8 s/d 21','days'=>[8,21],'badge'=>'Mulai Bergerak',
+                 'desc'=>'Fisioterapi dimulai. Latihan gerak sendi (ROM) bertahap dan berjalan dengan alat bantu. Luka dijahit mulai bisa dilepas jahitannya.',
+                 'goals'=>['Bisa berjalan dengan walker 5-10 menit','ROM (Range of Motion) meningkat 20-30 derajat','Jahitan dapat dilepas (hari ke-10 s/d 14)','Nyeri saat latihan < 4/10'],
+                 'activities'=>[['Latihan jalan dengan walker 5-10 menit','Pagi & Sore'],['Gerak sendi ROM sesuai instruksi fisioterapis','Pagi & Sore'],['Kontrol poliklinik untuk pelepasan jahitan','Hari ke-10 s/d 14'],['Latihan penguatan otot isometrik','Setiap hari'],['Elevasi kaki (lebih tinggi dari jantung)','Saat istirahat'],['Ganti balutan luka setelah jahitan dilepas','Sesuai instruksi']],
+                 'restrictions'=>['Tidak menumpu berat badan tanpa izin dokter','Tidak memutar sendi berlebihan','Tidak berenang (sebelum luka kering)','Tidak naik tangga tanpa pegangan'],
+                 'warning'=>['Demam lebih dari 38 derajat C setelah jahitan dilepas','Sendi membengkak tiba-tiba (mungkin hematom)','Nyeri sangat hebat saat latihan ROM','Mati rasa atau kesemutan permanen di kaki'],
+                 'vid'=>'hWK3xL9WfQk','vtitle'=>'Cara Menggunakan Walker dengan Benar'],
+                ['id'=>'p3','name'=>'Rehabilitasi Progresif','range'=>'Hari 22 s/d 56','days'=>[22,56],'badge'=>'Kekuatan Meningkat',
+                 'desc'=>'Transisi dari walker ke tongkat atau jalan mandiri. Program fisioterapi intensif. Penguatan otot dan peningkatan keseimbangan.',
+                 'goals'=>['Berjalan mandiri / dengan tongkat tanpa walker','ROM mendekati normal (> 90 derajat)','Naik tangga dengan pegangan 1 sisi','Bisa mandi dan berpakaian mandiri'],
+                 'activities'=>[['Latihan jalan 15-30 menit tanpa walker','Pagi & Sore'],['Latihan keseimbangan (sendi lutut/panggul)','Fisioterapi'],['Naik tangga (supervised)','Di bawah pengawasan'],['Penguatan otot dengan resistance band','Fisioterapi'],['Kontrol dokter ortopedi (X-ray follow-up)','Hari ke-28 s/d 42'],['Sepeda statis dengan resistansi rendah','Hari ke-35+']],
+                 'restrictions'=>['Tidak berlari (belum diizinkan)','Tidak duduk bersila','Tidak mendaki / medan tidak rata tanpa bantuan','Tidak memaksakan ROM melewati batas nyeri'],
+                 'warning'=>['Krepitasi (bunyi krek) baru pada sendi','Nyeri yang kembali parah setelah sempat membaik','Sendi terasa keluar dari posisinya','Bengkak yang membesar setelah aktivitas'],
+                 'vid'=>'ZwjCz8gj82A','vtitle'=>'Cara Mandi Aman dengan Perban/Gips'],
+                ['id'=>'p4','name'=>'Pemulihan Fungsional','range'=>'Hari 57+','days'=>[57,999],'badge'=>'Kembali Normal',
+                 'desc'=>'Aktivitas normal hampir penuh. Fokus pada pencegahan cedera ulang, penguatan otot jangka panjang, dan kembali ke aktivitas sport ringan.',
+                 'goals'=>['Jalan normal tanpa alat bantu','ROM normal sesuai usia','Kembali bekerja (pekerjaan ringan-sedang)','Olahraga ringan (renang, bersepeda)'],
+                 'activities'=>[['Olahraga renang atau bersepeda 30 mnt/hari','Pagi'],['Latihan fungsional (squat ringan, step-up)','Fisioterapi'],['Kontrol ortopedi dan X-ray final','Hari ke-84 s/d 90'],['Kembali ke aktivitas kerja bertahap','Minggu ke-8+'],['Pertahankan berat badan ideal (kurangi beban sendi)','Setiap hari'],['Gunakan alas kaki ergonomis','Setiap hari']],
+                 'restrictions'=>['Hindari olahraga kontak fisik (sepakbola, bela diri)','Hindari lompatan tinggi tanpa izin dokter','Tidak duduk > 1 jam tanpa peregangan','Konsultasi sebelum kembali ke olahraga kompetitif'],
+                 'warning'=>['Nyeri sendi kembali setelah aktivitas','Keterbatasan gerak yang tidak membaik','Tanda-tanda awal artritis','Sendi terasa tidak stabil saat berjalan'],
+                 'vid'=>null,'vtitle'=>''],
+            ];
+        }
+        $currentPhaseIdx = 0;
+        foreach ($phases as $i => $ph) { if ($dayPostOp >= $ph['days'][0] && $dayPostOp <= $ph['days'][1]) $currentPhaseIdx = $i; }
+        $totalPhases = count($phases);
+        $progressPct = round(($currentPhaseIdx / max(1,$totalPhases-1))*100);
+        ?>
+
+        <!-- Phase Detail Modal -->
+        <div id="phase-modal" class="hidden fixed inset-0 z-[95] items-center justify-center p-4" style="background:rgba(90,108,122,0.6);backdrop-filter:blur(6px);">
+            <div class="rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative" style="background:#F8FCFF;">
+                <div class="px-8 pt-7 pb-5 sticky top-0 rounded-t-3xl z-10" style="background:#F8FCFF;border-bottom:1px solid #DAE3EC;">
+                    <button onclick="closePhaseModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center font-bold transition-all text-sm" style="background:#DAE3EC;color:#5A6C7A;" onmouseover="this.style.background='#B8C9DD'" onmouseout="this.style.background='#DAE3EC'">&times;</button>
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-3 h-3 rounded-full shrink-0" style="background:#728BA9;"></div>
+                        <span id="pmod-badge" class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full" style="background:#ECF2E6;color:#728BA9;"></span>
+                    </div>
+                    <h3 id="pmod-title" class="text-2xl font-extrabold" style="color:#5A6C7A;"></h3>
+                    <p id="pmod-range" class="text-sm font-bold mt-0.5" style="color:#A3ACA0;"></p>
+                    <p id="pmod-desc" class="text-sm font-medium mt-2 leading-relaxed" style="color:#7F8A83;"></p>
+                </div>
+                <div class="px-8 py-6 space-y-6">
+                    <div>
+                        <p class="text-xs font-extrabold uppercase tracking-wider mb-3" style="color:#728BA9;">Target Fase Ini</p>
+                        <ul id="pmod-goals" class="space-y-2"></ul>
+                    </div>
+                    <div>
+                        <p class="text-xs font-extrabold uppercase tracking-wider mb-3" style="color:#728BA9;">Aktivitas Wajib</p>
+                        <div id="pmod-activities" class="space-y-2"></div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-extrabold uppercase tracking-wider mb-3" style="color:#5A6C7A;">Larangan</p>
+                        <ul id="pmod-restrictions" class="space-y-2"></ul>
+                    </div>
+                    <div class="rounded-2xl p-5" style="background:rgba(114,139,169,0.08);border:1.5px solid #B8C9DD;">
+                        <p class="text-xs font-extrabold uppercase tracking-wider mb-3 flex items-center gap-2" style="color:#5A6C7A;">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="#728BA9" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            Tanda Bahaya - Segera ke Dokter
+                        </p>
+                        <ul id="pmod-warning" class="space-y-2"></ul>
+                    </div>
+                    <div id="pmod-vid-wrap" class="hidden">
+                        <button id="pmod-vid-btn" class="w-full py-3.5 rounded-2xl font-extrabold text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all text-white" style="background:#728BA9;">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg>
+                            <span id="pmod-vid-label">Tonton Video Panduan</span>
+                        </button>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-8">
-                    <h3 class="text-xl font-bold text-[#5A6C7A] mb-6">Latihan</h3>
-                    <ul class="space-y-5">
-                        <li class="flex items-start gap-4 p-4 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100">
-                            <input type="checkbox" id="lat-1" class="w-6 h-6 mt-1 cursor-pointer">
-                            <label for="lat-1" class="cursor-pointer flex-1">
-                                <span class="text-gray-800 font-bold block mb-1">Latihan Pernapasan (Deep Breathing)</span>
-                                <span class="text-gray-500 text-sm block">Tarik napas dalam 3 detik, tahan 2 detik, hembuskan. 5–10 repetisi/jam.</span>
-                            </label>
-                        </li>
-                        <li class="flex items-start gap-4 p-4 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100">
-                            <input type="checkbox" id="lat-2" class="w-6 h-6 mt-1 cursor-pointer">
-                            <label for="lat-2" class="cursor-pointer flex-1">
-                                <span class="text-gray-800 font-bold block mb-1">Batuk Efektif</span>
-                                <span class="text-gray-500 text-sm block">2–3x tiap sesi (dengan menahan dada).</span>
-                            </label>
-                        </li>
-                    </ul>
+        <div class="max-w-5xl mx-auto">
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-widest mb-1" style="color:#A3ACA0;">Protokol: <?= $opName ?></p>
+                    <h2 class="text-3xl font-extrabold" style="color:#728BA9;">Roadmap Pemulihan</h2>
+                    <p class="font-medium mt-1" style="color:#7F8A83;">Anda berada di <strong style="color:#728BA9;">Hari ke-<?= $dayPostOp ?></strong> &mdash; <?= $phases[$currentPhaseIdx]['name'] ?></p>
                 </div>
-
-                <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-8">
-                    <h3 class="text-xl font-bold text-[#5A6C7A] mb-6">Aktivitas Fisik</h3>
-                    <ul class="space-y-5">
-                        <li class="flex items-start gap-4 p-4 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100">
-                            <input type="checkbox" id="akt-1" class="w-6 h-6 mt-1 cursor-pointer">
-                            <label for="akt-1" class="cursor-pointer flex-1">
-                                <span class="text-gray-800 font-bold block mb-1">Duduk di kursi</span>
-                                <span class="text-gray-500 text-sm block">15–30 menit, 2–3x/hari.</span>
-                            </label>
-                        </li>
-                        <li class="flex items-start gap-4 p-4 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100">
-                            <input type="checkbox" id="akt-2" class="w-6 h-6 mt-1 cursor-pointer">
-                            <label for="akt-2" class="cursor-pointer flex-1">
-                                <span class="text-gray-800 font-bold block mb-1">Jalan kaki dengan pendamping</span>
-                                <span class="text-gray-500 text-sm block">5 menit, 2x/hari.</span>
-                            </label>
-                        </li>
-                    </ul>
+                <div class="glass-card px-5 py-3 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-white text-sm shrink-0" style="background:#728BA9;"><?= $currentPhaseIdx+1 ?></div>
+                    <div><p class="font-extrabold text-sm" style="color:#5A6C7A;"><?= $phases[$currentPhaseIdx]['name'] ?></p><p class="text-xs font-medium" style="color:#A3ACA0;"><?= $phases[$currentPhaseIdx]['range'] ?></p></div>
                 </div>
-
-
-                <!-- Card 5: Larangan Keras -->
-                <div class="bg-red-50/50 rounded-2xl p-8 border border-red-100">
-                    <h3 class="text-xl font-bold text-red-700 mb-6 flex items-center gap-2">
-                        <span class="text-2xl">🚫</span> Larangan Hari Ini
-                    </h3>
-                    <ul class="space-y-4">
-                        <li class="flex items-center gap-3 text-red-800 font-medium">
-                            <span class="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 font-bold">X</span>
-                            Dilarang angkat beban &gt; 2-3 kg
-                        </li>
-                        <li class="flex items-center gap-3 text-red-800 font-medium">
-                            <span class="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 font-bold">X</span>
-                            Dilarang mengemudi
-                        </li>
-                        <li class="flex items-center gap-3 text-red-800 font-medium">
-                            <span class="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 font-bold">X</span>
-                            Dilarang mendorong/menarik benda berat
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Submit Action -->
-                <div class="pt-4">
-                    <button class="w-full bg-[#98b0c4] hover:bg-[#859eb3] text-white text-lg font-bold py-4 rounded-xl transition-colors shadow-sm">
-                        Simpan Progres Hari Ini
-                    </button>
-                </div>
-                
             </div>
 
-        <?php elseif ($page === 'profile'): ?>
-            <!-- PROFILE VIEW -->
-            <header>
-                <h2 class="text-2xl font-bold text-gray-800">Profil Saya</h2>
-                <p class="text-[#728BA9] mt-1 font-medium">Informasi dan status pemulihan Anda</p>
-            </header>
+            <!-- Phase Progress Stepper -->
+            <div class="glass-card p-6 mb-6">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-xs font-extrabold uppercase tracking-wider" style="color:#A3ACA0;">Progress Pemulihan</p>
+                    <span class="text-sm font-extrabold" style="color:#728BA9;"><?= $progressPct ?>% fase selesai</span>
+                </div>
+                <div class="w-full rounded-full h-2 mb-7" style="background:#DAE3EC;">
+                    <div class="h-2 rounded-full" style="width:<?= $progressPct ?>%;background:linear-gradient(90deg,#728BA9,#B8C9DD);"></div>
+                </div>
+                <div class="relative">
+                    <div class="absolute top-5 left-0 right-0 h-px mx-10" style="background:#DAE3EC;z-index:0;"></div>
+                    <div class="flex justify-between relative z-10">
+                        <?php foreach ($phases as $i => $ph):
+                            $isDone = $dayPostOp > $ph['days'][1];
+                            $isCurrent = ($i === $currentPhaseIdx);
+                            $btnBg    = $isDone ? $C_DONE  : ($isCurrent ? $C_ACTIVE : '#DAE3EC');
+                            $btnColor = ($isDone || $isCurrent) ? '#fff' : $C_FUTURE;
+                            $lblColor = $isCurrent ? $C_ACTIVE : ($isDone ? $C_DONE : $C_FUTURE);
+                            $lblOp    = $isCurrent ? '1' : '0.7';
+                            $glow     = $isCurrent ? 'box-shadow:0 0 0 4px rgba(114,139,169,0.25),0 4px 14px rgba(114,139,169,0.2);' : '';
+                        ?>
+                        <div class="flex flex-col items-center flex-1">
+                            <button onclick="openPhaseModal(<?= $i ?>)" class="w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-sm transition-all hover:scale-110 shadow-md mb-2"
+                                style="background:<?= $btnBg ?>;color:<?= $btnColor ?>;<?= $glow ?>">
+                                <?php if ($isDone): ?><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg><?php else: echo $i+1; endif; ?>
+                            </button>
+                            <p class="text-xs font-extrabold text-center leading-tight" style="color:<?= $lblColor ?>;max-width:72px;opacity:<?= $lblOp ?>;"><?= $ph['name'] ?></p>
+                            <p class="text-[10px] text-center font-medium mt-0.5 opacity-60" style="color:#A3ACA0;"><?= $ph['range'] ?></p>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
 
-            <div class="mt-8 max-w-3xl">
-                <!-- Profile Card -->
-                <div class="bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 overflow-hidden">
-                    <div class="h-32 bg-gradient-to-r from-[#98b0c4] to-[#B8C9DD] relative">
-                        <div class="absolute -bottom-12 left-8">
-                            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center p-1.5 shadow-md">
-                                <div class="w-full h-full bg-[#ECF2E6] text-[#728BA9] rounded-full flex items-center justify-center text-3xl font-extrabold uppercase">
-                                    <?= substr(htmlspecialchars($patientName), 0, 1) ?>
+            <!-- Phase Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                <?php foreach ($phases as $i => $ph):
+                    $isDone = $dayPostOp > $ph['days'][1];
+                    $isCurrent = ($i === $currentPhaseIdx);
+                    $barColor  = $isDone ? $BAR_DONE   : ($isCurrent ? $BAR_ACTIVE : $BAR_FUTURE);
+                    $dotColor  = $isDone ? $C_DONE     : ($isCurrent ? $C_ACTIVE   : $C_FUTURE);
+                    $iconBg    = $isDone ? 'rgba(90,108,122,0.1)' : ($isCurrent ? 'rgba(114,139,169,0.12)' : '#F0F3F7');
+                    $cBorder   = $isCurrent ? 'box-shadow:0 0 0 2px #728BA9,0 8px 32px rgba(114,139,169,0.15);' : '';
+                    $badgeBg   = $isCurrent ? '#ECF2E6' : ($isDone ? '#DAE3EC' : '#F0F3F7');
+                    $badgeClr  = $isCurrent ? '#728BA9' : ($isDone ? '#5A6C7A' : '#A3ACA0');
+                    $statusLbl = $isDone ? '&#10003; Selesai' : ($isCurrent ? '&#9654; Anda Di Sini' : '&#8635; Akan Datang');
+                    $statusClr = $isDone ? $C_DONE : ($isCurrent ? $C_ACTIVE : $C_FUTURE);
+                ?>
+                <button onclick="openPhaseModal(<?= $i ?>)" class="text-left glass-card overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1 cursor-pointer" style="<?= $cBorder ?>">
+                    <div class="h-1.5" style="background:<?= $barColor ?>;"></div>
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0 text-white" style="background:<?= $dotColor ?>;"><?= $i+1 ?></div>
+                                    <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-full" style="background:<?= $badgeBg ?>;color:<?= $badgeClr ?>;"><?= $ph['badge'] ?></span>
                                 </div>
+                                <h3 class="font-extrabold text-lg" style="color:#5A6C7A;"><?= $ph['name'] ?></h3>
+                                <p class="text-xs font-bold mt-0.5" style="color:#A3ACA0;"><?= $ph['range'] ?></p>
                             </div>
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style="background:<?= $iconBg ?>;">
+                                <?php if ($isDone): ?>
+                                    <svg class="w-5 h-5" fill="none" stroke="#5A6C7A" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                <?php elseif ($isCurrent): ?>
+                                    <div class="w-3 h-3 rounded-full" style="background:#728BA9;"></div>
+                                <?php else: ?>
+                                    <svg class="w-5 h-5" fill="none" stroke="#A3ACA0" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <p class="text-xs font-medium leading-relaxed mb-4" style="color:#7F8A83;"><?= $ph['desc'] ?></p>
+                        <div class="space-y-1.5 mb-4">
+                            <?php foreach (array_slice($ph['goals'],0,2) as $g): ?>
+                            <div class="flex items-center gap-2 text-xs font-medium" style="color:#5A6C7A;">
+                                <div class="w-1.5 h-1.5 rounded-full shrink-0" style="background:<?= $dotColor ?>;"></div>
+                                <?= htmlspecialchars($g) ?>
+                            </div>
+                            <?php endforeach; ?>
+                            <?php if (count($ph['goals'])>2): ?><p class="text-xs font-medium mt-1" style="color:#A3ACA0;">+<?= count($ph['goals'])-2 ?> target lainnya...</p><?php endif; ?>
+                        </div>
+                        <div class="flex items-center justify-between pt-3" style="border-top:1px solid rgba(218,227,236,0.6);">
+                            <span class="text-xs font-bold" style="color:<?= $statusClr ?>;"><?= $statusLbl ?></span>
+                            <span class="flex items-center gap-1 text-xs font-bold" style="color:#728BA9;">Lihat Detail <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg></span>
                         </div>
                     </div>
-                    
-                    <div class="pt-16 pb-8 px-8">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                            <div>
-                                <h3 class="text-2xl font-extrabold text-gray-800"><?= htmlspecialchars($patientName) ?></h3>
-                                <p class="text-[#7F7F7F] font-medium mt-1 flex items-center gap-2">
-                                    <span class="inline-flex py-1 px-3 rounded-full text-xs font-bold uppercase tracking-wider <?= $role === 'caregiver' ? 'bg-[#F8FCFF] text-[#B8C9DD]' : 'bg-[#ECF2E6] text-[#A3ACA0]' ?>">
-                                        <?= ucfirst($role) ?>
-                                    </span>
-                                </p>
-                            </div>
-                            
-                            <div class="flex gap-3 w-full md:w-auto">
-                                <a href="onboarding.php?edit=1" class="flex-1 md:flex-none text-center px-6 py-2.5 bg-[#F8FCFF] text-[#728BA9] font-bold rounded-xl border border-[#DAE3EC] hover:bg-[#DAE3EC] transition-colors shadow-sm text-sm">
-                                    Edit Data
-                                </a>
-                                <a href="../../auth/logout.php" class="flex-1 md:flex-none text-center px-6 py-2.5 bg-red-50 text-red-600 font-bold rounded-xl border border-red-100 hover:bg-red-100 transition-colors shadow-sm text-sm">
-                                    Logout
-                                </a>
-                            </div>
-                        </div>
+                </button>
+                <?php endforeach; ?>
+            </div>
 
-                        <div class="space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Op Type -->
-                                <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-                                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Tindakan Medis</p>
-                                    <p class="text-lg font-bold text-[#5A6C7A]"><?= htmlspecialchars($opName) ?></p>
-                                </div>
-                                <!-- Surgery Date -->
-                                <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-                                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Tanggal Operasi</p>
-                                    <p class="text-lg font-bold text-[#5A6C7A]"><?= htmlspecialchars(date('d F Y', strtotime($surgeryDate ?? date('Y-m-d')))) ?></p>
-                                    <p class="text-sm font-medium text-[#728BA9] mt-1">Hari ke-<?= $dayPostOp ?> Pemulihan</p>
-                                </div>
-                            </div>
-                            
-                            <?php if ($role === 'caregiver'): ?>
-                                <div class="bg-[#F8FCFF] rounded-2xl p-5 border border-[#DAE3EC] flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-full bg-[#B8C9DD] text-white flex items-center justify-center font-bold text-lg uppercase shrink-0">
-                                        <?= substr(htmlspecialchars($userName), 0, 1) ?>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs font-bold text-[#728BA9] uppercase tracking-wider mb-0.5">Pemantau (Caregiver)</p>
-                                        <p class="text-lg font-bold text-[#5A6C7A]"><?= htmlspecialchars($userName) ?></p>
-                                    </div>
-                                </div>
+            <!-- Weekly Calendar -->
+            <?php
+            $weekStart = max(1, $dayPostOp - (($dayPostOp-1)%7));
+            $weekEnd   = $weekStart + 6;
+            $curPhase  = $phases[$currentPhaseIdx];
+            $wNames    = ['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
+            ?>
+            <div class="glass-card p-6">
+                <div class="flex items-center justify-between mb-5">
+                    <div>
+                        <h3 class="font-extrabold text-lg flex items-center gap-2" style="color:#5A6C7A;">
+                            <svg class="w-5 h-5" fill="none" stroke="#728BA9" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            Rencana Minggu Ini
+                        </h3>
+                        <p class="text-xs font-medium mt-0.5" style="color:#A3ACA0;">Hari ke-<?= $weekStart ?> &mdash; Hari ke-<?= $weekEnd ?></p>
+                    </div>
+                    <span class="text-xs font-extrabold px-3 py-1.5 rounded-full" style="background:#ECF2E6;color:#728BA9;"><?= $curPhase['name'] ?></span>
+                </div>
+                <div class="grid grid-cols-7 gap-2 mb-5">
+                    <?php for ($d=$weekStart; $d<=$weekEnd; $d++):
+                        $isToday = ($d === $dayPostOp);
+                        $isPast  = ($d < $dayPostOp);
+                        $wIdx    = ($d - $weekStart) % 7;
+                        $dayBg   = $isToday ? '#728BA9' : ($isPast ? 'rgba(114,139,169,0.12)' : 'rgba(218,227,236,0.2)');
+                        $dayGlow = $isToday ? 'box-shadow:0 4px 16px rgba(114,139,169,0.35);' : '';
+                        $numClr  = $isToday ? '#fff'    : ($isPast ? '#728BA9' : '#B8C9DD');
+                    ?>
+                    <div class="flex flex-col items-center gap-1">
+                        <p class="text-[10px] font-bold" style="color:#A3ACA0;"><?= $wNames[$wIdx] ?></p>
+                        <div class="w-full aspect-square rounded-xl flex flex-col items-center justify-center transition-all hover:scale-105" style="background:<?= $dayBg ?>;<?= $dayGlow ?>">
+                            <span class="text-sm font-extrabold" style="color:<?= $numClr ?>;"><?= $d ?></span>
+                            <?php if ($isPast): ?>
+                                <svg class="w-3 h-3 mt-0.5" fill="none" stroke="#728BA9" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                            <?php elseif ($isToday): ?>
+                                <div class="w-1.5 h-1.5 rounded-full mt-1 opacity-75" style="background:#fff;"></div>
                             <?php endif; ?>
                         </div>
+                        <?php if ($isToday): ?><p class="text-[9px] font-extrabold" style="color:#728BA9;">HARI INI</p><?php endif; ?>
+                    </div>
+                    <?php endfor; ?>
+                </div>
+                <div class="rounded-2xl p-4" style="background:rgba(114,139,169,0.07);border:1px solid #DAE3EC;">
+                    <p class="text-xs font-extrabold uppercase tracking-wider mb-3 flex items-center gap-1.5" style="color:#728BA9;">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+                        Prioritas Hari ke-<?= $dayPostOp ?> &mdash; <?= $curPhase['name'] ?>
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <?php foreach (array_slice($curPhase['activities'],0,4) as $idx=>$act): ?>
+                        <div class="flex items-center gap-2.5 rounded-xl px-3 py-2.5" style="background:rgba(255,255,255,0.85);">
+                            <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 font-extrabold text-xs text-white" style="background:#728BA9;"><?= $idx+1 ?></div>
+                            <div>
+                                <p class="text-xs font-extrabold leading-snug" style="color:#5A6C7A;"><?= htmlspecialchars($act[0]) ?></p>
+                                <p class="text-[10px] font-medium" style="color:#A3ACA0;"><?= htmlspecialchars($act[1]) ?></p>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <button onclick="openPhaseModal(<?= $currentPhaseIdx ?>)" class="mt-3 w-full py-2 rounded-xl text-xs font-extrabold transition-all hover:-translate-y-0.5 text-white" style="background:#728BA9;">Lihat Semua Aktivitas &rarr;</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        var PHASES=<?= json_encode(array_map(function($ph){return['name'=>$ph['name'],'range'=>$ph['range'],'badge'=>$ph['badge'],'desc'=>$ph['desc'],'goals'=>$ph['goals'],'activities'=>$ph['activities'],'restrictions'=>$ph['restrictions'],'warning'=>$ph['warning'],'vid'=>$ph['vid'],'vtitle'=>$ph['vtitle']];},$phases),JSON_UNESCAPED_UNICODE) ?>;
+        function openPhaseModal(idx){
+            var p=PHASES[idx];
+            document.getElementById('pmod-title').textContent=p.name;
+            document.getElementById('pmod-range').textContent=p.range;
+            document.getElementById('pmod-desc').textContent=p.desc;
+            document.getElementById('pmod-badge').textContent=p.badge;
+            var gl=document.getElementById('pmod-goals');gl.innerHTML='';
+            p.goals.forEach(function(g){gl.innerHTML+='<li class="flex items-start gap-2 text-sm font-medium" style="color:#5A6C7A;"><svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="#728BA9" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>'+g+'</li>';});
+            var al=document.getElementById('pmod-activities');al.innerHTML='';
+            p.activities.forEach(function(a){al.innerHTML+='<div class="flex items-center justify-between px-4 py-2.5 rounded-xl" style="background:rgba(114,139,169,0.06);"><span class="text-sm font-semibold" style="color:#5A6C7A;">'+a[0]+'</span><span class="text-xs font-bold px-2.5 py-0.5 rounded-full ml-3 shrink-0 whitespace-nowrap" style="background:#ECF2E6;color:#728BA9;">'+a[1]+'</span></div>';});
+            var rl=document.getElementById('pmod-restrictions');rl.innerHTML='';
+            p.restrictions.forEach(function(r){rl.innerHTML+='<li class="flex items-start gap-2 text-sm font-medium" style="color:#5A6C7A;"><svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="#5A6C7A" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>'+r+'</li>';});
+            var wl=document.getElementById('pmod-warning');wl.innerHTML='';
+            p.warning.forEach(function(w){wl.innerHTML+='<li class="flex items-start gap-2 text-sm font-semibold" style="color:#5A6C7A;"><svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="#728BA9" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>'+w+'</li>';});
+            var vw=document.getElementById('pmod-vid-wrap');
+            if(p.vid){vw.classList.remove('hidden');document.getElementById('pmod-vid-label').textContent='Tonton: '+p.vtitle;document.getElementById('pmod-vid-btn').onclick=function(){closePhaseModal();openVid(p.vid,p.vtitle);};}else{vw.classList.add('hidden');}
+            var m=document.getElementById('phase-modal');m.classList.remove('hidden');m.classList.add('flex');
+        }
+        function closePhaseModal(){var m=document.getElementById('phase-modal');m.classList.add('hidden');m.classList.remove('flex');}
+        document.getElementById('phase-modal').addEventListener('click',function(e){if(e.target===this)closePhaseModal();});
+        </script>
+        <?php elseif ($page === 'monitoring'): ?>
+        <!-- ============================================================
+             MONITORING
+        ============================================================ -->
+        <div class="max-w-3xl mx-auto">
+            <div class="mb-8">
+                <h2 class="text-3xl font-extrabold" style="color:#728BA9;">Log Kondisi Harian</h2>
+                <p class="font-medium mt-1" style="color:#A3ACA0;">Isi formulir ini setiap hari untuk memantau perkembangan pemulihan Anda.</p>
+            </div>
+            <form action="dashboard.php" method="POST" enctype="multipart/form-data" class="space-y-6">
+                <input type="hidden" name="action" value="save_monitoring">
+
+                <?php if ($opType === 'cabg'): ?>
+                <!-- CABG -->
+                <div class="glass-card p-8">
+                    <h3 class="font-extrabold text-lg mb-6 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg> Tanda Vital</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block font-bold text-sm mb-2" style="color:#5A6C7A;">SpOâ‚‚ (%)</label>
+                            <input type="number" name="spo2" min="80" max="100" value="<?= htmlspecialchars($todayMonitoring['spo2'] ?? '') ?>" placeholder="misal: 98" 
+                                class="w-full px-4 py-3 rounded-xl border outline-none transition-all font-semibold" style="border-color:#DAE3EC;background:rgba(255,255,255,0.8);color:#5A6C7A;"
+                                onfocus="this.style.borderColor='#728BA9'" onblur="this.style.borderColor='#DAE3EC'">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-sm mb-2" style="color:#5A6C7A;">Detak Jantung (bpm)</label>
+                            <input type="number" name="heart_rate" min="40" max="200" value="<?= htmlspecialchars($todayMonitoring['heart_rate'] ?? '') ?>" placeholder="misal: 80"
+                                class="w-full px-4 py-3 rounded-xl border outline-none transition-all font-semibold" style="border-color:#DAE3EC;background:rgba(255,255,255,0.8);color:#5A6C7A;"
+                                onfocus="this.style.borderColor='#728BA9'" onblur="this.style.borderColor='#DAE3EC'">
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card p-8">
+                    <h3 class="font-extrabold text-lg mb-2 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"/></svg> Skala Nyeri Dada</h3>
+                    <p class="text-xs font-medium mb-6" style="color:#A3ACA0;">Geser slider untuk menentukan tingkat nyeri saat ini</p>
+                    <div class="flex items-center gap-4 mb-3">
+                        <input type="range" name="pain_level" min="0" max="10" value="<?= htmlspecialchars($todayMonitoring['pain_level'] ?? 0) ?>" class="flex-1 h-3 rounded-full" id="sldr_cabg" oninput="setPain(this.value,'pf_cabg','pv_cabg')">
+                        <div class="w-10 h-10 rounded-full border-2 flex items-center justify-center shrink-0 font-extrabold text-sm" id="pf_cabg" style="border-color:#DAE3EC;color:#728BA9;">0</div>
+                    </div>
+                    <div class="flex justify-between text-xs font-bold" style="color:#A3ACA0;">
+                        <span>0 â€” Tidak Sakit</span>
+                        <span class="text-base font-extrabold" id="pv_cabg" style="color:#728BA9;"><?= ($todayMonitoring['pain_level'] ?? 0) ?>/10</span>
+                        <span>10 â€” Sangat Parah</span>
+                    </div>
+                </div>
+
+                <?php elseif ($opType === 'sc'): ?>
+                <!-- SC -->
+                <div class="glass-card p-8">
+                    <h3 class="font-extrabold text-lg mb-4 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Suhu Tubuh (Â°C)</h3>
+                    <input type="number" step="0.1" name="temp" min="35" max="42" value="<?= htmlspecialchars($todayMonitoring['temp'] ?? '') ?>" placeholder="misal: 36.8"
+                        class="w-full px-4 py-3 rounded-xl border outline-none font-semibold" style="border-color:#DAE3EC;background:rgba(255,255,255,0.8);color:#5A6C7A;"
+                        onfocus="this.style.borderColor='#728BA9'" onblur="this.style.borderColor='#DAE3EC'">
+                    <p class="text-xs font-medium mt-2" style="color:#A3ACA0;">Normal: 36â€“37.5Â°C. Demam jika &gt; 38Â°C.</p>
+                </div>
+                <div class="glass-card p-8">
+                    <h3 class="font-extrabold text-lg mb-6 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg> Pemantauan Perdarahan</h3>
+                    <div class="space-y-5">
+                        <div><label class="block font-bold text-sm mb-3" style="color:#5A6C7A;">Volume</label>
+                            <div class="grid grid-cols-3 gap-3"><?php foreach(['Sedikit','Sedang','Banyak'] as $o): ?>
+                            <div class="radio-card"><input type="radio" name="blood_volume" id="bv_<?=$o?>" value="<?=$o?>" <?=($todayMonitoring['blood_volume']??'')===$o?'checked':''?>><label for="bv_<?=$o?>"><?=$o?></label></div>
+                            <?php endforeach; ?></div>
+                        </div>
+                        <div><label class="block font-bold text-sm mb-3" style="color:#5A6C7A;">Warna</label>
+                            <div class="grid grid-cols-2 gap-3"><?php foreach(['Merah Segar','Merah Kecoklatan','Coklat Tua','Kuning / Keputihan'] as $o): ?>
+                            <div class="radio-card"><input type="radio" name="blood_color" id="bc_<?=preg_replace('/\W+/','_',$o)?>" value="<?=$o?>" <?=($todayMonitoring['blood_color']??'')===$o?'checked':''?>><label for="bc_<?=preg_replace('/\W+/','_',$o)?>"><?=$o?></label></div>
+                            <?php endforeach; ?></div>
+                        </div>
+                        <div><label class="block font-bold text-sm mb-3" style="color:#5A6C7A;">Gumpalan Darah</label>
+                            <div class="grid grid-cols-2 gap-3"><?php foreach(['Tidak Ada','Kecil (< koin)','Sedang (> koin)','Besar'] as $o): ?>
+                            <div class="radio-card"><input type="radio" name="blood_clots" id="bclot_<?=preg_replace('/\W+/','_',$o)?>" value="<?=$o?>" <?=($todayMonitoring['blood_clots']??'')===$o?'checked':''?>><label for="bclot_<?=preg_replace('/\W+/','_',$o)?>"><?=$o?></label></div>
+                            <?php endforeach; ?></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card p-8">
+                    <h3 class="font-extrabold text-lg mb-2 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"/></svg> Skala Nyeri</h3>
+                    <div class="flex items-center gap-4 mb-3">
+                        <input type="range" name="pain_level" min="0" max="10" value="<?= htmlspecialchars($todayMonitoring['pain_level'] ?? 0) ?>" class="flex-1 h-3 rounded-full" oninput="setPain(this.value,'pf_sc','pv_sc')">
+                        <div class="w-10 h-10 rounded-full border-2 flex items-center justify-center shrink-0 font-extrabold text-sm" id="pf_sc" style="border-color:#DAE3EC;color:#728BA9;">0</div>
+                    </div>
+                    <div class="flex justify-between text-xs font-bold" style="color:#A3ACA0;"><span>0</span><span class="font-extrabold" id="pv_sc" style="color:#728BA9;"><?= ($todayMonitoring['pain_level']??0) ?>/10</span><span>10</span></div>
+                </div>
+
+                <?php else: ?>
+                <!-- Ortopedi -->
+                <div class="glass-card p-8">
+                    <h3 class="font-extrabold text-lg mb-6 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"/></svg> Skala Nyeri</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block font-bold text-sm mb-2" style="color:#5A6C7A;">Nyeri Area Operasi</label>
+                            <div class="flex items-center gap-4 mb-2"><input type="range" name="stump_pain" min="0" max="10" value="<?= htmlspecialchars($todayMonitoring['stump_pain']??0) ?>" class="flex-1 h-3 rounded-full" oninput="setPain(this.value,'pf_st','pv_st')"><div class="w-10 h-10 rounded-full border-2 flex items-center justify-center shrink-0 font-extrabold text-sm" id="pf_st" style="border-color:#DAE3EC;color:#728BA9;">0</div></div>
+                            <div class="flex justify-between text-xs font-bold" style="color:#A3ACA0;"><span>0</span><span id="pv_st" style="color:#728BA9;font-weight:800;"><?= ($todayMonitoring['stump_pain']??0) ?>/10</span><span>10</span></div>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-sm mb-2" style="color:#5A6C7A;">Nyeri Sendi</label>
+                            <div class="flex items-center gap-4 mb-2"><input type="range" name="phantom_pain" min="0" max="10" value="<?= htmlspecialchars($todayMonitoring['phantom_pain']??0) ?>" class="flex-1 h-3 rounded-full" oninput="setPain(this.value,'pf_ph','pv_ph')"><div class="w-10 h-10 rounded-full border-2 flex items-center justify-center shrink-0 font-extrabold text-sm" id="pf_ph" style="border-color:#DAE3EC;color:#728BA9;">0</div></div>
+                            <div class="flex justify-between text-xs font-bold" style="color:#A3ACA0;"><span>0</span><span id="pv_ph" style="color:#728BA9;font-weight:800;"><?= ($todayMonitoring['phantom_pain']??0) ?>/10</span><span>10</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card p-8">
+                    <h3 class="font-extrabold text-lg mb-6 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg> Kondisi Luka</h3>
+                    <div class="space-y-5">
+                        <div><label class="block font-bold text-sm mb-3" style="color:#5A6C7A;">Warna Kulit Sekitar Luka</label>
+                            <div class="grid grid-cols-2 gap-3"><?php foreach(['Normal (sesuai kulit)','Kemerahan Ringan','Merah Tua / Kebiruan','Pucat'] as $o): ?>
+                            <div class="radio-card"><input type="radio" name="wound_color" id="wc_<?=preg_replace('/\W+/','_',$o)?>" value="<?=$o?>" <?=($todayMonitoring['wound_color']??'')===$o?'checked':''?>><label for="wc_<?=preg_replace('/\W+/','_',$o)?>"><?=$o?></label></div>
+                            <?php endforeach; ?></div>
+                        </div>
+                        <div><label class="block font-bold text-sm mb-3" style="color:#5A6C7A;">Bengkak</label>
+                            <div class="grid grid-cols-3 gap-3"><?php foreach(['Tidak Ada','Sedikit (dekat luka)','Besar / Meluas'] as $o): ?>
+                            <div class="radio-card"><input type="radio" name="wound_swelling" id="ws_<?=preg_replace('/\W+/','_',$o)?>" value="<?=$o?>" <?=($todayMonitoring['wound_swelling']??'')===$o?'checked':''?>><label for="ws_<?=preg_replace('/\W+/','_',$o)?>"><?=$o?></label></div>
+                            <?php endforeach; ?></div>
+                        </div>
+                        <div><label class="block font-bold text-sm mb-3" style="color:#5A6C7A;">Cairan Luka</label>
+                            <div class="grid grid-cols-2 gap-3"><?php foreach(['Kering','Bening / Normal','Kuning / Nanah','Merah (darah)'] as $o): ?>
+                            <div class="radio-card"><input type="radio" name="wound_fluid" id="wf_<?=preg_replace('/\W+/','_',$o)?>" value="<?=$o?>" <?=($todayMonitoring['wound_fluid']??'')===$o?'checked':''?>><label for="wf_<?=preg_replace('/\W+/','_',$o)?>"><?=$o?></label></div>
+                            <?php endforeach; ?></div>
+                        </div>
+                        <div><label class="block font-bold text-sm mb-3" style="color:#5A6C7A;">Bau Luka</label>
+                            <div class="grid grid-cols-3 gap-3"><?php foreach(['Tidak Berbau','Sedikit Berbau','Menyengat'] as $o): ?>
+                            <div class="radio-card"><input type="radio" name="wound_odor" id="wo_<?=preg_replace('/\W+/','_',$o)?>" value="<?=$o?>" <?=($todayMonitoring['wound_odor']??'')===$o?'checked':''?>><label for="wo_<?=preg_replace('/\W+/','_',$o)?>"><?=$o?></label></div>
+                            <?php endforeach; ?></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Photo Log -->
+                <div class="glass-card p-8">
+                    <h3 class="font-extrabold text-lg mb-2 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/></svg> Foto Luka Hari Ini</h3>
+                    <p class="text-xs font-medium mb-5" style="color:#A3ACA0;">Unggah foto untuk membantu pemantauan visual perkembangan luka</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="wound_photo" class="flex flex-col items-center justify-center w-full h-44 cursor-pointer transition-all rounded-2xl" style="border:2px dashed #B8C9DD;background:#F8FCFF;" onmouseover="this.style.background='#ECF2E6'" onmouseout="this.style.background='#F8FCFF'">
+                                <svg class="w-10 h-10 mb-3" fill="none" stroke="#B8C9DD" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586A2 2 0 0110.414 11h1.172a2 2 0 011.414.586L17 16m-2-2l1.586-1.586A2 2 0 0118 13.5h.5M2 8h1m17 0h1M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
+                                <span class="font-bold text-sm" style="color:#728BA9;">Ketuk untuk unggah foto</span>
+                                <span class="text-xs mt-1" style="color:#A3ACA0;">JPG, PNG maks. 5MB</span>
+                                <input id="wound_photo" name="wound_photo" type="file" class="hidden" accept="image/*">
+                            </label>
+                            <div id="photo_preview" class="hidden mt-3">
+                                <img id="photo_img" class="w-full rounded-2xl object-cover max-h-44" src="" alt="Preview">
+                            </div>
+                        </div>
+                        <div class="rounded-2xl p-5" style="background:#ECF2E6;">
+                            <p class="text-xs font-extrabold uppercase tracking-wider mb-3 flex items-center gap-1.5" style="color:#5A6C7A;"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> Referensi Luka</p>
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#4ade80;"></span><div><p class="text-xs font-bold" style="color:#16a34a;">NORMAL</p><p class="text-xs font-medium" style="color:#7F7F7F;">Merah muda memudar, tepi rapat, cairan bening sedikit</p></div></div>
+                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#fbbf24;"></span><div><p class="text-xs font-bold" style="color:#d97706;">PERHATIAN</p><p class="text-xs font-medium" style="color:#7F7F7F;">Kemerahan tepi luka, sedikit bengkak â€” pantau ketat</p></div></div>
+                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#f87171;"></span><div><p class="text-xs font-bold" style="color:#dc2626;">BAHAYA!</p><p class="text-xs font-medium" style="color:#7F7F7F;">Nanah, bau menyengat, merah meluas, jahitan terbuka</p></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <button type="submit" class="w-full py-4 rounded-2xl text-white font-extrabold text-lg transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2.5" style="background:#728BA9;box-shadow:0 8px 24px rgba(114,139,169,0.3);">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                    Simpan Data Hari Ini
+                </button>
+                <?php if (!empty($errorMsg)): ?>
+                <p class="text-red-500 font-medium text-sm text-center"><?= htmlspecialchars($errorMsg) ?></p>
+                <?php endif; ?>
+            </form>
+        </div>
+
+
+        <?php elseif ($page === 'content'): ?>
+        <!-- ============================================================
+             CONTENT LIBRARY
+        ============================================================ -->
+        <div class="max-w-5xl mx-auto">
+            <div class="mb-8">
+                <h2 class="text-3xl font-extrabold" style="color:#728BA9;">Pustaka Pemulihan</h2>
+                <p class="font-medium mt-1" style="color:#A3ACA0;">Materi edukasi untuk pasien <?= htmlspecialchars($opName) ?>.</p>
+            </div>
+            <?php
+            if ($opType==='cabg') {
+                $vids=[['sAx8_UXak1Q','Olahraga Pasca Operasi Jantung','Rehabilitasi awal oleh dr. Kevin Triangto'],['hz4bgO-Smk0','Apa Yang Dilakukan Setelah Operasi?','Langkah esensial pemulihan pasca bedah jantung'],['ZibrJpra3FA','Rehabilitasi Fase I Pasca CABG','Latihan menjaga sirkulasi di fase paling awal']];
+                $arts=[['heart','Aturan Pola Makan Jantung Sehat Pasca CABG','4 menit'],['shield','Mengenali Tanda Bahaya pada Luka Insisi Dada','3 menit']];
+            } elseif ($opType==='sc') {
+                $vids=[['KG_SsDOfwpI','Pantangan Pasca Operasi Caesar','Hal yang wajib dihindari ibu setelah SC'],['P7hrkSlr3vo','4 Tips Agar Cepat Pulih Pasca SC','Panduan mempercepat penyembuhan'],['c3NRSqZooyk','Tips Cepat Pulih Pasca Sesar','Tips percepatan dari dr. Keven']];
+                $arts=[['bandage','Perawatan Mandiri Luka Caesar di Rumah','5 menit'],['drop','Panduan Nutrisi ASI Deras Pasca Operasi','4 menit']];
+            } else {
+                $vids=[['wch7bNy0EWE','Hal Yang Dihindari Pasca Operasi Ortopedi','Panduan larangan keras setelah TKR'],['hWK3xL9WfQk','Cara Penggunaan Walker','Tutor pemakaian alat bantu jalan'],['ZwjCz8gj82A','Cara Mandi dengan Perban/Gips','Strategi aman mandi tanpa membasahi Cast']];
+                $arts=[['bone','Tips Menjaga Kebersihan Kulit di Bawah Gips','6 menit'],['activity','Membedakan Nyeri Normal dan Komplikasi','4 menit']];
+            }
+            ?>
+            <div class="space-y-10">
+                <section>
+                    <h3 class="text-xl font-extrabold mb-5 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg> Video Panduan</h3>
+                    <div class="flex overflow-x-auto pb-6 gap-5 snap-x snap-mandatory scrollbar-hide">
+                        <?php foreach ($vids as [$vid,$title,$desc]): ?>
+                        <div class="w-[85vw] sm:w-[380px] snap-center shrink-0 glass-card p-5 flex flex-col">
+                            <iframe class="w-full aspect-video rounded-xl mb-4 shrink-0" src="https://www.youtube.com/embed/<?=$vid?>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            <h4 class="font-extrabold mb-1 text-sm" style="color:#5A6C7A;"><?=$title?></h4>
+                            <p class="text-xs font-medium flex-grow" style="color:#A3ACA0;"><?=$desc?></p>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
+                <section>
+                    <h3 class="text-xl font-extrabold mb-5 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg> Artikel Pilihan</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <?php 
+                        $artIcons = [
+                            'heart' => '<svg class="w-7 h-7" fill="none" stroke="#728BA9" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>',
+                            'shield' => '<svg class="w-7 h-7" fill="none" stroke="#728BA9" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>',
+                            'bandage' => '<svg class="w-7 h-7" fill="none" stroke="#728BA9" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"/></svg>',
+                            'drop' => '<svg class="w-7 h-7" fill="none" stroke="#728BA9" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c4.97 5.278 7.5 8.944 7.5 11.25a7.5 7.5 0 01-15 0C4.5 11.944 7.03 8.278 12 3z"/></svg>',
+                            'bone' => '<svg class="w-7 h-7" fill="none" stroke="#728BA9" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2.25 2.25 4.5-4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                            'activity' => '<svg class="w-7 h-7" fill="none" stroke="#728BA9" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>',
+                        ];
+                        foreach ($arts as [$iconKey,$title,$dur]): ?>
+                        <a href="#" class="flex gap-4 p-5 glass-card hover:shadow-md transition-all">
+                            <div class="w-16 h-16 rounded-xl shrink-0 flex items-center justify-center" style="background:#ECF2E6;"><?= $artIcons[$iconKey] ?? '' ?></div>
+                            <div><h4 class="font-extrabold mb-1 text-sm" style="color:#5A6C7A;"><?=$title?></h4><p class="text-xs font-medium" style="color:#A3ACA0;">Est. baca <?=$dur?></p></div>
+                        </a>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+
+        <?php elseif ($page === 'profile'): ?>
+        <!-- ============================================================
+             PROFILE
+        ============================================================ -->
+        <div class="max-w-3xl mx-auto">
+            <div class="mb-8"><h2 class="text-3xl font-extrabold" style="color:#728BA9;">Profil Saya</h2><p class="font-medium mt-1" style="color:#A3ACA0;">Informasi dan status pemulihan Anda</p></div>
+            <div class="glass-card overflow-hidden">
+                <div class="h-36 relative" style="background:linear-gradient(135deg,#728BA9,#B8C9DD);">
+                    <div class="absolute -bottom-12 left-8">
+                        <div class="w-24 h-24 rounded-full bg-white p-1.5 shadow-lg">
+                            <div class="w-full h-full rounded-full flex items-center justify-center text-3xl font-extrabold uppercase" style="background:#ECF2E6;color:#728BA9;"><?= substr(htmlspecialchars($userName),0,1) ?></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pt-16 pb-8 px-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                        <div>
+                            <h3 class="text-2xl font-extrabold" style="color:#5A6C7A;"><?= htmlspecialchars($patientName) ?></h3>
+                            <span class="inline-block px-4 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mt-2" style="background:<?= $role==='caregiver' ? '#F8FCFF' : '#ECF2E6' ?>;color:<?= $role==='caregiver' ? '#728BA9' : '#A3ACA0' ?>;"><?= ucfirst($role) ?></span>
+                        </div>
+                        <div class="flex gap-3">
+                            <a href="onboarding.php?edit=1" class="px-6 py-2.5 glass-card font-bold rounded-xl hover:shadow-md transition-all text-sm" style="color:#728BA9;">Edit Data</a>
+                            <a href="../../auth/logout.php" class="px-6 py-2.5 font-bold rounded-xl border text-sm transition-all" style="background:#fef2f2;color:#dc2626;border-color:#fee2e2;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">Logout</a>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="rounded-2xl p-5" style="background:#F8FCFF;border:1px solid #DAE3EC;"><p class="text-xs font-extrabold uppercase tracking-wider mb-2" style="color:#A3ACA0;">Tindakan Medis</p><p class="text-lg font-extrabold" style="color:#5A6C7A;"><?= htmlspecialchars($opName) ?></p></div>
+                        <div class="rounded-2xl p-5" style="background:#F8FCFF;border:1px solid #DAE3EC;"><p class="text-xs font-extrabold uppercase tracking-wider mb-2" style="color:#A3ACA0;">Tanggal Operasi</p><p class="text-lg font-extrabold" style="color:#5A6C7A;"><?= htmlspecialchars(date('d F Y', strtotime($surgeryDate ?? date('Y-m-d')))) ?></p><p class="text-sm font-bold mt-1" style="color:#728BA9;">Hari ke-<?= $dayPostOp ?> Pemulihan</p></div>
                     </div>
                 </div>
             </div>
+        </div>
 
-        <?php elseif ($page === 'monitoring'): ?>
-            <!-- MONITORING VIEW -->
-            <header>
-                <h2 class="text-2xl font-bold text-gray-800">Cek Kondisi Harian</h2>
-                <p class="text-gray-500 mt-1">Isi form di bawah untuk memantau pemulihan Anda hari ini.</p>
-            </header>
-            
-            <form action="dashboard.php" method="POST" class="mt-8 max-w-2xl bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 p-8 space-y-6">
-                <input type="hidden" name="action" value="save_monitoring">
-                
-                <?php if ($opType === 'cabg'): ?>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">SpO₂ (%)</label>
-                            <input type="number" name="spo2" value="<?= htmlspecialchars($todayMonitoring['spo2'] ?? '') ?>" placeholder="Contoh: 98" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#98b0c4] outline-none transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">Detak Jantung (bpm)</label>
-                            <input type="number" name="heart_rate" value="<?= htmlspecialchars($todayMonitoring['heart_rate'] ?? '') ?>" placeholder="Contoh: 82" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#98b0c4] outline-none transition-colors">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-gray-700 font-bold mb-2">Skala Nyeri Dada (0-10)</label>
-                            <input type="number" name="pain_level" min="0" max="10" value="<?= htmlspecialchars($todayMonitoring['pain_level'] ?? '') ?>" placeholder="Contoh: 3" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#98b0c4] outline-none transition-colors">
-                        </div>
-                    </div>
-                <?php elseif ($opType === 'sc'): ?>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">Volume Perdarahan</label>
-                            <select name="blood_volume" class="w-full px-4 py-3 rounded-xl border border-gray-200 transition-colors focus:border-[#98b0c4] outline-none">
-                                <option value="">- Pilih -</option>
-                                <option value="Sedikit" <?= ($todayMonitoring['blood_volume']??'')=='Sedikit'?'selected':'' ?>>Sedikit</option>
-                                <option value="Sedang" <?= ($todayMonitoring['blood_volume']??'')=='Sedang'?'selected':'' ?>>Sedang</option>
-                                <option value="Banyak" <?= ($todayMonitoring['blood_volume']??'')=='Banyak'?'selected':'' ?>>Banyak</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">Warna</label>
-                            <input type="text" name="blood_color" value="<?= htmlspecialchars($todayMonitoring['blood_color'] ?? '') ?>" placeholder="Merah, Coklat..." class="w-full px-4 py-3 rounded-xl border border-gray-200 transition-colors focus:border-[#98b0c4] outline-none">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-gray-700 font-bold mb-2">Gumpalan Darah</label>
-                            <input type="text" name="blood_clots" value="<?= htmlspecialchars($todayMonitoring['blood_clots'] ?? '') ?>" placeholder="Tidak, Ya (Ukuran coin)..." class="w-full px-4 py-3 rounded-xl border border-gray-200 transition-colors focus:border-[#98b0c4] outline-none">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-gray-700 font-bold mb-2">Suhu Tubuh (°C)</label>
-                            <input type="number" step="0.1" name="temp" value="<?= htmlspecialchars($todayMonitoring['temp'] ?? '') ?>" placeholder="36.5" class="w-full px-4 py-3 rounded-xl border border-gray-200 transition-colors focus:border-[#98b0c4] outline-none">
-                        </div>
-                    </div>
-                <?php else: ?>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">Nyeri Area Operasi (0-10)</label>
-                            <input type="number" min="0" max="10" name="stump_pain" value="<?= htmlspecialchars($todayMonitoring['stump_pain'] ?? '') ?>" class="w-full px-4 py-3 rounded-xl border border-gray-200 transition-colors focus:border-[#98b0c4] outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">Nyeri Sendi (0-10)</label>
-                            <input type="number" min="0" max="10" name="phantom_pain" value="<?= htmlspecialchars($todayMonitoring['phantom_pain'] ?? '') ?>" class="w-full px-4 py-3 rounded-xl border border-gray-200 transition-colors focus:border-[#98b0c4] outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">Warna Kulit Area Tempel</label>
-                            <input type="text" name="wound_color" value="<?= htmlspecialchars($todayMonitoring['wound_color'] ?? '') ?>" class="w-full px-4 py-3 rounded-xl border border-gray-200 transition-colors focus:border-[#98b0c4] outline-none" placeholder="Normal, Merah...">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">Bengkak</label>
-                            <input type="text" name="wound_swelling" value="<?= htmlspecialchars($todayMonitoring['wound_swelling'] ?? '') ?>" class="w-full px-4 py-3 rounded-xl border border-gray-200 transition-colors focus:border-[#98b0c4] outline-none" placeholder="Tidak, Ringan...">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">Cairan Luka</label>
-                            <input type="text" name="wound_fluid" value="<?= htmlspecialchars($todayMonitoring['wound_fluid'] ?? '') ?>" class="w-full px-4 py-3 rounded-xl border border-gray-200 transition-colors focus:border-[#98b0c4] outline-none" placeholder="Tidak ada, Bening...">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2">Bau Luka</label>
-                            <input type="text" name="wound_odor" value="<?= htmlspecialchars($todayMonitoring['wound_odor'] ?? '') ?>" class="w-full px-4 py-3 rounded-xl border border-gray-200 transition-colors focus:border-[#98b0c4] outline-none" placeholder="Tidak ada...">
-                        </div>
-                    </div>
-                <?php endif; ?>
-                
-                <div class="pt-2">
-                    <button type="submit" class="w-full bg-[#98b0c4] hover:bg-[#859eb3] text-white font-bold text-lg py-4 px-4 rounded-xl shadow-sm transition-colors transform hover:-translate-y-0.5">
-                        Simpan Data Hari Ini
-                    </button>
-                    <?php if (!empty($errorMsg)): ?>
-                        <p class="text-red-500 mt-3 font-medium text-sm text-center"><?= htmlspecialchars($errorMsg) ?></p>
-                    <?php endif; ?>
-                </div>
-            </form>
-
-        <?php elseif ($page === 'content'): ?>
-            <!-- CONTENT LIBRARY VIEW -->
-            <header class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-800">Pustaka Pemulihan</h2>
-                <p class="text-[#728BA9] mt-1 font-medium">Materi edukasi dan panduan video khusus untuk pasien <?= htmlspecialchars($opName) ?>.</p>
-            </header>
-
-            <?php if ($opType === 'cabg'): ?>
-                <!-- CABG Content -->
-                <div class="space-y-10 focus:outline-none">
-                    <section>
-                        <h3 class="text-xl font-bold text-[#5A6C7A] mb-5 flex items-center gap-2"><span class="text-2xl">📺</span> Video Fisioterapi</h3>
-                        <div class="flex overflow-x-auto items-stretch pb-6 gap-6 snap-x snap-mandatory scrollbar-hide" style="-webkit-overflow-scrolling: touch; scrollbar-width: none;">
-                            <div class="w-[85vw] sm:w-[400px] snap-center shrink-0 bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 flex flex-col h-full">
-                                <iframe class="w-full aspect-video rounded-xl mb-4 shrink-0" src="https://www.youtube.com/embed/sAx8_UXak1Q" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                                <h4 class="font-bold text-gray-800 mb-1">Olahraga Pasca Operasi Jantung</h4>
-                                <p class="text-sm text-gray-500 flex-grow">Panduan rehabilitasi tahap awal bagi pasien pasca operasi oleh dr. Kevin Triangto.</p>
-                            </div>
-                            <div class="w-[85vw] sm:w-[400px] snap-center shrink-0 bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 flex flex-col h-full">
-                                <iframe class="w-full aspect-video rounded-xl mb-4 shrink-0" src="https://www.youtube.com/embed/hz4bgO-Smk0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                                <h4 class="font-bold text-gray-800 mb-1">Apa Yang Perlu Dilakukan Setelah Operasi?</h4>
-                                <p class="text-sm text-gray-500 flex-grow">Bincang medis mengenai langkah esensial pemulihan dan perawatan pasca bedah jantung.</p>
-                            </div>
-                            <div class="w-[85vw] sm:w-[400px] snap-center shrink-0 bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 flex flex-col h-full">
-                                <iframe class="w-full aspect-video rounded-xl mb-4 shrink-0" src="https://www.youtube.com/embed/ZibrJpra3FA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                                <h4 class="font-bold text-gray-800 mb-1">Rehabilitasi Fase I Pasca CABG</h4>
-                                <p class="text-sm text-gray-500 flex-grow">Latihan dan gerakan di fase paling awal pasca tindakan untuk menjaga sirkulasi darah.</p>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section>
-                        <h3 class="text-xl font-bold text-[#5A6C7A] mb-5 flex items-center gap-2"><span class="text-2xl">📖</span> Artikel Rekomendasi</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <a href="#" class="flex gap-4 p-4 bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 hover:border-[#98b0c4] transition-colors group">
-                                <div class="w-20 h-20 rounded-xl bg-[#ECF2E6] shrink-0 flex items-center justify-center text-3xl">🥗</div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800 group-hover:text-[#5A6C7A] transition-colors mb-1 line-clamp-2">Aturan Pola Makan Jantung Sehat Pasca CABG</h4>
-                                    <p class="text-xs text-gray-500 font-medium tracking-wide">(Est. baca 4 menit)</p>
-                                </div>
-                            </a>
-                            <a href="#" class="flex gap-4 p-4 bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 hover:border-[#98b0c4] transition-colors group">
-                                <div class="w-20 h-20 rounded-xl bg-red-50 shrink-0 flex items-center justify-center text-3xl">🫀</div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800 group-hover:text-[#5A6C7A] transition-colors mb-1 line-clamp-2">Mengenali Tanda Bahaya pada Luka Insisi Dada</h4>
-                                    <p class="text-xs text-gray-500 font-medium tracking-wide">(Est. baca 3 menit)</p>
-                                </div>
-                            </a>
-                        </div>
-                    </section>
-                </div>
-
-            <?php elseif ($opType === 'sc'): ?>
-                <!-- SC Content -->
-                <div class="space-y-10 focus:outline-none">
-                    <section>
-                        <h3 class="text-xl font-bold text-[#5A6C7A] mb-5 flex items-center gap-2"><span class="text-2xl">📺</span> Video Panduan</h3>
-                        <div class="flex overflow-x-auto items-stretch pb-6 gap-6 snap-x snap-mandatory scrollbar-hide" style="-webkit-overflow-scrolling: touch; scrollbar-width: none;">
-                            <div class="w-[85vw] sm:w-[400px] snap-center shrink-0 bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 flex flex-col h-full">
-                                <iframe class="w-full aspect-video rounded-xl mb-4 shrink-0" src="https://www.youtube.com/embed/KG_SsDOfwpI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                                <h4 class="font-bold text-gray-800 mb-1">Pantangan Pasca Operasi Caesar</h4>
-                                <p class="text-sm text-gray-500 flex-grow">Hal-hal yang wajib dihindari ibu setelah persalinan SC agar luka aman dari komplikasi.</p>
-                            </div>
-                            <div class="w-[85vw] sm:w-[400px] snap-center shrink-0 bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 flex flex-col h-full">
-                                <iframe class="w-full aspect-video rounded-xl mb-4 shrink-0" src="https://www.youtube.com/embed/P7hrkSlr3vo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                                <h4 class="font-bold text-gray-800 mb-1">4 Tips Agar Cepat Pulih Pasca SC</h4>
-                                <p class="text-sm text-gray-500 flex-grow">Panduan sederhana namun esensial untuk mempercepat penyembuhan luka jahitan.</p>
-                            </div>
-                            <div class="w-[85vw] sm:w-[400px] snap-center shrink-0 bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 flex flex-col h-full">
-                                <iframe class="w-full aspect-video rounded-xl mb-4 shrink-0" src="https://www.youtube.com/embed/c3NRSqZooyk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                                <h4 class="font-bold text-gray-800 mb-1">Tips Cepat Pulih Pasca Lahiran Sesar</h4>
-                                <p class="text-sm text-gray-500 flex-grow">Beragam tips percepatan pemulihan praktis dan observasi ibu dari dr. Keven.</p>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section>
-                        <h3 class="text-xl font-bold text-[#5A6C7A] mb-5 flex items-center gap-2"><span class="text-2xl">📖</span> Artikel Pilihan</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <a href="#" class="flex gap-4 p-4 bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 hover:border-purple-300 transition-colors group">
-                                <div class="w-20 h-20 rounded-xl bg-purple-50 shrink-0 flex items-center justify-center text-3xl">🩹</div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800 group-hover:text-purple-700 transition-colors mb-1 line-clamp-2">Perawatan Mandiri Luka Operasi Caesar di Rumah</h4>
-                                    <p class="text-xs text-gray-500 font-medium tracking-wide">(Est. baca 5 menit)</p>
-                                </div>
-                            </a>
-                            <a href="#" class="flex gap-4 p-4 bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 hover:border-purple-300 transition-colors group">
-                                <div class="w-20 h-20 rounded-xl bg-pink-50 shrink-0 flex items-center justify-center text-3xl">🤱</div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800 group-hover:text-purple-700 transition-colors mb-1 line-clamp-2">Panduan Nutrisi ASI Deras Pasca Operasi</h4>
-                                    <p class="text-xs text-gray-500 font-medium tracking-wide">(Est. baca 4 menit)</p>
-                                </div>
-                            </a>
-                        </div>
-                    </section>
-                </div>
-
-            <?php else: // Ortopedi ?>
-                <!-- Ortho Content -->
-                <div class="space-y-10 focus:outline-none">
-                    <section>
-                        <h3 class="text-xl font-bold text-[#5A6C7A] mb-5 flex items-center gap-2"><span class="text-2xl">📺</span> Video Fisioterapi Ortopedi</h3>
-                        <div class="flex overflow-x-auto items-stretch pb-6 gap-6 snap-x snap-mandatory scrollbar-hide" style="-webkit-overflow-scrolling: touch; scrollbar-width: none;">
-                            <div class="w-[85vw] sm:w-[400px] snap-center shrink-0 bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 flex flex-col h-full">
-                                <iframe class="w-full aspect-video rounded-xl mb-4 shrink-0" src="https://www.youtube.com/embed/wch7bNy0EWE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                                <h4 class="font-bold text-gray-800 mb-1">Hal Yang Harus Dihindari Pasca Operasi</h4>
-                                <p class="text-sm text-gray-500 flex-grow">Panduan komprehensif apa saja yang dilarang keras setelah prosedur ortopedi TKR.</p>
-                            </div>
-                            <div class="w-[85vw] sm:w-[400px] snap-center shrink-0 bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 flex flex-col h-full">
-                                <iframe class="w-full aspect-video rounded-xl mb-4 shrink-0" src="https://www.youtube.com/embed/hWK3xL9WfQk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                                <h4 class="font-bold text-gray-800 mb-1">Edukasi Cara Penggunaan Walker</h4>
-                                <p class="text-sm text-gray-500 flex-grow">Tutor langkah demi langkah pemakaian alat bantu jalan (walker) dari spesialis RSPPN.</p>
-                            </div>
-                            <div class="w-[85vw] sm:w-[400px] snap-center shrink-0 bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 flex flex-col h-full">
-                                <iframe class="w-full aspect-video rounded-xl mb-4 shrink-0" src="https://www.youtube.com/embed/ZwjCz8gj82A" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                                <h4 class="font-bold text-gray-800 mb-1">Cara Mandi dengan Perban/Gips</h4>
-                                <p class="text-sm text-gray-500 flex-grow">Strategi aman membersihkan tubuh dan mandi tanpa membasahi Cast atau perban pemulihan Anda.</p>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section>
-                        <h3 class="text-xl font-bold text-[#5A6C7A] mb-5 flex items-center gap-2"><span class="text-2xl">📖</span> Edukasi Perawatan & Perban</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <a href="#" class="flex gap-4 p-4 bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 hover:border-orange-300 transition-colors group">
-                                <div class="w-20 h-20 rounded-xl bg-orange-50 shrink-0 flex items-center justify-center text-3xl">🦿</div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800 group-hover:text-orange-600 transition-colors mb-1 line-clamp-2">Tips Menjaga Kebersihan Kulit di Bawah Gips/Perban</h4>
-                                    <p class="text-xs text-gray-500 font-medium tracking-wide">(Est. baca 6 menit)</p>
-                                </div>
-                            </a>
-                            <a href="#" class="flex gap-4 p-4 bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-gray-100 hover:border-orange-300 transition-colors group">
-                                <div class="w-20 h-20 rounded-xl bg-teal-50 shrink-0 flex items-center justify-center text-3xl">🦴</div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800 group-hover:text-orange-600 transition-colors mb-1 line-clamp-2">Membedakan Nyeri Normal dan Indikasi Komplikasi</h4>
-                                    <p class="text-xs text-gray-500 font-medium tracking-wide">(Est. baca 4 menit)</p>
-                                </div>
-                            </a>
-                        </div>
-                    </section>
-                </div>
-            <?php endif; ?>
-            
         <?php else: ?>
-            <header>
-                <h2 class="text-2xl font-bold text-gray-800">404 Not Found</h2>
-                <p class="text-gray-500 mt-1">Halaman tidak ditemukan.</p>
-            </header>
+        <div class="flex items-center justify-center h-64 text-center">
+            <div><div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background:#ECF2E6;"><svg class="w-8 h-8" fill="none" stroke="#728BA9" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg></div><h2 class="text-2xl font-extrabold" style="color:#728BA9;">Halaman Tidak Ditemukan</h2><a href="dashboard.php?page=home" class="mt-4 inline-block px-6 py-3 rounded-xl text-white font-bold transition-all" style="background:#728BA9;">Kembali ke Home</a></div>
+        </div>
         <?php endif; ?>
+
     </main>
 </div>
 
 <?php require_once __DIR__ . '/../../layout/footer.php'; ?>
+
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const checkboxes = document.querySelectorAll('.task-checkbox');
-        const progressBar = document.querySelector('.task-progress-bar');
-        const progressText = document.querySelector('.task-progress-text');
-        
-        if (checkboxes.length > 0 && progressBar && progressText) {
-            function updateProgress() {
-                const total = checkboxes.length;
-                const checked = document.querySelectorAll('.task-checkbox:checked').length;
-                const percentage = Math.round((checked / total) * 100);
-                
-                progressBar.style.width = percentage + '%';
-                progressText.textContent = percentage + '%';
-            }
-            
-            checkboxes.forEach(cb => {
-                cb.addEventListener('change', updateProgress);
-            });
-            
-            updateProgress();
-        }
+// ---- Pain Level Display ----
+var PAINCOLORS = ['#16a34a','#16a34a','#22c55e','#65a30d','#ca8a04','#d97706','#ea580c','#dc2626','#b91c1c','#991b1b','#7f1d1d'];
+function setPain(v, faceId, valId) {
+    var iv = parseInt(v);
+    var f = document.getElementById(faceId); var t = document.getElementById(valId);
+    if (f) { f.textContent = iv; f.style.borderColor = PAINCOLORS[iv] || '#728BA9'; f.style.color = PAINCOLORS[iv] || '#728BA9'; }
+    if (t) t.textContent = v + '/10';
+}
+document.querySelectorAll('input[type="range"]').forEach(function(sl) { sl.dispatchEvent(new Event('input')); });
+
+// ---- Roadmap Checkbox ----
+document.querySelectorAll('.roadmap-cb').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+        var li = document.getElementById(this.dataset.li);
+        if (!li) return;
+        var title = li.querySelector('.task-title');
+        if (this.checked) { li.style.opacity='0.55'; if(title){title.style.textDecoration='line-through';} }
+        else { li.style.opacity=''; if(title){title.style.textDecoration='';} }
     });
+});
+
+// ---- Home Checklist Progress ----
+function updateProgress() {
+    var all = document.querySelectorAll('.task-checkbox');
+    var done = document.querySelectorAll('.task-checkbox:checked').length;
+    var pct = all.length ? Math.round((done/all.length)*100) : 0;
+    var bar = document.querySelector('.task-progress-bar');
+    var txt = document.querySelector('.task-progress-text');
+    if (bar) bar.style.width = pct+'%';
+    if (txt) txt.textContent = pct+'%';
+}
+document.querySelectorAll('.task-checkbox').forEach(function(cb){ cb.addEventListener('change', updateProgress); });
+updateProgress();
+
+// ---- Video Modal ----
+function openVid(id, title) {
+    document.getElementById('vmod-frame').src = 'https://www.youtube.com/embed/'+id+'?autoplay=1';
+    document.getElementById('vmod-title').textContent = title;
+    document.getElementById('video-modal').classList.add('open');
+}
+function closeVideoModal() {
+    document.getElementById('vmod-frame').src = '';
+    document.getElementById('video-modal').classList.remove('open');
+}
+document.getElementById('video-modal').addEventListener('click', function(e) { if(e.target===this) closeVideoModal(); });
+
+// ---- Photo Preview ----
+var pi = document.getElementById('wound_photo');
+if (pi) { pi.addEventListener('change', function() {
+    var f = this.files[0]; if(!f) return;
+    var r = new FileReader();
+    r.onload = function(e) { document.getElementById('photo_preview').classList.remove('hidden'); document.getElementById('photo_img').src=e.target.result; };
+    r.readAsDataURL(f);
+}); }
 </script>
