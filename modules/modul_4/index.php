@@ -403,12 +403,37 @@ $pageTitle = 'CalorieCare - Modul 4';
     }
     .dark .article-card:hover { box-shadow: 0 16px 40px rgba(0,0,0,0.3); }
     .article-card .art-banner {
-        height: 140px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 48px;
+        height: 180px;
         position: relative;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        overflow: hidden;
+    }
+    .article-card .art-banner::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(0deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.05) 100%);
+        z-index: 1;
+    }
+    .article-card .art-banner .art-banner-badge {
+        position: absolute;
+        bottom: 12px;
+        left: 14px;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 99px;
+        font-size: 11px;
+        font-weight: 600;
+        color: white;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        background: rgba(255,255,255,0.18);
+        border: 1px solid rgba(255,255,255,0.25);
     }
     .article-card .art-body {
         padding: 20px;
@@ -500,12 +525,19 @@ $pageTitle = 'CalorieCare - Modul 4';
         to { opacity: 1; transform: translateY(0); }
     }
     .art-detail-header {
-        height: 120px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 56px;
+        height: 200px;
         position: relative;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        overflow: hidden;
+    }
+    .art-detail-header::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(0deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 60%, transparent 100%);
+        z-index: 1;
     }
     .art-detail-content {
         padding: 32px;
@@ -1716,6 +1748,7 @@ document.addEventListener('DOMContentLoaded', () => {
         {
             id: 1,
             category: 'health',
+            image: 'img/article_health.png',
             title: 'Berapa Banyak Aktivitas Fisik yang Anda Butuhkan?',
             source: 'Kemenkes RI',
             sourceUrl: 'https://keslan.kemkes.go.id/view_artikel/2459/berapa-banyak-aktivitas-fisik-yang-anda-butuhkan',
@@ -1750,6 +1783,7 @@ document.addEventListener('DOMContentLoaded', () => {
         {
             id: 2,
             category: 'fitness',
+            image: 'img/article_fitness.png',
             title: 'Manfaat Aktivitas Fisik: Sehat, Bugar, Bahagia',
             source: 'Halodoc',
             sourceUrl: 'https://www.halodoc.com/artikel/manfaat-aktivitas-fisik-sehat-bugar-bahagia',
@@ -1778,6 +1812,7 @@ document.addEventListener('DOMContentLoaded', () => {
         {
             id: 3,
             category: 'exercise',
+            image: 'img/article_exercise.png',
             title: 'Pentingnya Olahraga untuk Kesehatan Optimal',
             source: 'Pemkab Sarolangun',
             sourceUrl: 'https://sarolangunkab.go.id/artikel/baca/pentingnya-olahraga-untuk-kesehatan-optimal',
@@ -1815,6 +1850,7 @@ document.addEventListener('DOMContentLoaded', () => {
         {
             id: 4,
             category: 'wellness',
+            image: 'img/article_wellness.png',
             title: 'Aktivitas Fisik untuk Kesehatan Tubuh dan Jiwa',
             source: 'Puskesmas Babakan Sari',
             sourceUrl: 'https://pkmbabakansaribdg.com/aktivitas-fisik-untuk-kesehatan-tubuh-dan-jiwa/',
@@ -1858,6 +1894,7 @@ document.addEventListener('DOMContentLoaded', () => {
         {
             id: 5,
             category: 'research',
+            image: 'img/article_research.png',
             title: 'Hubungan Aktivitas Fisik dengan Kesehatan: Tinjauan Ilmiah',
             source: 'Jurnal FKM UMI',
             sourceUrl: 'https://jurnal.fkmumi.ac.id/index.php/woh/article/download/179/261',
@@ -1890,6 +1927,7 @@ document.addEventListener('DOMContentLoaded', () => {
         {
             id: 6,
             category: 'global',
+            image: 'img/article_global.png',
             title: 'Dampak Aktivitas Fisik terhadap Kesehatan Jangka Panjang',
             source: 'WHO (World Health Organization)',
             sourceUrl: 'https://www.who.int/news-room/fact-sheets/detail/physical-activity',
@@ -1937,8 +1975,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const cat = getCategoryInfo(art.category);
             grid.innerHTML += `
             <div class="article-card" onclick="openArticle(${art.id})" style="animation: qcBubblePop 0.3s ease-out ${i * 0.1}s both">
-                <div class="art-banner" style="background: ${cat.gradient}">
-                    ${cat.icon}
+                <div class="art-banner" style="background-image: url('${art.image}')">
+                    <span class="art-banner-badge">${cat.icon.replace(/width="40"/g, 'width="14"').replace(/height="40"/g, 'height="14"')} ${cat.label}</span>
                 </div>
                 <div class="art-body">
                     <span class="art-source">${cat.label} &middot; ${art.source}</span>
@@ -1975,8 +2013,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const cat = getCategoryInfo(art.category);
 
-        document.getElementById('artDetailBanner').style.background = cat.gradient;
-        document.getElementById('artDetailBanner').innerHTML = cat.icon.replace(/width="40"/g, 'width="56"').replace(/height="40"/g, 'height="56"');
+        const detailBanner = document.getElementById('artDetailBanner');
+        detailBanner.style.backgroundImage = `url('${art.image}')`;
+        detailBanner.innerHTML = '';
         document.getElementById('artDetailTitle').textContent = art.title;
         document.getElementById('artDetailSource').innerHTML = `${cat.label} &middot; ${art.source}`;
         document.getElementById('artDetailBody').innerHTML = art.content;
