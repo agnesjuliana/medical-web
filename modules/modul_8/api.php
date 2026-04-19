@@ -631,38 +631,43 @@ try {
             $stmt->execute([$userId]);
             $pdo->commit();
 
-            // 3d. Read API key
-            $apiKey = getenv('ANTHROPIC_API_KEY');
+            // 3d. Read Gemini API key
+            $apiKey = getenv('GEMINI_API_KEY');
             if (empty($apiKey)) {
                 json_error('AI service not configured', 503);
             }
 
-            // 3e. Build the Anthropic Messages API payload
+            // 3e. Build the Gemini generateContent payload
+            // responseMimeType forces JSON output, avoiding markdown code-fence wrapping
             $payload = [
-                'model'      => 'claude-haiku-4-5-20251001',
-                'max_tokens' => 1024,
-                'system'     => 'You are a food nutrition expert. When given a food photo, identify all visible food items and estimate their nutritional content. Always respond with valid JSON only — no prose, no markdown code fences.',
-                'messages'   => [[
-                    'role'    => 'user',
-                    'content' => [
+                'systemInstruction' => [
+                    'parts' => [[
+                        'text' => 'You are a food nutrition expert. When given a food photo, identify all visible food items and estimate their nutritional content. Always respond with valid JSON only — no prose, no markdown code fences.',
+                    ]],
+                ],
+                'contents' => [[
+                    'role'  => 'user',
+                    'parts' => [
                         [
-                            'type'   => 'image',
-                            'source' => [
-                                'type'       => 'base64',
-                                'media_type' => $mediaType,
-                                'data'       => $rawB64,
+                            'inlineData' => [
+                                'mimeType' => $mediaType,
+                                'data'     => $rawB64,
                             ],
                         ],
                         [
-                            'type' => 'text',
                             'text' => 'Analyze this food photo and return JSON with this exact schema: {"items":[{"name":"string","estimated_grams":number,"calories":number,"protein_g":number,"carbs_g":number,"fats_g":number,"confidence":number}],"notes":"string"}. confidence is 0.0-1.0. Return ONLY valid JSON.',
                         ],
                     ],
                 ]],
+                'generationConfig' => [
+                    'maxOutputTokens' => 1024,
+                    'responseMimeType' => 'application/json',
+                ],
             ];
 
-            // 3f. Send cURL request
-            $ch = curl_init('https://api.anthropic.com/v1/messages');
+            // 3f. Send cURL request to Gemini REST endpoint
+            $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . urlencode($apiKey);
+            $ch = curl_init($geminiUrl);
             curl_setopt_array($ch, [
                 CURLOPT_POST           => true,
                 CURLOPT_POSTFIELDS     => json_encode($payload),
@@ -670,8 +675,6 @@ try {
                 CURLOPT_TIMEOUT        => 30,
                 CURLOPT_HTTPHEADER     => [
                     'Content-Type: application/json',
-                    'x-api-key: ' . $apiKey,
-                    'anthropic-version: 2023-06-01',
                 ],
             ]);
             $response = curl_exec($ch);
@@ -682,11 +685,11 @@ try {
                 json_error('AI service error, please try again or log manually', 502);
             }
 
-            // 3g. Parse the Anthropic response
-            $anthropicData = json_decode($response, true);
-            $text = $anthropicData['content'][0]['text'] ?? '';
+            // 3g. Parse the Gemini response
+            $geminiData = json_decode($response, true);
+            $text = $geminiData['candidates'][0]['content']['parts'][0]['text'] ?? '';
 
-            // Strip markdown code fences if Claude wraps its JSON response in them
+            // Strip markdown code fences as a safety net (responseMimeType should prevent this)
             $text = preg_replace('/```(?:json)?\s*(.*?)\s*```/s', '$1', $text);
 
             $prediction = json_decode($text, true);
