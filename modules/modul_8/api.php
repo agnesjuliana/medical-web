@@ -336,14 +336,189 @@ try {
 
         // 10. Define Skeleton Routes
         case 'list_meals':
+            $date = $_GET['date'] ?? date('Y-m-d');
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                json_error('Invalid date format', 422);
+            }
+
+            $stmt = $pdo->prepare('
+                SELECT id, meal_type, name, calories, protein_g, carbs_g, fats_g,
+                       fiber_g, sugar_g, sodium_mg, serving_size, photo_url, source, created_at
+                FROM m8_meals
+                WHERE user_id = ? AND log_date = ?
+                ORDER BY created_at ASC
+            ');
+            $stmt->execute([$userId, $date]);
+            $meals = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Type conversion
+            foreach ($meals as &$meal) {
+                $meal['calories'] = (int) $meal['calories'];
+                $meal['protein_g'] = (float) $meal['protein_g'];
+                $meal['carbs_g'] = (float) $meal['carbs_g'];
+                $meal['fats_g'] = (float) $meal['fats_g'];
+                $meal['fiber_g'] = (float) $meal['fiber_g'];
+                $meal['sugar_g'] = (float) $meal['sugar_g'];
+                $meal['sodium_mg'] = (float) $meal['sodium_mg'];
+                $meal['serving_size'] = $meal['serving_size'] ? (float) $meal['serving_size'] : null;
+            }
+            unset($meal);
+
+            json_success($meals);
+            break;
+
         case 'log_meal':
+            $meal_type = $body['meal_type'] ?? '';
+            $name = $body['name'] ?? '';
+            $log_date = $body['log_date'] ?? date('Y-m-d');
+            $calories = $body['calories'] ?? 0;
+            $protein = $body['protein_g'] ?? 0;
+            $carbs = $body['carbs_g'] ?? 0;
+            $fats = $body['fats_g'] ?? 0;
+            $fiber = $body['fiber_g'] ?? 0;
+            $sugar = $body['sugar_g'] ?? 0;
+            $sodium = $body['sodium_mg'] ?? 0;
+            $serving_size = $body['serving_size'] ?? null;
+            $photo_url = $body['photo_url'] ?? null;
+            $source = $body['source'] ?? 'manual';
+
+            if (!in_array($meal_type, ['breakfast', 'lunch', 'dinner', 'snack'])) {
+                json_error('Invalid meal_type', 422);
+            }
+            if (empty($name)) {
+                json_error('Name is required', 422);
+            }
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $log_date)) {
+                json_error('Invalid log_date', 422);
+            }
+
+            $stmt = $pdo->prepare('
+                INSERT INTO m8_meals (
+                    user_id, log_date, meal_type, name, calories, protein_g,
+                    carbs_g, fats_g, fiber_g, sugar_g, sodium_mg,
+                    serving_size, photo_url, source, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                RETURNING id, created_at
+            ');
+            $stmt->execute([
+                $userId, $log_date, $meal_type, $name, $calories, $protein,
+                $carbs, $fats, $fiber, $sugar, $sodium,
+                $serving_size, $photo_url, $source
+            ]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            json_success([
+                'id' => (int) $row['id'],
+                'created_at' => $row['created_at']
+            ], 201);
+            break;
+
         case 'delete_meal':
+            $id = $body['id'] ?? null;
+            if (!$id) {
+                json_error('ID required', 400);
+            }
+
+            $stmt = $pdo->prepare('DELETE FROM m8_meals WHERE id = ? AND user_id = ?');
+            $stmt->execute([$id, $userId]);
+
+            if ($stmt->rowCount() === 0) {
+                json_error('Meal not found or unauthorized', 404);
+            }
+
+            json_success(['deleted' => true]);
+            break;
+
         case 'list_saved_foods':
+            $stmt = $pdo->prepare('
+                SELECT id, name, brand, calories, protein_g, carbs_g, fats_g,
+                       fiber_g, sugar_g, sodium_mg, serving_size, serving_unit,
+                       barcode, source, created_at
+                FROM m8_saved_foods
+                WHERE user_id = ?
+                ORDER BY created_at DESC
+            ');
+            $stmt->execute([$userId]);
+            $foods = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($foods as &$food) {
+                $food['calories'] = (int) $food['calories'];
+                $food['protein_g'] = (float) $food['protein_g'];
+                $food['carbs_g'] = (float) $food['carbs_g'];
+                $food['fats_g'] = (float) $food['fats_g'];
+                $food['fiber_g'] = (float) $food['fiber_g'];
+                $food['sugar_g'] = (float) $food['sugar_g'];
+                $food['sodium_mg'] = (float) $food['sodium_mg'];
+                $food['serving_size'] = $food['serving_size'] ? (float) $food['serving_size'] : null;
+            }
+            unset($food);
+
+            json_success($foods);
+            break;
+
+        case 'log_water':
+            $amount = $body['amount_ml'] ?? 0;
+            $log_date = $body['log_date'] ?? date('Y-m-d');
+
+            if ($amount <= 0) {
+                json_error('Amount must be positive', 422);
+            }
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $log_date)) {
+                json_error('Invalid log_date', 422);
+            }
+
+            $stmt = $pdo->prepare('
+                INSERT INTO m8_water_logs (user_id, log_date, amount_ml, logged_at, created_at, updated_at)
+                VALUES (?, ?, ?, NOW(), NOW(), NOW())
+                RETURNING id
+            ');
+            $stmt->execute([$userId, $log_date, $amount]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            json_success(['id' => (int) $row['id']], 201);
+            break;
+
+        case 'log_weight':
+            $weight = $body['weight_kg'] ?? 0;
+            $log_date = $body['log_date'] ?? date('Y-m-d');
+
+            if ($weight <= 0) {
+                json_error('Weight must be positive', 422);
+            }
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $log_date)) {
+                json_error('Invalid log_date', 422);
+            }
+
+            $pdo->beginTransaction();
+            try {
+                // 1. Log to history
+                $stmt = $pdo->prepare('
+                    INSERT INTO m8_weight_logs (user_id, weight_kg, log_date, created_at, updated_at)
+                    VALUES (?, ?, ?, NOW(), NOW())
+                    RETURNING id
+                ');
+                $stmt->execute([$userId, $weight, $log_date]);
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                // 2. Update profile snapshot
+                $stmt = $pdo->prepare('
+                    UPDATE m8_user_profiles
+                    SET weight_kg = ?, updated_at = NOW()
+                    WHERE user_id = ?
+                ');
+                $stmt->execute([$weight, $userId]);
+
+                $pdo->commit();
+                json_success(['id' => (int) $row['id']], 201);
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                throw $e;
+            }
+            break;
+
         case 'save_food':
         case 'delete_saved_food':
-        case 'log_water':
         case 'list_weight_logs':
-        case 'log_weight':
         case 'get_health_scores':
         case 'ai_scan_food':
         case 'get_ai_quota':
