@@ -343,7 +343,8 @@ try {
 
             $stmt = $pdo->prepare('
                 SELECT id, meal_type, name, calories, protein_g, carbs_g, fats_g,
-                       fiber_g, sugar_g, sodium_mg, serving_size, photo_url, source, created_at
+                       fiber_g, sugar_g, sodium_mg, serving_size, photo_url, source,
+                       ai_confidence, saved_food_id, created_at
                 FROM m8_meals
                 WHERE user_id = ? AND log_date = ?
                 ORDER BY created_at ASC
@@ -361,6 +362,8 @@ try {
                 $meal['sugar_g'] = (float) $meal['sugar_g'];
                 $meal['sodium_mg'] = (float) $meal['sodium_mg'];
                 $meal['serving_size'] = $meal['serving_size'] ? (float) $meal['serving_size'] : null;
+                $meal['ai_confidence'] = $meal['ai_confidence'] !== null ? (float) $meal['ai_confidence'] : null;
+                $meal['saved_food_id'] = $meal['saved_food_id'] !== null ? (int) $meal['saved_food_id'] : null;
             }
             unset($meal);
 
@@ -381,6 +384,8 @@ try {
             $serving_size = $body['serving_size'] ?? null;
             $photo_url = $body['photo_url'] ?? null;
             $source = $body['source'] ?? 'manual';
+            $ai_confidence = isset($body['ai_confidence']) ? (float) $body['ai_confidence'] : null;
+            $saved_food_id = isset($body['saved_food_id']) ? (int) $body['saved_food_id'] : null;
 
             if (!in_array($meal_type, ['breakfast', 'lunch', 'dinner', 'snack'])) {
                 json_error('Invalid meal_type', 422);
@@ -391,19 +396,23 @@ try {
             if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $log_date)) {
                 json_error('Invalid log_date', 422);
             }
+            if ($source === 'ai_scan' && $ai_confidence === null) {
+                json_error('ai_confidence is required when source is ai_scan', 422);
+            }
 
             $stmt = $pdo->prepare('
                 INSERT INTO m8_meals (
                     user_id, log_date, meal_type, name, calories, protein_g,
                     carbs_g, fats_g, fiber_g, sugar_g, sodium_mg,
-                    serving_size, photo_url, source, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                    serving_size, photo_url, source, ai_confidence, saved_food_id,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
                 RETURNING id, created_at
             ');
             $stmt->execute([
                 $userId, $log_date, $meal_type, $name, $calories, $protein,
                 $carbs, $fats, $fiber, $sugar, $sodium,
-                $serving_size, $photo_url, $source
+                $serving_size, $photo_url, $source, $ai_confidence, $saved_food_id
             ]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
