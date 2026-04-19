@@ -42,7 +42,7 @@ $pageTitle = 'Modul 1';
             </div>
         </div>
         <div>
-            <a href="#" class="px-8 py-3 rounded-full border border-[#B8C9DD] text-[#7F7F7F] hover:bg-[#F8FCFF] transition-all font-bold text-xs tracking-wider uppercase shadow-sm">Dashboard</a>
+            <a href="onboarding.php" class="px-8 py-3 rounded-full border border-[#B8C9DD] text-[#7F7F7F] hover:bg-[#F8FCFF] transition-all font-bold text-xs tracking-wider uppercase shadow-sm">Dashboard</a>
         </div>
     </header>
 </div>
@@ -310,8 +310,8 @@ $pageTitle = 'Modul 1';
                 <h2 class="text-5xl md:text-6xl font-extrabold text-[#7F7F7F] leading-tight">Ready To Start<br><span class="text-[#B8C9DD]">Your Recovery?</span></h2>
             </div>
             <div>
-                <a href="#" class="inline-flex items-center gap-3 px-10 py-5 rounded-full bg-[#B8C9DD] text-white font-extrabold text-xl hover:bg-[#728BA9] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                    Open Dashboard
+                <a href="onboarding.php" class="inline-flex items-center gap-3 px-10 py-5 rounded-full bg-[#B8C9DD] text-white font-extrabold text-xl hover:bg-[#728BA9] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    Mulai Pemulihan
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                 </a>
             </div>
