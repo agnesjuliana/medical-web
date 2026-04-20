@@ -3,8 +3,17 @@
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../config/database.php';
 
-$userName = $_SESSION['user_name'] ?? 'Dokter';
-$userEmail = $_SESSION['user_email'] ?? 'admin@medweb.com';
+requireLogin();
+startSession();
+
+if (empty($_SESSION['modul_11_authorized'])) {
+    header("Location: login.php");
+    exit;
+}
+
+$user = getCurrentUser();
+$userName = $user['name'] ?? 'Pengguna';
+$userInitials = getUserInitials();
 
 // 1. Tangkap ID Analisis dari URL (misal: result.php?id=5)
 $id_analisis = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -164,7 +173,7 @@ if (!$data) {
         <div class="user-info">
             <div class="user-name"><?= htmlspecialchars($userName) ?></div>
         </div>
-        <div class="avatar">DR</div>
+        <div class="avatar"><?= htmlspecialchars($userInitials) ?></div>
     </div>
 </div>
 
