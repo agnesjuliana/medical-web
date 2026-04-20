@@ -58,8 +58,11 @@ class MealController extends Controller
             $this->jsonError('Invalid log_date', 422);
         }
 
-        // Validate log_date is not in the future
-        $logDateObj = new \DateTimeImmutable($log_date);
+        // Validate log_date strictly and ensure not in the future
+        $logDateObj = \DateTimeImmutable::createFromFormat('Y-m-d', $log_date);
+        if ($logDateObj === false || $logDateObj->format('Y-m-d') !== $log_date) {
+            $this->jsonError('Invalid log_date', 422);
+        }
         if ($logDateObj > new \DateTimeImmutable('today')) {
             $this->jsonError('log_date cannot be in the future', 422);
         }

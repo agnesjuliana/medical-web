@@ -72,11 +72,10 @@ class ProgressController extends Controller
         // Goal progress
         $goalProgress = 0.0;
         if ($goalWeight !== null && $startWeight !== $goalWeight) {
-            $totalChange   = $startWeight - $goalWeight;
-            $currentChange = $startWeight - $currentWeight;
-            $goalProgress  = $totalChange > 0
-                ? max(0, min(100, round(($currentChange / $totalChange) * 100, 1)))
-                : 0.0;
+            $direction = $goalWeight > $startWeight ? 1 : -1;
+            $numerator = ($currentWeight - $startWeight) * $direction;
+            $denominator = abs($goalWeight - $startWeight);
+            $goalProgress = max(0, min(100, round(($numerator / $denominator) * 100, 1)));
         }
 
         $this->jsonSuccess([

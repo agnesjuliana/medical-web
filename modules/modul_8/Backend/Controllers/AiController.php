@@ -78,8 +78,10 @@ class AiController extends Controller
             $this->jsonError($e->getMessage(), 422);
         }
 
-        // Increment quota only after successful parse/sanitization
-        $this->repo->incrementScanCount($userId);
+        // Increment quota atomically only after successful parse/sanitization
+        if ($this->repo->incrementIfUnderLimit($userId, $limit) === false) {
+            $this->jsonError("Daily AI scan limit reached ({$limit}/day)", 429);
+        }
 
         $this->jsonSuccess($prediction);
     }

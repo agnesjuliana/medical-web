@@ -39,8 +39,10 @@ class AiScanService
             throw new \InvalidArgumentException('Only JPEG images are allowed');
         }
 
-        preg_match('/^data:(image\/[a-z]+)(?:;[^,]+)*;base64,/', $imageB64, $mimeMatch);
-        $mediaType = $mimeMatch[1] ?? 'image/jpeg';
+        if (!preg_match('/^data:image\/(jpeg|jpg)(?:;[^,]+)*;base64,/', $imageB64)) {
+            throw new \InvalidArgumentException('Only JPEG images are allowed');
+        }
+        $mediaType = 'image/jpeg';
 
         return ['raw_b64' => $rawB64, 'media_type' => $mediaType];
     }

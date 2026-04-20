@@ -45,7 +45,7 @@ class AiScanRepository
     /**
      * Increment scan quota for today. Should only be called after successful scan.
      */
-    public function incrementScanCount(int $userId): void
+    public function incrementIfUnderLimit(int $userId, int $limit): bool
     {
         $stmt = $this->pdo->prepare('
             INSERT INTO m8_ai_scan_quota (user_id, log_date, scan_count, created_at, updated_at)
@@ -53,8 +53,11 @@ class AiScanRepository
             ON CONFLICT (user_id, log_date) DO UPDATE
                 SET scan_count = m8_ai_scan_quota.scan_count + 1,
                     updated_at = NOW()
+            WHERE m8_ai_scan_quota.scan_count < ?
+            RETURNING scan_count
         ');
-        $stmt->execute([$userId]);
+        $stmt->execute([$userId, $limit]);
+        return (bool) $stmt->fetchColumn();
     }
 
     /**
