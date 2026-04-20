@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../components/components.php';
 // Path database disesuaikan dengan struktur folder kamu di modul_3/config/
 require_once __DIR__ . '/config/database3.php'; 
 
-requireLogin();
+requireLogin(BASE_URL . '/modules/modul_3/login.php');
 startSession();
 
 $user = getCurrentUser();
@@ -13,14 +13,26 @@ $pageTitle = 'PulmoAI - TBC Detection';
 // Ambil riwayat dari database
 global $db;
 $histories = [];
+$patientsList = [];
 
 if (isset($db) && $db !== null) {
     try {
-        $stmt = $db->prepare("SELECT * FROM modul3_history WHERE user_id = ? ORDER BY created_at DESC");
+        $stmt = $db->prepare("
+            SELECT h.*, p.name as patient_name 
+            FROM modul3_history h 
+            LEFT JOIN modul3_patients p ON h.patient_id = p.id 
+            WHERE h.user_id = ? 
+            ORDER BY h.created_at DESC
+        ");
         $stmt->execute([$user['id']]);
         $histories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmt2 = $db->prepare("SELECT id, name FROM modul3_patients WHERE user_id = ? ORDER BY name ASC");
+        $stmt2->execute([$user['id']]);
+        $patientsList = $stmt2->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         $histories = [];
+        $patientsList = [];
     }
 }
 ?>
@@ -139,12 +151,14 @@ html { scroll-behavior: smooth; scroll-padding-top: 80px; }
             <li><a href="#home" class="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-accent/20 transition-colors">Beranda</a></li>
             <li><a href="#detection" class="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-accent/20 transition-colors">Deteksi AI</a></li>
             <li><a href="#history" class="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-accent/20 transition-colors">Riwayat</a></li>
+            <li><a href="patients.php" class="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-accent/20 transition-colors">Data Pasien</a></li>
             <li><a href="#about" class="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-accent/20 transition-colors">Tentang Kami</a></li>
           </ul>
 
           <div class="hidden md:flex items-center gap-2">
             <span class="text-sm font-bold opacity-70 text-black">Hi, <?= htmlspecialchars($user['name'] ?? 'User') ?>!</span>
             <a href="../../dashboard.php" class="px-4 py-2 rounded-md gradient-primary text-primary-foreground text-sm font-medium shadow-soft hover:opacity-90">Dashboard</a>
+            <a href="logout.php" class="p-2 ml-1 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Keluar"><i data-lucide="log-out" class="w-5 h-5"></i></a>
           </div>
         </nav>
       </div>
@@ -247,6 +261,20 @@ html { scroll-behavior: smooth; scroll-padding-top: 80px; }
             <p class="text-sm text-muted-foreground mb-8">Format yang diizinkan meliputi JPG atau PNG.</p>
 
             <form id="uploadForm" action="process.php" method="POST" enctype="multipart/form-data">
+                
+                <div class="mb-5">
+                    <label class="block font-bold text-black mb-2 text-sm">Lampirkan ke Profil Pasien (Opsional)</label>
+                    <div class="relative">
+                        <select name="patient_id" class="w-full px-4 py-3 text-gray-700 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5B88D6]/30 focus:border-[#5B88D6] shadow-sm appearance-none">
+                            <option value="">-- Lakukan Scan Anonim (Tanpa Profil) --</option>
+                            <?php foreach($patientsList as $p): ?>
+                                <option value="<?= htmlspecialchars($p['id']) ?>"><?= htmlspecialchars($p['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    </div>
+                </div>
+
                 <div id="dropZone" class="space-y-3">
                   <label class="block border-2 border-dashed border-gray-300 bg-gray-50 rounded-2xl p-10 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors duration-300">
                     <input type="file" name="thorax_image" id="imageInput" accept="image/*" class="hidden" required>
@@ -322,9 +350,15 @@ html { scroll-behavior: smooth; scroll-padding-top: 80px; }
                     </span>
                   </div>
                   <div class="p-5 flex-1 flex flex-col">
-                    <div class="flex items-center gap-1.5 text-xs font-medium text-muted-foreground mb-3">
-                      <i data-lucide="calendar" class="h-3.5 w-3.5"></i>
-                      <span><?= date('d M Y • H:i', strtotime($h['created_at'])) ?></span>
+                    <div class="flex items-center justify-between text-xs font-medium text-muted-foreground mb-5 pb-3 border-b border-gray-100">
+                      <span class="flex items-center gap-1">
+                        <i data-lucide="calendar" class="h-3 w-3"></i>
+                        <?= date('d M Y', strtotime($h['created_at'])) ?>
+                      </span>
+                      <span class="flex items-center gap-1 font-semibold text-primary truncate max-w-[120px]" title="<?= htmlspecialchars($h['patient_name'] ?? 'Anonim') ?>">
+                        <i data-lucide="user" class="h-3 w-3"></i>
+                        <?= htmlspecialchars($h['patient_name'] ?? 'Anonim') ?>
+                      </span>
                     </div>
                     
                     <div class="mt-auto">
@@ -364,17 +398,17 @@ html { scroll-behavior: smooth; scroll-padding-top: 80px; }
           <div class="p-8 text-center shadow-soft hover:shadow-elegant hover:-translate-y-2 transition-all bg-white rounded-3xl border border-gray-100">
             <div class="mx-auto mb-5 h-24 w-24 rounded-[2rem] bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-3xl font-black shadow-glow">AR</div>
             <h3 class="font-bold text-lg text-black">Andhika Rastra</h3>
-            <p class="text-xs mt-1 text-primary font-semibold tracking-wider uppercase">Lead Project</p>
+            <p class="text-xs mt-1 text-primary font-semibold tracking-wider">NRP: 5049231117</p>
           </div>
           <div class="p-8 text-center shadow-soft hover:shadow-elegant hover:-translate-y-2 transition-all bg-white rounded-3xl border border-gray-100">
-            <div class="mx-auto mb-5 h-24 w-24 rounded-[2rem] bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white text-3xl font-black shadow-lg">T1</div>
-            <h3 class="font-bold text-lg text-black">Nama Teman 1</h3>
-            <p class="text-xs mt-1 text-muted-foreground font-semibold tracking-wider uppercase">ML Engineer</p>
+            <div class="mx-auto mb-5 h-24 w-24 rounded-[2rem] bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-3xl font-black shadow-lg">MA</div>
+            <h3 class="font-bold text-lg text-black">Muhammad Aisar</h3>
+            <p class="text-xs mt-1 text-primary font-semibold tracking-wider">NRP: 5049231116</p>
           </div>
           <div class="p-8 text-center shadow-soft hover:shadow-elegant hover:-translate-y-2 transition-all bg-white rounded-3xl border border-gray-100">
-            <div class="mx-auto mb-5 h-24 w-24 rounded-[2rem] bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white text-3xl font-black shadow-lg">T2</div>
-            <h3 class="font-bold text-lg text-black">Nama Teman 2</h3>
-            <p class="text-xs mt-1 text-muted-foreground font-semibold tracking-wider uppercase">Data Scientist</p>
+            <div class="mx-auto mb-5 h-24 w-24 rounded-[2rem] bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white text-3xl font-black shadow-lg">MS</div>
+            <h3 class="font-bold text-lg text-black">M Siham</h3>
+            <p class="text-xs mt-1 text-primary font-semibold tracking-wider">NRP: 5049231048</p>
           </div>
         </div>
 

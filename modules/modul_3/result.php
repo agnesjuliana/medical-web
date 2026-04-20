@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../components/components.php';
-requireLogin();
+requireLogin(BASE_URL . '/modules/modul_3/login.php');
 startSession();
 
 if (!isset($_SESSION['modul3_result'])) { header('Location: index.php'); exit; }
@@ -68,9 +68,16 @@ body { background-color: var(--background); color: var(--foreground); }
                 <i data-lucide="brain-circuit" class="h-8 w-8 text-primary"></i> 
                 Laporan Analisis AI
             </h1>
-            <a href="index.php" class="px-5 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 flex items-center gap-2 text-black transition-colors shadow-sm">
-                <i data-lucide="arrow-left" class="h-4 w-4 text-muted-foreground"></i> Kembali Menu
-            </a>
+            <div class="flex gap-2">
+                <?php if (!empty($res['history_id'])): ?>
+                <a href="print_result.php?id=<?= htmlspecialchars($res['history_id']) ?>" target="_blank" class="px-5 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 flex items-center gap-2 text-black transition-colors shadow-sm">
+                    <i data-lucide="printer" class="h-4 w-4"></i> Cetak PDF
+                </a>
+                <?php endif; ?>
+                <a href="index.php" class="px-5 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 flex items-center gap-2 text-black transition-colors shadow-sm">
+                    <i data-lucide="arrow-left" class="h-4 w-4 text-muted-foreground"></i> Kembali Menu
+                </a>
+            </div>
         </div>
 
         <div class="grid lg:grid-cols-2 gap-8 items-start">
