@@ -161,6 +161,14 @@ class MealRepository
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    public function getByIdAndUser(int $id, int $userId): ?array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM m8_meals WHERE id = ? AND user_id = ?');
+        $stmt->execute([$id, $userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
     public function delete(int $id, int $userId): int
     {
         $stmt = $this->pdo->prepare('DELETE FROM m8_meals WHERE id = ? AND user_id = ?');

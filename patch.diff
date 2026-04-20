@@ -1,0 +1,552 @@
+9ae5d8d fix(modul_8): address review feedback on api.php and sync onboarding UI components (81 seconds ago) <nashirabbash>
+.gitignore                                         |   1 +
+ modules/modul_8/AGENTS.md                          | 227 +++++++
+ modules/modul_8/API_SPEC.md                        | 656 +++++++++++++++++++++
+ modules/modul_8/TASK.md                            | 414 +++++++++++++
+ modules/modul_8/api.php                            |  17 +-
+ modules/modul_8/app/index.html                     |   8 +-
+ modules/modul_8/app/outputAiSpec.json              |  15 +
+ .../modul_8/app/src/components/header/Header.tsx   | 107 +++-
+ .../app/src/components/header/OnboardingHeader.tsx |  54 ++
+ .../app/src/components/header/ScreenHeader.tsx     |  21 +
+ .../app/src/components/navigation/tabBar.tsx       | 380 ++++++++----
+ .../modul_8/app/src/components/page/ChangeRow.tsx  |  52 ++
+ .../app/src/components/page/onboarding-config.tsx  | 178 ++++++
+ .../app/src/components/template/CarouselHome.tsx   | 233 ++++++++
+ .../app/src/components/template/Daylist.tsx        |  84 +++
+ .../app/src/components/template/FoodCard.tsx       | 145 +++++
+ .../app/src/components/theme/ThemeProvider.tsx     |   5 +-
+ .../app/src/components/ui/FixedBottomBar.tsx       |  38 ++
+ .../app/src/components/ui/FloatingButton.tsx       |  67 ++-
+ modules/modul_8/app/src/components/ui/Ring.tsx     |  52 ++
+ .../modul_8/app/src/components/ui/RulerPicker.tsx  | 151 +++++
+ .../app/src/components/ui/ScrollPickerColumn.tsx   | 112 ++++
+ .../app/src/components/ui/SelectionCard.tsx        |  58 ++
+ modules/modul_8/app/src/components/ui/button.tsx   |  22 +-
+ modules/modul_8/app/src/components/ui/index.ts     |  10 +
+ modules/modul_8/app/src/components/ui/sheet.tsx    |  50 +-
+ modules/modul_8/app/src/index.css                  |  68 ++-
+ modules/modul_8/app/src/main.tsx                   |  12 +-
+ .../app/src/screens/AccountDetailsScreen.tsx       | 113 ++++
+ .../modul_8/app/src/screens/EditDetailScreen.tsx   | 121 ++++
+ .../modul_8/app/src/screens/FoodDetailScreen.tsx   | 307 ++++++++++
+ modules/modul_8/app/src/screens/Home.tsx           | 570 +++++++++++++++---
+ modules/modul_8/app/src/screens/LogFood.tsx        | 123 ++++
+ .../modul_8/app/src/screens/ProgressScreens.tsx    | 548 ++++++++++++++++-
+ modules/modul_8/app/src/screens/ScannerScreen.tsx  | 269 +++++++++
+ modules/modul_8/migrate.php                        |  57 ++
+ modules/modul_8/schema.sql                         | 171 ++++++
+ 37 files changed, 5203 insertions(+), 313 deletions(-)
+
+.gitignore
+  @@ -7,3 +7,4 @@
+  +config/*
+  +1 -0
+
+modules/modul_8/AGENTS.md
+  @@ -0,0 +1,227 @@
+  +## Context Navigation
+  +
+  +When you need to understand the codebase, docs, or any files in this project:
+  +
+  +1. ALWAYS query the knowledge graph first: `/graphify query "your question"`
+  +2. Only read raw files if I explicitly say "read the file" or "look at the raw file"
+  +3. Use `graphify-out/wiki/index.md` as your navigation entrypoint for browsing structure
+  +
+  +Codex will review your output once you are done
+  +
+  +## graphify
+  +
+  +This project has a graphify knowledge graph at graphify-out/.
+  +
+  +Rules:
+  +
+  +- Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
+  +- If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
+  +- After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)
+  +
+  +# PRD — Calorie Tracker MVP (modul_8) (Mobile First UI)
+  +
+  +> Spec produk untuk aplikasi tracking kalori di `modules/modul_8`. Dokumen ini jadi sumber kebenaran; update di sini kalau scope berubah.
+  +
+  +## 1. Product Overview
+  +
+  +- **Nama produk:** Calorie Tracker (modul 8)
+  +- **Tujuan:** MVP tugas kuliah — aplikasi mobile-first untuk tracking asupan kalori, makro (protein/karbo/lemak), aktivitas olahraga, langkah harian, dan skor kesehatan.
+  +- **Target user:** mahasiswa / user umum yang ingin monitor nutrisi harian; login tunggal via sistem auth medical-web (`window.__USER__`).
+  +- **Kompleksitas:** Advanced — PWA installable, offline-capable, animasi transisi halus, AI food recognition.
+  +- **Storage:** Backend PHP + PostgreSQL (Prisma-hosted) via `config/database.php` & `core/session.php` yang sudah ada.
+  +
+  +## 2. User Flow (high-level)
+  +
+  +1. User login di sistem medical-web (PHP) → diarahkan ke `modules/modul_8/`.
+  +2. Kalau profil belum lengkap → **Onboarding** 6 langkah (Gender → Activity level → BB/TB → Birth date → Goal → selesai dengan kalkulasi TDEE).
+  +3. Setelah onboarding → **Home** (dashboard kalori + makro + recently eaten).
+  +4. Tab bar bawah: **Home / Progress / Settings**.
+  +5. Floating "+" button di Home / Progress → modal pilih: Log Exercise, Log Food, Saved Foods, Food Database, **Scan Food (AI)**, Scan Barcode.
+  +
+  +## 3. Screen Spec (mengikuti sketch)
+  +
+  +| #   | Screen                  | Elemen utama                                                                                               |
+  +| --- | ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+  +| 1   | Onboarding — Welcome    | Logo/foto makanan + CTA mulai                                                                              |
+  +| 2   | Onboarding — Gender     | Male / Female                                                                                              |
+  +| 3   | Onboarding — Activity   | 0–2 (pemula) / 3–5 (aktif) / 6+ (atlet)                                                                    |
+  +| 4   | Onboarding — Body       | Height (cm) + Weight (kg)                                                                                  |
+  +| 5   | Onboarding — Birth date | Bulan / Tanggal / Tahun                                                                                    |
+  +| 6   | Onboarding — Goal       | Turun / Maintain / Naik berat                                                                              |
+  +| 7   | Home                    | Weekday strip, Calories Left ring, ring Protein/Carbs/Fats, Recently Eaten list, foto makanan terbaru      |
+  +| 8   | Progress                | Step counter (0/10.000), kalori dibakar hari ini, **Health Score** card, weekly chart                      |
+  +| 9   | Log Exercise modal      | Run / Weight lift / Describe / Manual                                                                      |
+  +| 10  | Set Intensity           | High / Medium / Low + Duration (15/30/45/60 menit)                                                         |
+  +| 11  | Exercise Result         | Kalori terbakar dihitung, notif muncul                                                                     |
+  +| 12  | Food Database           | Search Open Food Facts by nama                                                                             |
+  +| 13  | Saved Foods             | List makanan yang sudah di-save user, quick-add                                                            |
+  +| 14  | Scan Barcode            | Kamera live ZXing → lookup barcode di Open Food Facts                                                      |
+  +| 15  | **Scan Food (AI)**      | Ambil foto makanan → LLM vision → prediksi nama + estimasi kalori/makro → review & konfirmasi sebelum save |
+  +
+  +## 4. Feature Scope (MVP)
+  +
+  +### In-scope
+  +
+  +**Onboarding & profile**
+  +
+  +- Wizard 6 langkah dengan kalkulasi target kalori harian (rumus **Mifflin-St Jeor** → TDEE × activity factor → ± deficit/surplus 500 kcal sesuai goal).
+  +
+  +**Home dashboard**
+  +
+  +- Ring kalori sisa, ring makro (protein/karbo/lemak), weekday strip 7 hari terakhir.
+  +- List "recently eaten" + foto makanan terbaru.
+  +
+  +**Log food — 5 cara input:**
+  +
+  +1. **Manual** — nama + kalori + protein/karbo/lemak + foto opsional.
+  +2. **Saved Foods** — quick-add dari item yang sudah di-save.
+  +3. **Food Database** — search Open Food Facts (gratis, tanpa API key).
+  +4. **Scan Barcode** — `@zxing/browser` via kamera HP → lookup Open Food Facts by barcode.
+  +5. **Scan Food dengan AI** — ambil/upload foto → backend panggil LLM vision → return estimasi makanan + kalori + makro → user review & edit sebelum simpan.
+  +
+  +**Log exercise**
+  +
+  +- Run / Weight lift / Describe (free text) / Manual (input kalori langsung).
+  +- Untuk Run & Weight: pilih intensity + duration → kalkulasi otomatis **MET × weight × hours**.
+  +
+  +**Progress**
+  +
+  +- Step counter manual (input user), kalori dibakar, health score.
+  +- Weekly chart kalori in/out via `recharts`.
+  +
+  +**PWA & UX**
+  +
+  +- Manifest + service worker via `vite-plugin-pwa`, offline shell, stale-while-revalidate untuk API.
+  +- Page transition (View Transitions API), ring fill animasi.
+  +
+  +### Out-of-scope (MVP)
+  +
+  +- Integrasi pedometer native (butuh Capacitor). Fallback: input manual.
+  +- Meal plan / recipe suggestion.
+  ... (127 lines truncated)
+  +227 -0
+
+modules/modul_8/API_SPEC.md
+  @@ -0,0 +1,656 @@
+  +# RESTful API Specification — Modul 8 Calorie Tracker
+  +
+  +> **Catatan implementasi:** Backend menggunakan PHP single-file `api.php` dengan dispatch `?action=X`. Spec ini menggunakan notasi REST konseptual — implementasinya memetakan setiap endpoint ke action param yang sesuai.
+  +> **Auth model:** Semua endpoint *Require Session* memanfaatkan PHP session cookie (`PHPSESSID`) via `requireLogin()` dari `core/auth.php`. `user_id` diambil dari `$_SESSION['user_id']`, **tidak pernah** dari request body/query params untuk mencegah IDOR.
+  +
+  +---
+  +
+  +## GROUP 1 — User Profile (Onboarding & Settings)
+  +
+  +### 1.1 Get Profile
+  +
+  +- **Endpoint:** `GET` `/api/modul8/profiles/me`
+  +- **Tujuan:** Mengambil profil lengkap user yang sedang login, termasuk target harian dan status onboarding.
+  +- **Security/Auth:** Require Session
+  +- **Request Payload / Query Params:** Tidak ada. `user_id` diambil eksklusif dari session.
+  +- **Response (200 OK):**
+  +
+  +```json
+  +{
+  +  "data": {
+  +    "gender": "male",
+  +    "birth_date": "2001-02-02",
+  +    "height_cm": 170,
+  +    "weight_kg": 70.0,
+  +    "activity_level": "active",
+  +    "goal": "lose",
+  +    "goal_weight_kg": 65.0,
+  +    "step_goal": 10000,
+  +    "daily_calorie_target": 2350,
+  +    "daily_protein_g": 176,
+  +    "daily_carbs_g": 235,
+  +    "daily_fats_g": 65,
+  +    "daily_fiber_g": 30,
+  +    "daily_sugar_g": 50,
+  +    "daily_sodium_mg": 2300,
+  +    "onboarded_at": "2026-04-19T10:00:00Z"
+  +  }
+  +}
+  +```
+  +
+  +- **Response (404):** Profil belum ada → frontend arahkan ke onboarding.
+  +- **Penjelasan Logika Database:** Query single row dari `m8_user_profiles` berdasarkan `user_id` dari session.
+  +- **Secure SQL Query:**
+  +
+  +```sql
+  +SELECT gender, birth_date, height_cm, weight_kg, activity_level,
+  +       goal, goal_weight_kg, step_goal, daily_calorie_target,
+  +       daily_protein_g, daily_carbs_g, daily_fats_g,
+  +       daily_fiber_g, daily_sugar_g, daily_sodium_mg, onboarded_at
+  +FROM m8_user_profiles
+  +WHERE user_id = $1;
+  +```
+  +
+  +---
+  +
+  +### 1.2 Save / Update Profile (Onboarding Submit)
+  +
+  +- **Endpoint:** `PUT` `/api/modul8/profiles/me`
+  +- **Tujuan:** Menyimpan atau memperbarui profil user setelah onboarding wizard selesai. Menghitung dan menyimpan TDEE + target makro secara atomik.
+  +- **Security/Auth:** Require Session
+  +- **Request Payload (Body JSON):**
+  +
+  +| Field | Type | Required | Validasi |
+  +|---|---|---|---|
+  +| `gender` | string | ✅ | enum: `male`, `female` |
+  +| `birth_date` | string (ISO date) | ✅ | format `YYYY-MM-DD`, usia 10–120 tahun |
+  +| `height_cm` | number | ✅ | 50–300 |
+  +| `weight_kg` | number | ✅ | 20–500 |
+  +| `activity_level` | string | ✅ | enum: `beginner`, `active`, `athlete` |
+  +| `goal` | string | ✅ | enum: `lose`, `maintain`, `gain` |
+  +| `goal_weight_kg` | number | ❌ | 20–500 |
+  +| `step_goal` | integer | ❌ | default 10000 |
+  +| `barriers` | string[] | ❌ | max 10 item |
+  +
+  +- **Penjelasan Logika Database:**
+  +  1. Backend kalkulasi BMR menggunakan **Mifflin-St Jeor**, TDEE × activity factor, lalu ±500 kcal sesuai goal.
+  +  2. Derivasi target makro: protein 30% / carbs 40% / fats 30%.
+  +  3. `UPSERT` ke `m8_user_profiles`. Jika `onboarded_at` masih NULL, set ke `NOW()`.
+  +  4. Insert baris awal ke `m8_weight_logs` untuk seed chart progress.
+  +
+  +- **Secure SQL Query:**
+  +
+  +```sql
+  +-- UPSERT profil
+  +INSERT INTO m8_user_profiles (
+  +    user_id, gender, birth_date, height_cm, weight_kg,
+  +    activity_level, goal, goal_weight_kg, step_goal, barriers,
+  +    daily_calorie_target, daily_protein_g, daily_carbs_g,
+  +    daily_fats_g, daily_fiber_g, daily_sugar_g, daily_sodium_mg,
+  +    onboarded_at, created_at, updated_at
+  +) VALUES (
+  +    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+  +    $11, $12, $13, $14, $15, $16, $17,
+  +    CASE WHEN $18 THEN NOW() ELSE NULL END,
+  +    NOW(), NOW()
+  +)
+  +ON CONFLICT (user_id) DO UPDATE SET
+  +    gender               = EXCLUDED.gender,
+  +    birth_date           = EXCLUDED.birth_date,
+  +    height_cm            = EXCLUDED.height_cm,
+  ... (556 lines truncated)
+  +656 -0
+
+modules/modul_8/TASK.md
+  @@ -0,0 +1,414 @@
+  +# API Implementation Plan
+  +
+  +---
+  +
+  +- [ ] **Task 1: Backend Foundation — api.php Router, Auth Guard & Response Utilities**
+  +  - **Objective**: Create the single-entry-point `api.php` file that handles authentication, request parsing, JSON response formatting, and action-based routing. This is the prerequisite for every subsequent task.
+  +  - **Target Files**: `modules/modul_8/api.php`
+  +  - **Low-Level Implementation Steps**:
+  +    1. Create file `modules/modul_8/api.php`. At the top, require these three files in order:
+  +       ```php
+  +       require_once __DIR__ . '/../../config/database.php';
+  +       require_once __DIR__ . '/../../core/auth.php';
+  +       require_once __DIR__ . '/../../core/session.php';
+  +       ```
+  +    2. Set response headers immediately after the requires (before any output):
+  +       ```php
+  +       header('Content-Type: application/json; charset=utf-8');
+  +       header('X-Content-Type-Options: nosniff');
+  +       ```
+  +    3. Call `requireLogin()` (from `core/auth.php`). This function already redirects unauthenticated users — do NOT modify it. If it returns, the user is authenticated.
+  +    4. Read `$userId` from session: `$userId = (int) $_SESSION['user_id'];`. This is the only trusted source of user identity — never read user_id from `$_GET` or `$_POST`.
+  +    5. Parse the action from request: `$action = $_GET['action'] ?? $_POST['action'] ?? '';`. If action is empty, output `{"error":"action required"}` with HTTP 400 and `exit`.
+  +    6. Parse the JSON request body once and store globally:
+  +       ```php
+  +       $body = json_decode(file_get_contents('php://input'), true) ?? [];
+  +       ```
+  +    7. Get the PDO connection: `$pdo = getDBConnection();`
+  +    8. Define two helper functions (place before the router switch):
+  +       - `function json_success($data, int $code = 200): never` — calls `http_response_code($code)`, echoes `json_encode(['data' => $data])`, then `exit`.
+  +       - `function json_error(string $message, int $code = 400): never` — calls `http_response_code($code)`, echoes `json_encode(['error' => $message])`, then `exit`.
+  +    9. Build the action router using a `switch ($action)` block. Add one `case` per action string. Unsupported actions fall to `default:` which calls `json_error('Unknown action', 404)`. The initial skeleton cases (to be filled in Tasks 2–4):
+  +       ```
+  +       case 'get_profile'    →  (Task 2)
+  +       case 'save_profile'   →  (Task 2)
+  +       case 'get_dashboard'  →  (Task 2)
+  +       case 'list_meals'     →  (Task 3)
+  +       case 'log_meal'       →  (Task 3)
+  +       case 'delete_meal'    →  (Task 3)
+  +       case 'list_saved_foods'  →  (Task 3)
+  +       case 'save_food'      →  (Task 3)
+  +       case 'delete_saved_food' →  (Task 3)
+  +       case 'log_water'      →  (Task 3)
+  +       case 'list_weight_logs'  →  (Task 3)
+  +       case 'log_weight'     →  (Task 3)
+  +       case 'get_health_scores' →  (Task 4)
+  +       case 'ai_scan_food'   →  (Task 4)
+  +       case 'get_ai_quota'   →  (Task 4)
+  +       ```
+  +    10. Wrap the entire switch in a try/catch: catch `PDOException` → call `json_error('Database error', 500)`. This prevents raw SQL errors from leaking to the client.
+  +  - **Expected Outcome / Acceptance Criteria**: `GET modules/modul_8/api.php?action=unknown` returns HTTP 404 `{"error":"Unknown action"}`. `GET api.php` (no action) returns HTTP 400 `{"error":"action required"}`. An unauthenticated request is redirected by `requireLogin()`. No PHP warnings or notices are emitted.
+  +
+  +---
+  +
+  +- [ ] **Task 2: User Profile & Dashboard Endpoints**
+  +  - **Objective**: Implement the `get_profile`, `save_profile`, and `get_dashboard` action handlers inside `api.php`. Profile save must compute and persist TDEE-based daily targets. Dashboard must aggregate today's meals, water, and compute remaining nutrients.
+  +  - **Target Files**: `modules/modul_8/api.php`
+  +  - **Low-Level Implementation Steps**:
+  +
+  +    **--- Action: get_profile ---**
+  +    1. Inside `case 'get_profile':`, run this prepared statement:
+  +       ```sql
+  +       SELECT user_id, gender, birth_date, height_cm, weight_kg,
+  +              activity_level, goal, goal_weight_kg, step_goal,
+  +              barriers, daily_calorie_target, daily_protein_g,
+  +              daily_carbs_g, daily_fats_g, onboarded_at
+  +       FROM m8_user_profiles
+  +       WHERE user_id = ?
+  +       ```
+  +       Bind `[$userId]`.
+  +    2. If `$stmt->rowCount() === 0`, call `json_error('Profile not found', 404)`.
+  +    3. Fetch the row as associative array. Cast numeric columns (`height_cm`, `weight_kg`, `goal_weight_kg`, `daily_calorie_target`, `daily_protein_g`, `daily_carbs_g`, `daily_fats_g`, `step_goal`) to the correct PHP types (int or float). The `barriers` column is a PostgreSQL `TEXT[]` — PDO returns it as a string like `{item1,item2}`. Parse it: `$row['barriers'] = array_filter(explode(',', trim($row['barriers'], '{}')));`
+  +    4. Call `json_success($row)`.
+  +
+  +    **--- Action: save_profile ---** 5. Inside `case 'save_profile':`, read and validate these fields from `$body`. For each field, if missing or invalid type, call `json_error('Invalid field: <name>', 422)`:
+  +    - `gender` → must be `'male'` or `'female'` (string, exact match)
+  +    - `birth_date` → must be a string matching regex `/^\d{4}-\d{2}-\d{2}$/`
+  +    - `height_cm` → must be numeric and > 0
+  +    - `weight_kg` → must be numeric and > 0
+  +    - `activity_level` → must be one of `['beginner', 'active', 'athlete']`
+  +    - `goal` → must be one of `['lose', 'maintain', 'gain']`
+  +    - `goal_weight_kg` → optional, numeric > 0 if present, else null
+  +    - `step_goal` → optional int, default 10000
+  +    - `barriers` → optional array of strings, default `[]`
+  +    6. Compute BMR using Mifflin-St Jeor. First, calculate age from `birth_date`:
+  +       ```php
+  +       $age = (int) date_diff(date_create($birth_date), date_create('today'))->y;
+  +       ```
+  +       Then:
+  +       ```php
+  +       $bmr = (10 * $weight_kg) + (6.25 * $height_cm) - (5 * $age);
+  +       $bmr += ($gender === 'male') ? 5 : -161;
+  +       ```
+  +    7. Multiply BMR by activity factor: `beginner → 1.375`, `active → 1.55`, `athlete → 1.725`.
+  +       ```php
+  +       $factors = ['beginner' => 1.375, 'active' => 1.55, 'athlete' => 1.725];
+  +       $tdee = $bmr * $factors[$activity_level];
+  +       ```
+  +    8. Adjust TDEE by goal: `lose → $tdee - 500`, `maintain → $tdee`, `gain → $tdee + 500`. Round to int.
+  +    9. Compute macro targets from calorie target:
+  +       - `protein_g = round(($calorie_target * 0.30) / 4)`
+  ... (314 lines truncated)
+  +414 -0
+
+modules/modul_8/api.php
+  @@ -89,7 +89,7 @@
+  -            // cannot contain {, }, ", or \ characters (checked via strpbrk).
+  +            // cannot contain {, }, ", \, or , characters (checked via strpbrk).
+               if ($row['barriers'] === '{}' || empty($row['barriers'])) {
+                   $row['barriers'] = [];
+               } else {
+  @@ -120,10 +120,13 @@
+  +            $warningCount = is_array($birthErrors) ? $birthErrors['warning_count'] : 0;
+  +            $errorCount = is_array($birthErrors) ? $birthErrors['error_count'] : 0;
+  +
+               if (
+                   !$birth ||
+  -                $birthErrors['warning_count'] > 0 ||
+  -                $birthErrors['error_count'] > 0 ||
+  +                $warningCount > 0 ||
+  +                $errorCount > 0 ||
+                   $birth->format('Y-m-d') !== $birth_date ||
+                   $birth > new DateTimeImmutable('today')
+               ) {
+  @@ -157,7 +160,7 @@
+  -                if (strpbrk($item, "{}\",\\") !== false) {
+  +                if (strpbrk($item, "{},\"\\") !== false) {
+                       json_error('Invalid field: barriers', 422);
+                   }
+               }
+  @@ -295,12 +298,6 @@
+  -                $meal['fiber_g'] = (float) $meal['fiber_g'];
+  -                $meal['sugar_g'] = (float) $meal['sugar_g'];
+  -                $meal['sodium_mg'] = (float) $meal['sodium_mg'];
+  -                if ($meal['serving_size'] !== null) {
+  -                    $meal['serving_size'] = (float) $meal['serving_size'];
+  -                }
+               }
+               unset($meal);
+   
+  +7 -10
+
+modules/modul_8/app/index.html
+  @@ -3,8 +3,12 @@
+  -    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  -    <title>app</title>
+  +    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  +    <meta name="apple-mobile-web-app-capable" content="yes" />
+  +    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  +    <meta name="apple-mobile-web-app-title" content="Calorie Tracker" />
+  +    <meta name="theme-color" content="#0f172a" />
+  +    <title>Calorie Tracker</title>
+     </head>
+     <body>
+       <div id="root"></div>
+  +6 -2
+
+modules/modul_8/app/outputAiSpec.json
+  @@ -0,0 +1,15 @@
+  +{
+  +  "uuid": "b1c8e5f0-9d2a-4c3b-8e5f-1a2b3c4d5e6f",
+  +  "foodName": "Spaghetti Carbonara",
+  +  "totalConsume": 1,
+  +  "nutrition": {
+  +    "calories": 400,
+  +    "protein": 15,
+  +    "carb": 50,
+  +    "fats": 10,
+  +    "fiber": 2,
+  +    "sugar": 5,
+  +    "sodium": 300
+  +  },
+  +  "created_at": "2025-11-27T20:32:00+07:00"
+  +}
+  +15 -0
+
+modules/modul_8/app/src/components/header/Header.tsx
+  @@ -1,15 +1,110 @@
+  +import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+  +import {
+  +  Sheet,
+  +  SheetClose,
+  +  SheetContent,
+  +  SheetTitle,
+  +  SheetTrigger,
+  +} from "../ui/sheet";
+  +import { X, ChevronRight } from "lucide-react";
+  +
+   interface HeaderProps {
+     title: string;
+     subtitle: string;
+  +  onActionClick?: (actionId: string) => void;
+   }
+   
+  -export default function Header({ title, subtitle }: HeaderProps) {
+  +const MENU_GROUPS = [
+  +  {
+  +    id: "account-group",
+  +    title: "Account",
+  +    items: [
+  +      { id: "account-details", label: "Account Details" },
+  +      { id: "goal-weight", label: "Goal & Current Weight" },
+  +    ],
+  +  },
+  +  {
+  +    id: "actions-group",
+  +    title: "Actions",
+  +    items: [
+  +      { id: "logout", label: "Logout" },
+  +      { id: "delete-account", label: "Delete Account" },
+  +    ],
+  +  },
+  +];
+  +
+  +export default function Header({ title, subtitle, onActionClick }: HeaderProps) {
+     return (
+  -    <div className="mb-2.5 text-left md:text-center">
+  -      <h1 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+  -        {title}
+  -      </h1>
+  -      <p className="text-slate-600 text-sm dark:text-slate-300">{subtitle}</p>
+  +    <div className="mb-2.5 flex flex-row justify-between items-center">
+  +      <div className="text-left">
+  +        <h1 className="text-2xl font-bold text-foreground mb-0.5">{title}</h1>
+  +        <p className="text-xs text-muted-foreground">{subtitle}</p>
+  +      </div>
+  +
+  +      <Sheet>
+  +        <SheetTrigger asChild>
+  +          <Avatar size="lg" className="cursor-pointer">
+  +            <AvatarImage />
+  +            <AvatarFallback>CD</AvatarFallback>
+  +          </Avatar>
+  +        </SheetTrigger>
+  +        <SheetContent
+  +          side="bottom"
+  +          showCloseButton={false}
+  +          className="border-none bg-app-bg shadow-none rounded-t-3xl pt-2 pb-8 px-0"
+  +        >
+  +          {/* Header area with Title and Close Button */}
+  +          <div className="relative flex items-center justify-center pt-2 pb-6 px-4">
+  +            <SheetTitle className="text-lg font-bold">Account</SheetTitle>
+  +            <SheetClose className="absolute right-4 top-0 rounded-full bg-muted p-2 text-foreground hover:bg-muted/80 transition-colors">
+  +              <X size={20} strokeWidth={2.5} />
+  +            </SheetClose>
+  +          </div>
+  +
+  +          <div className="flex flex-col items-center pb-8 px-4">
+  +            <Avatar className="h-[96px] w-[96px]">
+  +              <AvatarImage src="/avatar-placeholder.png" />
+  +              <AvatarFallback className="text-3xl font-medium bg-blue-500 text-white">
+  +                CD
+  +              </AvatarFallback>
+  +            </Avatar>
+  +          </div>
+  +
+  +          <div className="px-4 space-y-6">
+  +            {MENU_GROUPS.map((group) => (
+  +              <div key={group.id} className="space-y-2">
+  +                <h3 className="text-[15px] font-medium text-muted-foreground px-2">
+  +                  {group.title}
+  +                </h3>
+  +                <div className="rounded-[16px] bg-gray-200 overflow-hidden">
+  +                  {group.items.map((item, index) => (
+  +                    <div key={item.id}>
+  +                      <SheetClose asChild>
+  +                        <button 
+  +                          onClick={() => onActionClick?.(item.id)}
+  +                          className="w-full flex items-center justify-between px-4 py-4 bg-transparent transition-colors"
+  +                        >
+  +                          <span className="text-base text-foreground">
+  +                            {item.label}
+  +                          </span>
+  +                          <ChevronRight
+  +                            size={20}
+  +                            className="text-muted-foreground/40"
+  +                            strokeWidth={2.5}
+  +                          />
+  ... (13 lines truncated)
+  +101 -6
+
+modules/modul_8/app/src/components/header/OnboardingHeader.tsx
+  @@ -0,0 +1,54 @@
+  +import React from "react";
+  +import { Button } from "../ui/button";
+  +import { ArrowLeft } from "lucide-react";
+  +
+  +export type OnboardingHeaderProps = {
+  +  title: string;
+  +  subtitle?: string;
+  +  step: number;
+  +  totalSteps: number;
+
+... (more changes truncated)
+  +9 -0
+[full diff: rtk git diff --no-compact]

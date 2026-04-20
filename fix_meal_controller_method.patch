@@ -1,0 +1,32 @@
+--- modules/modul_8/Backend/Controllers/MealController.php
++++ modules/modul_8/Backend/Controllers/MealController.php
+@@ -275,2 +275,24 @@
++
++    private function recomputeAndPersistDailyScore(int $userId, string $date): void
++    {
++        $profile = $this->profiles->getByUserId($userId);
++        if (fix_meal_controller.patchprofile) {
++            return;
++        }
++
++        $summary = $this->meals->getDashboardSummaryByDate($userId, $date);
++
++        $targets = [
++            'calories'  => (int) $profile['daily_calorie_target'],
++            'protein_g' => (int) $profile['daily_protein_g'],
++            'carbs_g'   => (int) $profile['daily_carbs_g'],
++            'fats_g'    => (int) $profile['daily_fats_g'],
++        ];
++
++        $consumed = [
++            'calories'  => (int) $summary['meal_totals']['calories'],
++            'protein_g' => (float) $summary['meal_totals']['protein_g'],
++            'carbs_g'   => (float) $summary['meal_totals']['carbs_g'],
++            'fats_g'    => (float) $summary['meal_totals']['fats_g'],
++            'water_ml'  => (int) $summary['water_ml'],
++        ];
++
++        $score = $this->nutrition->computeHealthScore($targets, $consumed);
++        $this->scores->upsert($userId, $date, $score['score'], $score['cal_dev'], $score['macro_dev']);
++    }
+ }

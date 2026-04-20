@@ -298,7 +298,34 @@ export default function FoodDetailScreen({
         >
           <Sparkles size={18} /> Fix Results
         </Button>
-        <Button className="flex-1 rounded-full h-14 font-bold text-base text-white bg-black">
+        <Button 
+          className="flex-1 rounded-full h-14 font-bold text-base text-white bg-black"
+          onClick={async () => {
+            try {
+              const { logMeal, toast } = await import("../services/api");
+              const loadingId = toast.loading("Logging meal...");
+              await logMeal({
+                meal_type: "snack", // default
+                name: item.name,
+                calories: item.calories,
+                protein_g: item.protein,
+                carbs_g: item.carbs,
+                fats_g: item.fats,
+                photo_url: item.imageUrl,
+                source: "ai_scan",
+              });
+              toast.dismiss(loadingId);
+              toast.success("Meal logged successfully!");
+              onClose();
+              // A slight delay to let the toast show, then ideally trigger a refresh
+              // For now, reloading the page is a surefire way to refresh dashboard
+              setTimeout(() => window.location.reload(), 1000);
+            } catch (err: any) {
+              const { toast } = await import("../services/api");
+              toast.error(err.message || "Failed to log meal");
+            }
+          }}
+        >
           Done
         </Button>
       </div>

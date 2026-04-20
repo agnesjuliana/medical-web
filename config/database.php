@@ -1,20 +1,46 @@
 <?php
 /**
  * Database Configuration
- * 
+ *
  * Centralized database connection using PDO.
- * Update credentials below to match your MySQL setup.
+ * PostgreSQL connection via Prisma (credentials from .env).
  * This file is shared across all modules.
  */
 
-// Base URL — update this if the project moves to a different subdirectory
-define('BASE_URL', '/medical-web');
+// Load environment variables
+require_once __DIR__ . '/env.php';
 
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'backbone_medweb');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_CHARSET', 'utf8mb4');
+// Base URL — for local dev use '/', for production adjust as needed
+define('BASE_URL', getenv('BASE_URL') ?: '');
+
+// Parse PostgreSQL URL from environment (.env file)
+$databaseUrl = getenv('DATABASE_URL')
+    ?: getenv('POSTGRES_URL');
+
+if ($databaseUrl) {
+    // Parse PostgreSQL connection string
+    // Format: postgres://user:password@host:port/database?sslmode=require
+    $parsed = parse_url($databaseUrl);
+
+    define('DB_HOST', $parsed['host'] ?? 'localhost');
+    define('DB_PORT', $parsed['port'] ?? 5432);
+    define('DB_NAME', ltrim($parsed['path'] ?? '/postgres', '/'));
+    define('DB_USER', urldecode($parsed['user'] ?? 'postgres'));
+    define('DB_PASS', urldecode($parsed['pass'] ?? ''));
+
+    // Extract SSL mode from query string
+    $queryStr = $parsed['query'] ?? '';
+    parse_str($queryStr, $queryParams);
+    define('DB_SSL_MODE', $queryParams['sslmode'] ?? 'require');
+} else {
+    // Fallback defaults — set DATABASE_URL in .env to override
+    define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+    define('DB_PORT', (int)(getenv('DB_PORT') ?: 5432));
+    define('DB_NAME', getenv('DB_NAME') ?: 'postgres');
+    define('DB_USER', getenv('DB_USER') ?: 'postgres');
+    define('DB_PASS', getenv('DB_PASS') ?: '');
+    define('DB_SSL_MODE', getenv('DB_SSLMODE') ?: 'require');
+}
 
 /**
  * Get PDO database connection
@@ -27,7 +53,7 @@ function getDBConnection(): PDO
     static $pdo = null;
 
     if ($pdo === null) {
-        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+        $dsn = "pgsql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";sslmode=" . DB_SSL_MODE;
 
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,

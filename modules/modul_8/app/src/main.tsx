@@ -5,7 +5,7 @@ import OnboardingPage from "./components/page/OnboardingPage.tsx";
 import HomeScreen from "./screens/Home.tsx";
 import { ThemeProvider } from "./components/theme/ThemeProvider";
 
-function App() {
+export function App() {
   const [onboarded, setOnboarded] = useState(false);
   return onboarded ? <HomeScreen /> : <OnboardingPage onComplete={() => setOnboarded(true)} />;
 }

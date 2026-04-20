@@ -60,7 +60,7 @@ export interface DashboardData {
   health_score: number | null;
 }
 
-const BASE_URL = '/api.php';
+const BASE_URL = '/modules/modul_8/Backend/index.php';
 
 export const getProfile = async (): Promise<{ data: Profile }> => {
   const response = await fetch(`${BASE_URL}?action=get_profile`);
@@ -71,21 +71,18 @@ export const getProfile = async (): Promise<{ data: Profile }> => {
   return response.json();
 };
 
-export const saveProfile = async (payload: Partial<Profile> & { action?: string }) => {
-  const response = await fetch(BASE_URL, {
+export const saveProfile = async (payload: Partial<Profile>) => {
+  const response = await fetch(`${BASE_URL}?action=save_profile`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      ...payload,
-      action: 'save_profile',
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Failed to save profile');
+    throw new Error(errorData.error || errorData.message || 'Failed to save profile');
   }
 
   return response.json();
@@ -98,6 +95,114 @@ export const getDashboard = async (date?: string): Promise<{ data: DashboardData
     const errorText = await response.text();
     throw new Error(errorText || 'Failed to fetch dashboard');
   }
+  return response.json();
+};
+
+export const getSavedFoods = async (): Promise<{ data: any[] }> => {
+  const response = await fetch(`${BASE_URL}?action=list_saved_foods`);
+  if (!response.ok) throw new Error('Failed to fetch saved foods');
+  return response.json();
+};
+
+export const getAiQuota = async (): Promise<{ data: { quota_used: number; limit: number; remaining: number } }> => {
+  const response = await fetch(`${BASE_URL}?action=get_ai_quota`);
+  if (!response.ok) throw new Error('Failed to fetch AI quota');
+  return response.json();
+};
+
+export const getUserInfo = async (): Promise<{ data: { id: number; name: string; email: string; initials: string } }> => {
+  const response = await fetch(`${BASE_URL}?action=get_user_info`);
+  if (!response.ok) throw new Error('Failed to fetch user info');
+  return response.json();
+};
+
+export const logout = async (): Promise<{ data: { message: string } }> => {
+  const response = await fetch(`${BASE_URL}?action=logout`, { method: 'POST' });
+  if (!response.ok) throw new Error('Failed to logout');
+  return response.json();
+};
+
+export const deleteAccount = async (): Promise<{ data: { message: string } }> => {
+  const response = await fetch(`${BASE_URL}?action=delete_account`, { method: 'POST' });
+  if (!response.ok) throw new Error('Failed to delete account');
+  return response.json();
+};
+
+export const scanFood = async (image_b64: string): Promise<{ data: any }> => {
+  const response = await fetch(`${BASE_URL}?action=ai_scan_food`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image_b64 }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to analyze food');
+  }
+  return response.json();
+};
+
+export const logMeal = async (payload: {
+  meal_type: string;
+  name: string;
+  calories: number;
+  protein_g: number;
+  carbs_g: number;
+  fats_g: number;
+  photo_url?: string;
+  source?: string;
+}): Promise<{ data: any }> => {
+  const response = await fetch(`${BASE_URL}?action=log_meal`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to log meal');
+  }
+  return response.json();
+};
+
+export const getWeightProgress = async (range: 90 | 180 | 365 | 'all' = 90): Promise<{
+  data: {
+    current_weight: number;
+    start_weight: number;
+    goal_weight: number | null;
+    goal_progress: number;
+    height_cm: number;
+    bmi: number;
+    logs: Array<{ day: string; date: string; weight: number }>;
+    deltas: { '3d': number; '7d': number; '30d': number };
+  };
+}> => {
+  const rangeParam = range === 'all' ? 3650 : range;
+  const response = await fetch(`${BASE_URL}?action=get_weight_progress&range=${rangeParam}`);
+  if (!response.ok) throw new Error('Failed to fetch weight progress');
+  return response.json();
+};
+
+export const getWeeklyEnergy = async (offset = 0): Promise<{
+  data: {
+    week_start: string;
+    week_end: string;
+    days: Array<{ day: string; date: string; consumed_cal: number }>;
+    total_consumed: number;
+  };
+}> => {
+  const response = await fetch(`${BASE_URL}?action=get_weekly_energy&offset=${offset}`);
+  if (!response.ok) throw new Error('Failed to fetch weekly energy');
+  return response.json();
+};
+
+export const getCalorieAverages = async (): Promise<{
+  data: {
+    avg_7d: number | null;
+    avg_30d: number | null;
+    logs_7d: Array<{ log_date: string; calories: number }>;
+  };
+}> => {
+  const response = await fetch(`${BASE_URL}?action=get_calorie_averages`);
+  if (!response.ok) throw new Error('Failed to fetch calorie averages');
   return response.json();
 };
 

@@ -31,8 +31,9 @@ export default function ScannerScreen({ onClose, onCapture }: ScannerScreenProps
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [scanMode,    setScanMode]    = useState<ScanMode>("scan_food");
   const [flashOn,     setFlashOn]     = useState(false);
+  const [quotaRemaining, setQuotaRemaining] = useState<number | null>(null);
 
-  // ── Camera stream ──────────────────────────────────────────────────────────
+  // ── Camera stream and Quota ────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
 
@@ -50,7 +51,18 @@ export default function ScannerScreen({ onClose, onCapture }: ScannerScreenProps
       }
     }
 
+    async function fetchQuota() {
+      try {
+        const { getAiQuota } = await import("../services/api");
+        const res = await getAiQuota();
+        if (!cancelled) setQuotaRemaining(res.data.remaining);
+      } catch (err) {
+        console.error("Failed to fetch quota", err);
+      }
+    }
+
     startCamera();
+    fetchQuota();
     return () => {
       cancelled = true;
       streamRef.current?.getTracks().forEach(t => t.stop());
@@ -96,6 +108,10 @@ export default function ScannerScreen({ onClose, onCapture }: ScannerScreenProps
   }
 
   function handleShutter() {
+    if (quotaRemaining === 0) {
+      alert("AI Scan quota exceeded!");
+      return;
+    }
     haptic();
     if (scanMode === "gallery") {
       fileInputRef.current?.click();
@@ -168,6 +184,14 @@ export default function ScannerScreen({ onClose, onCapture }: ScannerScreenProps
         >
           <X size={20} className="text-white" />
         </button>
+
+        {quotaRemaining !== null && (
+          <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5">
+            <Zap size={14} className="text-yellow-400 fill-yellow-400" />
+            <span className="text-white text-xs font-bold">{quotaRemaining} left</span>
+          </div>
+        )}
+
         <button
           aria-label="Scanner info"
           className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center active:scale-90 transition-transform"

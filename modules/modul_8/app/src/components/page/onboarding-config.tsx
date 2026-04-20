@@ -6,11 +6,6 @@ import {
   TrendingDown,
   TrendingUp,
   Minus,
-  BarChart2,
-  Sandwich,
-  HandshakeIcon,
-  CalendarDays,
-  Apple,
 } from "lucide-react";
 
 export type SelectOption = {
@@ -143,36 +138,4 @@ export const STEPS: Step[] = [
   { id: "loading", type: "loading" },
   { id: "results", type: "results" },
   { id: "save-progress", title: "Save your progress", type: "save-progress" },
-  {
-    id: "barriers",
-    title: "What's stopping you from\nreaching your goals?",
-    type: "multi-select",
-    options: [
-      {
-        value: "consistency",
-        label: "Lack of consistency",
-        icon: <BarChart2 size={18} />,
-      },
-      {
-        value: "eating",
-        label: "Unhealthy eating habits",
-        icon: <Sandwich size={18} />,
-      },
-      {
-        value: "support",
-        label: "Lack of support",
-        icon: <HandshakeIcon size={18} />,
-      },
-      {
-        value: "schedule",
-        label: "Busy schedule",
-        icon: <CalendarDays size={18} />,
-      },
-      {
-        value: "inspiration",
-        label: "Lack of meal inspiration",
-        icon: <Apple size={18} />,
-      },
-    ],
-  },
 ];

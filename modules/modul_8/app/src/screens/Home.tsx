@@ -526,9 +526,29 @@ export default function HomeScreen() {
       {showScanner && (
         <ScannerScreen
           onClose={() => setShowScanner(false)}
-          onCapture={(mode, imageData) => {
+          onCapture={async (mode, imageData) => {
             setShowScanner(false);
-            console.log("captured", mode, imageData.slice(0, 40));
+            const { scanFood, toast } = await import("../services/api");
+            const loadingId = toast.loading("Analyzing food with AI...");
+            try {
+              const res = await scanFood(imageData);
+              toast.dismiss(loadingId);
+              toast.success("Analysis complete!");
+              // Map backend result to FoodItem
+              setSelectedFood({
+                id: "scanned_" + Date.now(),
+                status: "analyzed",
+                name: res.data.name || "Unknown Food",
+                calories: res.data.calories || 0,
+                protein: res.data.protein_g || 0,
+                carbs: res.data.carbs_g || 0,
+                fats: res.data.fats_g || 0,
+                imageUrl: imageData, // Use captured image for display
+              });
+            } catch (err: any) {
+              toast.dismiss(loadingId);
+              toast.error(err.message || "Failed to analyze food");
+            }
           }}
         />
       )}

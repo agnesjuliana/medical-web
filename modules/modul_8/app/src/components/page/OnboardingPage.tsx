@@ -428,21 +428,29 @@ function LoadingContent({ onComplete }: { onComplete: () => void }) {
 
 // ─── Save progress content ────────────────────────────────────────────────────
 
-function SaveProgressContent({ onSkip }: { onSkip: () => void }) {
+function SaveProgressContent({
+  onComplete,
+  isSaving,
+}: {
+  onComplete: () => void;
+  isSaving: boolean;
+}) {
   return (
     <div className="flex flex-col gap-3 w-full" style={safeH}>
       <button
         type="button"
-        className="w-full h-14 rounded-full bg-black text-white text-base font-semibold flex items-center justify-center gap-3"
-        onClick={() => console.log("Sign in with Apple")}
+        className="w-full h-14 rounded-full bg-black text-white text-base font-semibold flex items-center justify-center gap-3 disabled:opacity-70"
+        onClick={onComplete}
+        disabled={isSaving}
       >
         <Apple size={20} />
         Sign in with Apple
       </button>
       <button
         type="button"
-        className="w-full h-14 rounded-full border-2 border-foreground bg-transparent text-foreground text-base font-semibold flex items-center justify-center gap-3"
-        onClick={() => console.log("Sign in with Google")}
+        className="w-full h-14 rounded-full border-2 border-foreground bg-transparent text-foreground text-base font-semibold flex items-center justify-center gap-3 disabled:opacity-70"
+        onClick={onComplete}
+        disabled={isSaving}
       >
         <span
           className="font-bold text-[18px] leading-none"
@@ -456,10 +464,11 @@ function SaveProgressContent({ onSkip }: { onSkip: () => void }) {
         Would you like to sign in later?{" "}
         <button
           type="button"
-          onClick={onSkip}
-          className="font-semibold text-foreground underline underline-offset-2"
+          onClick={onComplete}
+          disabled={isSaving}
+          className="font-semibold text-foreground underline underline-offset-2 disabled:opacity-70"
         >
-          Skip
+          {isSaving ? "Saving..." : "Skip"}
         </button>
       </p>
     </div>
@@ -608,7 +617,7 @@ export default function OnboardingPage({
       case "results":
         return null; // handled as early return below
       case "save-progress":
-        return <SaveProgressContent onSkip={handleContinue} />;
+        return <SaveProgressContent onComplete={handleContinue} isSaving={isSaving} />;
       default:
         return null;
     }

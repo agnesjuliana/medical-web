@@ -1,0 +1,706 @@
+commit 2719f866c39d0486761c727fbfe68578171c00a3
+Author: nashirabbash <nashirabbash@gmail.com>
+Date:   Sun Apr 19 19:02:09 2026 +0700
+
+    fix: address code review feedback on PR #21
+    
+    - Implement parseHeightCm and parseWeightKg to fix imperial calculation bug
+    - Standardize units display in OnboardingResults
+    - Remove unused ResultsContent dead code
+    - Add urldecode() to database connection string for encoded passwords
+
+diff --git a/config/database.php b/config/database.php
+index 17724f6..34f09ce 100644
+--- a/config/database.php
++++ b/config/database.php
+@@ -1,20 +1,46 @@
+ <?php
+ /**
+  * Database Configuration
+- * 
++ *
+  * Centralized database connection using PDO.
+- * Update credentials below to match your MySQL setup.
++ * PostgreSQL connection via Prisma (credentials from .env).
+  * This file is shared across all modules.
+  */
+ 
+-// Base URL — update this if the project moves to a different subdirectory
+-define('BASE_URL', '/medical-web');
++// Load environment variables
++require_once __DIR__ . '/env.php';
++
++// Base URL — for local dev use '/', for production adjust as needed
++define('BASE_URL', getenv('BASE_URL') ?: '');
++
++// Parse PostgreSQL URL from environment (.env file)
++$databaseUrl = getenv('DATABASE_URL')
++    ?: getenv('POSTGRES_URL');
+ 
+-define('DB_HOST', 'localhost');
+-define('DB_NAME', 'backbone_medweb');
+-define('DB_USER', 'root');
+-define('DB_PASS', '');
+-define('DB_CHARSET', 'utf8mb4');
++if ($databaseUrl) {
++    // Parse PostgreSQL connection string
++    // Format: postgres://user:password@host:port/database?sslmode=require
++    $parsed = parse_url($databaseUrl);
++
++    define('DB_HOST', $parsed['host'] ?? 'localhost');
++    define('DB_PORT', $parsed['port'] ?? 5432);
++    define('DB_NAME', ltrim($parsed['path'] ?? '/postgres', '/'));
++    define('DB_USER', urldecode($parsed['user'] ?? 'postgres'));
++    define('DB_PASS', urldecode($parsed['pass'] ?? ''));
++
++    // Extract SSL mode from query string
++    $queryStr = $parsed['query'] ?? '';
++    parse_str($queryStr, $queryParams);
++    define('DB_SSL_MODE', $queryParams['sslmode'] ?? 'require');
++} else {
++    // Fallback defaults — set DATABASE_URL in .env to override
++    define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
++    define('DB_PORT', (int)(getenv('DB_PORT') ?: 5432));
++    define('DB_NAME', getenv('DB_NAME') ?: 'postgres');
++    define('DB_USER', getenv('DB_USER') ?: 'postgres');
++    define('DB_PASS', getenv('DB_PASS') ?: '');
++    define('DB_SSL_MODE', getenv('DB_SSLMODE') ?: 'require');
++}
+ 
+ /**
+  * Get PDO database connection
+@@ -27,7 +53,7 @@ function getDBConnection(): PDO
+     static $pdo = null;
+ 
+     if ($pdo === null) {
+-        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
++        $dsn = "pgsql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";sslmode=" . DB_SSL_MODE;
+ 
+         $options = [
+             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+diff --git a/modules/modul_8/app/src/components/page/OnboardingPage.tsx b/modules/modul_8/app/src/components/page/OnboardingPage.tsx
+index e5e7a46..94ad88b 100644
+--- a/modules/modul_8/app/src/components/page/OnboardingPage.tsx
++++ b/modules/modul_8/app/src/components/page/OnboardingPage.tsx
+@@ -1,23 +1,5 @@
+-import React, { useState, useEffect } from "react";
+-import {
+-  Mars,
+-  Venus,
+-  Dumbbell,
+-  TrendingDown,
+-  TrendingUp,
+-  Minus,
+-  BarChart2,
+-  Sandwich,
+-  HandshakeIcon,
+-  CalendarDays,
+-  Apple,
+-  Check,
+-  Flame,
+-  Wheat,
+-  Beef,
+-  Droplets,
+-  Pencil,
+-} from "lucide-react";
++import { useState, useEffect } from "react";
++import { Apple, Check, Flame, Wheat, Beef, Droplets } from "lucide-react";
+ import OnboardingHeader from "../header/OnboardingHeader";
+ import SelectionCard from "../ui/SelectionCard";
+ import ScrollPickerColumn from "../ui/ScrollPickerColumn";
+@@ -26,175 +8,9 @@ import FixedBottomBar from "../ui/FixedBottomBar";
+ import { Switch } from "../ui/switch";
+ import { cn } from "@/lib/utils";
+ import OnboardingResults from "./OnboardingResults";
++import type { FormData, Step, StringKey, SelectOption } from "./onboarding-config";
++import { STEPS } from "./onboarding-config";
+ 
+-// ─── Types ────────────────────────────────────────────────────────────────────
+-
+-type SelectOption = {
+-  value: string;
+-  label: string;
+-  description?: string;
+-  icon?: React.ReactNode;
+-};
+-
+-type Step =
+-  | {
+-      id: string;
+-      title: string;
+-      subtitle?: string;
+-      type: "single-select";
+-      options: SelectOption[];
+-    }
+-  | {
+-      id: string;
+-      title: string;
+-      subtitle?: string;
+-      type: "multi-select";
+-      options: SelectOption[];
+-    }
+-  | { id: string; title: string; subtitle?: string; type: "body-picker" }
+-  | { id: string; title: string; subtitle?: string; type: "date-picker" }
+-  | {
+-      id: string;
+-      title: string;
+-      subtitle?: string;
+-      type: "ruler-picker";
+-      unit?: string;
+-      min?: number;
+-      max?: number;
+-    }
+-  | { id: string; title?: string; type: "info" }
+-  | { id: string; type: "loading" }
+-  | { id: string; type: "results" }
+-  | { id: string; title: string; type: "save-progress" };
+-
+-type FormData = {
+-  gender: string;
+-  activity: string;
+-  height: string;
+-  weight: string;
+-  birthMonth: string;
+-  birthDay: string;
+-  birthYear: string;
+-  goal: string;
+-  desiredWeight: number;
+-  barriers: string[];
+-};
+-
+-// Keys of FormData whose value is string (excludes number and string[])
+-type StringKey = {
+-  [K in keyof FormData]: FormData[K] extends string ? K : never;
+-}[keyof FormData];
+-
+-// ─── Step Config ──────────────────────────────────────────────────────────────
+-
+-const STEPS: Step[] = [
+-  {
+-    id: "gender",
+-    title: "Choose your Gender",
+-    subtitle: "This will be used to calibrate your custom plan.",
+-    type: "single-select",
+-    options: [
+-      { value: "male", label: "Male", icon: <Mars size={20} /> },
+-      { value: "female", label: "Female", icon: <Venus size={20} /> },
+-    ],
+-  },
+-  {
+-    id: "activity",
+-    title: "How many workouts\ndo you do per week?",
+-    subtitle: "This will be used to calibrate your custom plan.",
+-    type: "single-select",
+-    options: [
+-      {
+-        value: "beginner",
+-        label: "0–2",
+-        description: "Workouts now and then",
+-        icon: <Dumbbell size={16} className="opacity-40" />,
+-      },
+-      {
+-        value: "active",
+-        label: "3–5",
+-        description: "A few workouts per week",
+-        icon: <Dumbbell size={16} />,
+-      },
+-      {
+-        value: "athlete",
+-        label: "6+",
+-        description: "Dedicated athlete",
+-        icon: <Dumbbell size={16} className="text-yellow-400" />,
+-      },
+-    ],
+-  },
+-  {
+-    id: "body",
+-    title: "Height & weight",
+-    subtitle: "This will be used to calibrate your custom plan.",
+-    type: "body-picker",
+-  },
+-  {
+-    id: "birthdate",
+-    title: "When were you born?",
+-    subtitle: "This will be used to calibrate your custom plan.",
+-    type: "date-picker",
+-  },
+-  {
+-    id: "goal",
+-    title: "What is your goal?",
+-    subtitle: "This helps us generate a plan for your calorie intake.",
+-    type: "single-select",
+-    options: [
+-      { value: "lose", label: "Lose weight", icon: <TrendingDown size={20} /> },
+-      { value: "maintain", label: "Maintain", icon: <Minus size={20} /> },
+-      { value: "gain", label: "Gain weight", icon: <TrendingUp size={20} /> },
+-    ],
+-  },
+-  {
+-    id: "desired-weight",
+-    title: "What is your desired weight?",
+-    type: "ruler-picker",
+-    unit: "kg",
+-    min: 30,
+-    max: 200,
+-  },
+-  {
+-    id: "motivation",
+-    type: "info",
+-  },
+-  { id: "loading", type: "loading" },
+-  { id: "results", type: "results" },
+-  { id: "save-progress", title: "Save your progress", type: "save-progress" },
+-  {
+-    id: "barriers",
+-    title: "What's stopping you from\nreaching your goals?",
+-    type: "multi-select",
+-    options: [
+-      {
+-        value: "consistency",
+-        label: "Lack of consistency",
+-        icon: <BarChart2 size={18} />,
+-      },
+-      {
+-        value: "eating",
+-        label: "Unhealthy eating habits",
+-        icon: <Sandwich size={18} />,
+-      },
+-      {
+-        value: "support",
+-        label: "Lack of support",
+-        icon: <HandshakeIcon size={18} />,
+-      },
+-      {
+-        value: "schedule",
+-        label: "Busy schedule",
+-        icon: <CalendarDays size={18} />,
+-      },
+-      {
+-        value: "inspiration",
+-        label: "Lack of meal inspiration",
+-        icon: <Apple size={18} />,
+-      },
+-    ],
+-  },
+-];
+ 
+ // ─── Picker data ──────────────────────────────────────────────────────────────
+ 
+@@ -268,7 +84,7 @@ const safeH = {
+ 
+ // ─── Sub-renderers ────────────────────────────────────────────────────────────
+ 
+-function SingleSelectContent({
++export function SingleSelectContent({
+   options,
+   value,
+   onChange,
+@@ -293,7 +109,7 @@ function SingleSelectContent({
+   );
+ }
+ 
+-function MultiSelectContent({
++export function MultiSelectContent({
+   options,
+   values,
+   onToggle,
+@@ -318,7 +134,7 @@ function MultiSelectContent({
+   );
+ }
+ 
+-function BodyPickerContent({
++export function BodyPickerContent({
+   form,
+   onChange,
+ }: {
+@@ -372,7 +188,7 @@ function BodyPickerContent({
+   );
+ }
+ 
+-function DatePickerContent({
++export function DatePickerContent({
+   form,
+   onChange,
+ }: {
+@@ -406,7 +222,7 @@ function DatePickerContent({
+   );
+ }
+ 
+-function RulerPickerContent({
++export function RulerPickerContent({
+   form,
+   step,
+   onChange,
+@@ -437,7 +253,7 @@ function RulerPickerContent({
+ }
+ 
+ function MotivationContent({ form }: { form: FormData }) {
+-  const currentKg = parseInt(form.weight) || 70;
++  const currentKg = parseWeightKg(form.weight);
+   const diff = Math.abs(form.desiredWeight - currentKg);
+ 
+   const action =
+@@ -472,11 +288,30 @@ function MotivationContent({ form }: { form: FormData }) {
+   );
+ }
+ 
++// ─── Unit Conversion helpers ──────────────────────────────────────────────────
++
++function parseHeightCm(heightStr: string): number {
++  if (!heightStr) return 170;
++  if (heightStr.includes("'")) {
++    const [feet, inches] = heightStr.split("'").map((s) => parseInt(s) || 0);
++    return Math.round(feet * 30.48 + inches * 2.54);
++  }
++  return parseInt(heightStr) || 170;
++}
++
++function parseWeightKg(weightStr: string): number {
++  if (!weightStr) return 70;
++  if (weightStr.includes("lbs")) {
++    return Math.round((parseInt(weightStr) || 154) / 2.20462);
++  }
++  return parseInt(weightStr) || 70;
++}
++
+ // ─── TDEE helpers ─────────────────────────────────────────────────────────────
+ 
+ function computeTDEE(form: FormData) {
+-  const kg = parseInt(form.weight) || 70;
+-  const cm = parseInt(form.height) || 170;
++  const kg = parseWeightKg(form.weight);
++  const cm = parseHeightCm(form.height);
+   const age = new Date().getFullYear() - parseInt(form.birthYear || "2000");
+   const bmr =
+     form.gender === "male"
+@@ -503,78 +338,13 @@ function computeTDEE(form: FormData) {
+ }
+ 
+ function computeGoalDate(form: FormData): string {
+-  const diff = Math.abs(form.desiredWeight - (parseInt(form.weight) || 70));
++  const diff = Math.abs(form.desiredWeight - parseWeightKg(form.weight));
+   const weeks = Math.max(1, Math.round(diff / 0.5));
+   const d = new Date();
+   d.setDate(d.getDate() + weeks * 7);
+   return d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+ }
+ 
+-// ─── MacroRing ────────────────────────────────────────────────────────────────
+-
+-function MacroRing({
+-  label,
+-  value,
+-  unit,
+-  icon,
+-  color,
+-  percent,
+-}: {
+-  label: string;
+-  value: number;
+-  unit: string;
+-  icon: React.ReactNode;
+-  color: string;
+-  percent: number;
+-}) {
+-  const r = 28;
+-  const circumference = 2 * Math.PI * r;
+-  const dashOffset =
+-    circumference - (Math.min(percent, 100) / 100) * circumference;
+-  return (
+-    <div className="flex-1 rounded-2xl bg-muted/40 p-3 flex flex-col gap-1">
+-      <div className="flex items-center justify-between">
+-        <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+-          {icon} {label}
+-        </div>
+-        <Pencil size={11} className="text-muted-foreground" />
+-      </div>
+-      <div className="flex justify-center">
+-        <div className="relative">
+-          <svg width="72" height="72" viewBox="0 0 72 72">
+-            <circle
+-              cx="36"
+-              cy="36"
+-              r={r}
+-              fill="none"
+-              stroke="currentColor"
+-              strokeOpacity={0.15}
+-              strokeWidth="8"
+-            />
+-            <circle
+-              cx="36"
+-              cy="36"
+-              r={r}
+-              fill="none"
+-              stroke={color}
+-              strokeWidth="8"
+-              strokeDasharray={circumference}
+-              strokeDashoffset={dashOffset}
+-              strokeLinecap="round"
+-              transform="rotate(-90 36 36)"
+-            />
+-          </svg>
+-          <div className="absolute inset-0 flex flex-col items-center justify-center">
+-            <span className="text-sm font-bold text-foreground leading-none">
+-              {value}
+-            </span>
+-            <span className="text-[10px] text-muted-foreground">{unit}</span>
+-          </div>
+-        </div>
+-      </div>
+-    </div>
+-  );
+-}
+ 
+ // ─── Loading content ──────────────────────────────────────────────────────────
+ 
+@@ -652,80 +422,7 @@ function LoadingContent({ onComplete }: { onComplete: () => void }) {
+   );
+ }
+ 
+-// ─── Results content ──────────────────────────────────────────────────────────
+-
+-function ResultsContent({ form }: { form: FormData }) {
+-  const { calories, protein, carbs, fats } = computeTDEE(form);
+-  const diff = Math.abs(form.desiredWeight - (parseInt(form.weight) || 70));
+-  const action =
+-    form.goal === "gain" ? "Gain" : form.goal === "lose" ? "Lose" : "Maintain";
+-  const goalDate = computeGoalDate(form);
+ 
+-  return (
+-    <div className="flex flex-col gap-5 w-full" style={safeH}>
+-      <div className="flex flex-col items-center text-center gap-3">
+-        <div className="size-14 rounded-full bg-black flex items-center justify-center">
+-          <Check size={26} className="text-white" />
+-        </div>
+-        <h2 className="text-2xl font-bold text-foreground leading-snug">
+-          Congratulations
+-          <br />
+-          your custom plan is ready!
+-        </h2>
+-        <p className="text-sm text-muted-foreground font-medium">
+-          You should {action.toLowerCase()}:
+-        </p>
+-        <span className="px-5 py-2 rounded-full bg-muted text-sm font-medium text-foreground">
+-          {action} {diff} kg by {goalDate}
+-        </span>
+-      </div>
+-      <div className="rounded-2xl bg-muted/30 p-4 flex flex-col gap-3">
+-        <div>
+-          <p className="font-bold text-foreground">Daily recommendation</p>
+-          <p className="text-xs text-muted-foreground">
+-            You can edit this anytime
+-          </p>
+-        </div>
+-        <div className="flex gap-2">
+-          <MacroRing
+-            label="Calories"
+-            value={calories}
+-            unit="kcal"
+-            icon={<Flame size={12} />}
+-            color="#1f2937"
+-            percent={75}
+-          />
+-          <MacroRing
+-            label="Carbs"
+-            value={carbs}
+-            unit="g"
+-            icon={<Wheat size={12} />}
+-            color="#f97316"
+-            percent={60}
+-          />
+-        </div>
+-        <div className="flex gap-2">
+-          <MacroRing
+-            label="Protein"
+-            value={protein}
+-            unit="g"
+-            icon={<Beef size={12} />}
+-            color="#ef4444"
+-            percent={50}
+-          />
+-          <MacroRing
+-            label="Fats"
+-            value={fats}
+-            unit="g"
+-            icon={<Droplets size={12} />}
+-            color="#3b82f6"
+-            percent={40}
+-          />
+-        </div>
+-      </div>
+-    </div>
+-  );
+-}
+ 
+ // ─── Save progress content ────────────────────────────────────────────────────
+ 
+@@ -784,7 +481,11 @@ const INITIAL_FORM: FormData = {
+ 
+ // ─── Main Page ────────────────────────────────────────────────────────────────
+ 
+-export default function OnboardingPage({ onComplete }: { onComplete?: () => void }) {
++export default function OnboardingPage({
++  onComplete,
++}: {
++  onComplete?: () => void;
++}) {
+   const [stepIndex, setStepIndex] = useState(0);
+   const [form, setForm] = useState<FormData>(INITIAL_FORM);
+ 
+@@ -900,20 +601,62 @@ export default function OnboardingPage({ onComplete }: { onComplete?: () => void
+ 
+   // ── Results screen: render as full-page standalone component ──
+   if (isResults) {
++    const isMetric = !form.weight.includes("lbs");
+     const { calories, protein, carbs, fats } = computeTDEE(form);
+-    const diff = Math.abs(form.desiredWeight - (parseInt(form.weight) || 70));
++    const weightNow = parseWeightKg(form.weight);
++    const diff = Math.abs(form.desiredWeight - weightNow);
+     const action =
+-      form.goal === "gain" ? "Gain" : form.goal === "lose" ? "Lose" : "Maintain";
++      form.goal === "gain"
++        ? "Gain"
++        : form.goal === "lose"
++          ? "Lose"
++          : "Maintain";
+     const goalDate = computeGoalDate(form);
+ 
++    const targetWeight = isMetric
++      ? form.desiredWeight
++      : parseFloat((form.desiredWeight * 2.20462).toFixed(1));
++    const targetUnit = isMetric ? "kg" : "lbs";
++
++    const diffWeight = isMetric ? diff : parseFloat((diff * 2.20462).toFixed(1));
++
+     const plan = {
+-      goalLbs: parseFloat((diff * 2.20462).toFixed(1)),
++      targetWeight,
++      targetUnit,
+       goalDate,
+       macros: [
+-        { label: "Calories", value: calories, unit: "kcal", color: "#1e293b", icon: <Flame size={12} />, percent: 75 },
+-        { label: "Carbs",    value: carbs,    unit: "g",    color: "#f97316", icon: <Wheat size={12} />, percent: 60 },
+-        { label: "Protein",  value: protein,  unit: "g",    color: "#ef4444", icon: <Beef size={12} />,  percent: 50 },
+-        { label: "Fats",     value: fats,     unit: "g",    color: "#3b82f6", icon: <Droplets size={12} />, percent: 40 },
++        {
++          label: "Calories",
++          value: calories,
++          unit: "kcal",
++          color: "#1e293b",
++          icon: <Flame size={12} />,
++          percent: 75,
++        },
++        {
++          label: "Carbs",
++          value: carbs,
++          unit: "g",
++          color: "#f97316",
++          icon: <Wheat size={12} />,
++          percent: 60,
++        },
++        {
++          label: "Protein",
++          value: protein,
++          unit: "g",
++          color: "#ef4444",
++          icon: <Beef size={12} />,
++          percent: 50,
++        },
++        {
++          label: "Fats",
++          value: fats,
++          unit: "g",
++          color: "#3b82f6",
++          icon: <Droplets size={12} />,
++          percent: 40,
++        },
+       ],
+       healthScore: 7,
+       healthScoreMax: 10,
+@@ -921,32 +664,45 @@ export default function OnboardingPage({ onComplete }: { onComplete?: () => void
+         {
+           icon: <Check size={20} className="text-rose-600" />,
+           iconBg: "#fee2e2",
+-          title: `${action} ${diff} kg`,
+-          description: "Stick to your daily calorie target to hit your goal by the deadline.",
++          title: `${action} ${diffWeight} ${targetUnit}`,
++          description:
++            "Stick to your daily calorie target to hit your goal by the deadline.",
+         },
+         {
+           icon: <Check size={20} className="text-emerald-600" />,
+           iconBg: "#d1fae5",
+           title: "Eat whole, nutrient-dense foods",
+-          description: "Prioritize vegetables, legumes, and healthy fats to fuel your goals.",
++          description:
++            "Prioritize vegetables, legumes, and healthy fats to fuel your goals.",
+         },
+         {
+           icon: <Check size={20} className="text-amber-600" />,
+           iconBg: "#fef3c7",
+           title: "Follow your meal plan",
+-          description: "Small consistent deficits add up to big results over time.",
++          description:
++            "Small consistent deficits add up to big results over time.",
+         },
+         {
+           icon: <Check size={20} className="text-violet-600" />,
+           iconBg: "#ede9fe",
+           title: "Balance your macros",
+-          description: "Hit your protein, carb, and fat targets to preserve muscle while you transform.",
++          description:
++            "Hit your protein, carb, and fat targets to preserve muscle while you transform.",
+         },
+       ],
+       sources: [
+-        { title: "Mifflin-St Jeor Equation — Accuracy of BMR prediction", url: "https://pubmed.ncbi.nlm.nih.gov/2305711/" },
+-        { title: "Dietary macronutrient distribution and health outcomes", url: "https://pubmed.ncbi.nlm.nih.gov/26160327/" },
+-        { title: "Physical activity and weight-loss maintenance", url: "https://pubmed.ncbi.nlm.nih.gov/19927148/" },
++        {
++          title: "Mifflin-St Jeor Equation — Accuracy of BMR prediction",
++          url: "https://pubmed.ncbi.nlm.nih.gov/2305711/",
++        },
++        {
++          title: "Dietary macronutrient distribution and health outcomes",
++          url: "https://pubmed.ncbi.nlm.nih.gov/26160327/",
++        },
++        {
++          title: "Physical activity and weight-loss maintenance",
++          url: "https://pubmed.ncbi.nlm.nih.gov/19927148/",
++        },
+       ],
+     };
+ 
+diff --git a/modules/modul_8/app/src/components/page/OnboardingResults.tsx b/modules/modul_8/app/src/components/page/OnboardingResults.tsx
+index 1b4d611..7f76a63 100644
+--- a/modules/modul_8/app/src/components/page/OnboardingResults.tsx
++++ b/modules/modul_8/app/src/components/page/OnboardingResults.tsx
+@@ -27,7 +27,8 @@ interface SourceData {
+ }
+ 
+ interface PlanData {
+-  goalLbs: number;
++  targetWeight: number;
++  targetUnit: string;
+   goalDate: string;
+   macros: MacroData[];
+   healthScore: number;
+@@ -161,7 +162,8 @@ function GoalItem({ item }: { item: GoalItemData }) {
+ // ─── Default mock plan data ───────────────────────────────────────────────────
+ 
+ const DEFAULT_PLAN: PlanData = {
+-  goalLbs: 11.0,
++  targetWeight: 11.0,
++  targetUnit: "lbs",
+   goalDate: "28 May",
+   macros: [
+     {
+@@ -285,7 +287,7 @@ export default function OnboardingResults({
+ 
+         {/* Goal pill */}
+         <span className="px-5 py-2 rounded-full bg-white shadow-sm border border-slate-100 text-sm font-semibold text-slate-700">
+-          {plan.goalLbs} lbs by {plan.goalDate}
++          {plan.targetWeight} {plan.targetUnit} by {plan.goalDate}
+         </span>
+       </section>
+ 

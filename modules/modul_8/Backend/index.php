@@ -70,6 +70,7 @@ use Backend\Repositories\HealthScoreRepository;
 use Backend\Repositories\AiScanRepository;
 use Backend\Services\ProfileService;
 use Backend\Services\NutritionService;
+use Backend\Services\DailyHealthScoreService;
 use Backend\Services\AiScanService;
 
 try {
@@ -80,7 +81,14 @@ try {
         case 'save_profile':
             $controller = new ProfileController(
                 new ProfileRepository($pdo),
-                new ProfileService()
+                new ProfileService(),
+                new DailyHealthScoreService(
+                    new MealRepository($pdo),
+                    new WaterRepository($pdo),
+                    new ProfileRepository($pdo),
+                    new HealthScoreRepository($pdo),
+                    new NutritionService()
+                )
             );
             $action === 'get_profile'
                 ? $controller->getProfile($userId)
@@ -114,7 +122,14 @@ try {
             $controller = new MealController(
                 new MealRepository($pdo),
                 new WaterRepository($pdo),
-                new WeightRepository($pdo)
+                new WeightRepository($pdo),
+                new DailyHealthScoreService(
+                    new MealRepository($pdo),
+                    new WaterRepository($pdo),
+                    new ProfileRepository($pdo),
+                    new HealthScoreRepository($pdo),
+                    new NutritionService()
+                )
             );
             match ($action) {
                 'list_meals'       => $controller->listMeals($userId),

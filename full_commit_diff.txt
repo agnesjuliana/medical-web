@@ -1,0 +1,532 @@
+.../app/src/components/header/OnboardingHeader.tsx |   1 -
+ .../app/src/components/page/OnboardingPage.tsx     | 785 +++++++++++++++++++++
+ .../app/src/components/template/CarouselHome.tsx   |   1 -
+ .../app/src/components/theme/ThemeProvider.tsx     |   2 +-
+ .../app/src/components/theme/ThemeToggle.tsx       |   2 +-
+ .../app/src/components/ui/FixedBottomBar.tsx       |   4 +-
+ .../modul_8/app/src/components/ui/RulerPicker.tsx  |   2 +-
+ .../app/src/components/ui/ScrollPickerColumn.tsx   |   2 +-
+ .../app/src/screens/AccountDetailsScreen.tsx       | 142 ++--
+ .../modul_8/app/src/screens/EditDetailScreen.tsx   |  46 +-
+ modules/modul_8/app/src/screens/Home.tsx           | 168 +++--
+ modules/modul_8/app/src/screens/LogFood.tsx        |   2 +-
+ .../modul_8/app/src/screens/ProgressScreens.tsx    |  40 +-
+ modules/modul_8/app/src/services/api.ts            | 125 ++++
+ 14 files changed, 1154 insertions(+), 168 deletions(-)
+
+--- Changes ---
+
+modules/modul_8/app/src/components/header/OnboardingHeader.tsx
+  @@ -1,4 +1,3 @@
+  -import React from "react";
+   import { Button } from "../ui/button";
+   import { ArrowLeft } from "lucide-react";
+   
+  +0 -1
+
+modules/modul_8/app/src/components/page/OnboardingPage.tsx
+  @@ -0,0 +1,785 @@
+  +import { useState, useEffect } from "react";
+  +import { Apple, Check, Flame, Wheat, Beef, Droplets, Loader2 } from "lucide-react";
+  +import { saveProfile, toast } from "../../services/api";
+  +import OnboardingHeader from "../header/OnboardingHeader";
+  +import SelectionCard from "../ui/SelectionCard";
+  +import ScrollPickerColumn from "../ui/ScrollPickerColumn";
+  +import RulerPicker from "../ui/RulerPicker";
+  +import FixedBottomBar from "../ui/FixedBottomBar";
+  +import { Switch } from "../ui/switch";
+  +import { cn } from "@/lib/utils";
+  +import OnboardingResults from "./OnboardingResults";
+  +import type {
+  +  FormData,
+  +  Step,
+  +  StringKey,
+  +  SelectOption,
+  +} from "./onboarding-config";
+  +import { STEPS } from "./onboarding-config";
+  +
+  +// ─── Picker data ──────────────────────────────────────────────────────────────
+  +
+  +const MONTHS = [
+  +  "January",
+  +  "February",
+  +  "March",
+  +  "April",
+  +  "May",
+  +  "June",
+  +  "July",
+  +  "August",
+  +  "September",
+  +  "October",
+  +  "November",
+  +  "December",
+  +];
+  +const DAYS = Array.from({ length: 31 }, (_, i) =>
+  +  String(i + 1).padStart(2, "0"),
+  +);
+  +const YEARS = Array.from({ length: 71 }, (_, i) => String(1940 + i));
+  +const CM_ITEMS = Array.from({ length: 151 }, (_, i) => `${100 + i} cm`);
+  +const KG_ITEMS = Array.from({ length: 171 }, (_, i) => `${30 + i} kg`);
+  +const FT_ITEMS = [
+  +  "4'0\"",
+  +  "4'1\"",
+  +  "4'2\"",
+  +  "4'3\"",
+  +  "4'4\"",
+  +  "4'5\"",
+  +  "4'6\"",
+  +  "4'7\"",
+  +  "4'8\"",
+  +  "4'9\"",
+  +  "4'10\"",
+  +  "4'11\"",
+  +  "5'0\"",
+  +  "5'1\"",
+  +  "5'2\"",
+  +  "5'3\"",
+  +  "5'4\"",
+  +  "5'5\"",
+  +  "5'6\"",
+  +  "5'7\"",
+  +  "5'8\"",
+  +  "5'9\"",
+  +  "5'10\"",
+  +  "5'11\"",
+  +  "6'0\"",
+  +  "6'1\"",
+  +  "6'2\"",
+  +  "6'3\"",
+  +  "6'4\"",
+  +  "6'5\"",
+  +  "6'6\"",
+  +  "6'7\"",
+  +  "6'8\"",
+  +  "6'9\"",
+  +  "6'10\"",
+  +  "6'11\"",
+  +  "7'0\"",
+  +];
+  +const LBS_ITEMS = Array.from({ length: 221 }, (_, i) => `${60 + i} lbs`);
+  +
+  +// ─── Safe-area padding helper ─────────────────────────────────────────────────
+  +
+  +const safeH = {
+  +  paddingLeft: "calc(1rem + env(safe-area-inset-left, 0px))",
+  +  paddingRight: "calc(1rem + env(safe-area-inset-right, 0px))",
+  +};
+  +
+  +// ─── Sub-renderers ────────────────────────────────────────────────────────────
+  +
+  +export function SingleSelectContent({
+  +  options,
+  +  value,
+  +  onChange,
+  +}: {
+  +  options: SelectOption[];
+  +  value: string;
+  +  onChange: (v: string) => void;
+  +}) {
+  ... (685 lines truncated)
+  +785 -0
+
+modules/modul_8/app/src/components/template/CarouselHome.tsx
+  @@ -8,7 +8,6 @@
+  -  Plus,
+   } from "lucide-react";
+   import Ring from "@/components/ui/Ring";
+   import { cn } from "@/lib/utils";
+  +0 -1
+
+modules/modul_8/app/src/components/theme/ThemeProvider.tsx
+  @@ -1,5 +1,5 @@
+  -import { ReactNode } from "react";
+  +import type { ReactNode } from "react";
+   
+   interface ThemeProviderProps {
+     children: ReactNode;
+  +1 -1
+
+modules/modul_8/app/src/components/theme/ThemeToggle.tsx
+  @@ -5,7 +5,7 @@
+  -  const { theme, setTheme, themes } = useTheme();
+  +  const { theme, setTheme } = useTheme();
+   
+     useEffect(() => {
+       setMounted(true);
+  +1 -1
+
+modules/modul_8/app/src/components/ui/FixedBottomBar.tsx
+  @@ -1,9 +1,9 @@
+  -import React from "react";
+  +import type { ReactNode } from "react";
+   import { Button } from "./button";
+   import { cn } from "@/lib/utils";
+   
+   export type FixedBottomBarProps = {
+  -  label?: string;
+  +  label?: ReactNode;
+     onContinue: () => void;
+     disabled?: boolean;
+     className?: string;
+  +2 -2
+
+modules/modul_8/app/src/components/ui/RulerPicker.tsx
+  @@ -1,4 +1,4 @@
+  -import React, { useRef, useEffect, useCallback } from "react";
+  +import { useRef, useEffect, useCallback } from "react";
+   import { cn } from "@/lib/utils";
+   
+   export type RulerPickerProps = {
+  +1 -1
+
+modules/modul_8/app/src/components/ui/ScrollPickerColumn.tsx
+  @@ -1,4 +1,4 @@
+  -import React, { useRef, useEffect, useCallback } from "react";
+  +import { useRef, useEffect, useCallback } from "react";
+   import { cn } from "@/lib/utils";
+   
+   export type ScrollPickerColumnProps = {
+  +1 -1
+
+modules/modul_8/app/src/screens/AccountDetailsScreen.tsx
+  @@ -1,6 +1,7 @@
+  -import { useState } from "react";
+  +import { useEffect, useState } from "react";
+  +import { getProfile } from "../services/api";
+   import EditDetailScreen from "./EditDetailScreen";
+   import type { EditFieldType } from "./EditDetailScreen";
+   import type { FormData } from "@/components/page/onboarding-config";
+  @@ -15,6 +16,8 @@
+  +  const [isLoading, setIsLoading] = useState(true);
+  +  const [error, setError] = useState<string | null>(null);
+     const [form, setForm] = useState<FormData>(
+       initialData || {
+         gender: "male",
+  @@ -31,6 +34,51 @@
+  +  useEffect(() => {
+  +    setIsLoading(true);
+  +    setError(null);
+  +    getProfile()
+  +      .then((res) => {
+  +        const p = res.data;
+  +        const [year, month, day] = p.birth_date.split("-");
+  +        const monthName = [
+  +          "January",
+  +          "February",
+  +          "March",
+  +          "April",
+  +          "May",
+  +          "June",
+  +          "July",
+  +          "August",
+  +          "September",
+  +          "October",
+  +          "November",
+  +          "December",
+  +        ][parseInt(month) - 1];
+  +
+  +        setForm({
+  +          gender: p.gender,
+  +          activity: p.activity_level,
+  +          height: `${p.height_cm} cm`,
+  +          weight: `${p.weight_kg} kg`,
+  +          birthMonth: monthName,
+  +          birthDay: day,
+  +          birthYear: year,
+  +          goal: p.goal,
+  +          desiredWeight: p.goal_weight_kg || 70,
+  +          barriers: p.barriers,
+  +        });
+  +        setStepGoal(p.step_goal);
+  +      })
+  +      .catch((err) => {
+  +        console.error(err);
+  +        setError("Failed to load profile data");
+  +      })
+  +      .finally(() => {
+  +        setIsLoading(false);
+  +      });
+  +  }, []);
+  +
+     const DETAILS = [
+       { label: "Current Weight", value: form.weight },
+       { label: "Height", value: form.height },
+  @@ -50,50 +98,62 @@
+  -        {/* Goal Weight Card */}
+  -        <div className="bg-white dark:bg-slate-800 rounded-[1.5rem] p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between">
+  -          <div className="flex flex-col gap-1">
+  -            <span className="text-sm font-medium text-muted-foreground">
+  -              Goal Weight
+  -            </span>
+  -            <span className="text-xl font-extrabold text-foreground">
+  -              {form.desiredWeight} lbs
+  -            </span>
+  +        {isLoading ? (
+  +          <div className="py-24 flex justify-center">
+  +            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+             </div>
+  -          <button
+  -            onClick={() => setEditField("Goal Weight")}
+  -            className="bg-slate-900 dark:bg-slate-700 text-white px-4 py-2.5 rounded-full text-xs font-semibold hover:bg-slate-800 transition-colors"
+  -          >
+  -            Change Goal
+  -          </button>
+  -        </div>
+  -
+  -        {/* Personal Details List Card */}
+  -        <div className="bg-white dark:bg-slate-800 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-700 px-5 py-2">
+  -          {DETAILS.map((item, index) => (
+  -            <div key={item.label}>
+  -              <div className="w-full flex items-center justify-between py-4 bg-transparent">
+  -                <span className="text-[15px] text-muted-foreground">
+  -                  {item.label}
+  +        ) : error ? (
+  +          <div className="bg-destructive/10 text-destructive rounded-2xl p-6 text-center text-sm">
+  +            {error}
+  +          </div>
+  +        ) : (
+  +          <>
+  +            {/* Goal Weight Card */}
+  +            <div className="bg-white dark:bg-slate-800 rounded-[1.5rem] p-5 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between">
+  +              <div className="flex flex-col gap-1">
+  +                <span className="text-sm font-medium text-muted-foreground">
+  +                  Goal Weight
+  +                </span>
+  +                <span className="text-xl font-extrabold text-foreground">
+  +                  {form.desiredWeight} kg
+                   </span>
+  -                <div className="flex items-center gap-3">
+  -                  <span className="text-[15px] font-bold text-foreground">
+  -                    {item.value}
+  -                  </span>
+  -                  <button
+  -                    onClick={() => setEditField(item.label as EditFieldType)}
+  -                    className="hover:opacity-80 transition-opacity"
+  -                  >
+  -                    <Pencil size={16} className="text-muted-foreground" />
+  -                  </button>
+  -                </div>
+                 </div>
+  -              {index < DETAILS.length - 1 && (
+  -                <div className="h-[1px] bg-border/40" />
+  -              )}
+  +              <button
+  +                onClick={() => setEditField("Goal Weight")}
+  +                className="bg-slate-900 dark:bg-slate-700 text-white px-4 py-2.5 rounded-full text-xs font-semibold hover:bg-slate-800 transition-colors"
+  +              >
+  +                Change Goal
+  +              </button>
+  +            </div>
+  +
+  +            {/* Personal Details List Card */}
+  +            <div className="bg-white dark:bg-slate-800 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-700 px-5 py-2">
+  +              {DETAILS.map((item, index) => (
+  +                <div key={item.label}>
+  +                  <div className="w-full flex items-center justify-between py-4 bg-transparent">
+  +                    <span className="text-[15px] text-muted-foreground">
+  +                      {item.label}
+  +                    </span>
+  +                    <div className="flex items-center gap-3">
+  +                      <span className="text-[15px] font-bold text-foreground">
+  +                        {item.value}
+  +                      </span>
+  +                      <button
+  +                        onClick={() => setEditField(item.label as EditFieldType)}
+  +                        className="hover:opacity-80 transition-opacity"
+  +                      >
+  +                        <Pencil size={16} className="text-muted-foreground" />
+  +                      </button>
+  +                    </div>
+  +                  </div>
+  +                  {index < DETAILS.length - 1 && (
+  +                    <div className="h-[1px] bg-border/40" />
+  +                  )}
+  +                </div>
+  +              ))}
+               </div>
+  -          ))}
+  -        </div>
+  +          </>
+  +        )}
+         </div>
+   
+         {editField && (
+  +101 -41
+
+modules/modul_8/app/src/screens/EditDetailScreen.tsx
+  @@ -1,4 +1,5 @@
+  +import { saveProfile, parseHeightCm, parseWeightKg, toast } from "../services/api";
+   import ScreenHeader from "@/components/header/ScreenHeader";
+   import {
+     SingleSelectContent,
+  @@ -33,6 +34,7 @@
+  +  const [isSaving, setIsSaving] = useState(false);
+   
+     function setField<K extends keyof FormData>(key: K, value: FormData[K]) {
+       setForm((prev: FormData) => ({ ...prev, [key]: value }));
+  @@ -109,10 +111,50 @@
+  -            onClick={() => onSave({ form, stepGoal })}
+  +            disabled={isSaving}
+  +            onClick={async () => {
+  +              setIsSaving(true);
+  +              try {
+  +                const monthIdx = [
+  +                  "January",
+  +                  "February",
+  +                  "March",
+  +                  "April",
+  +                  "May",
+  +                  "June",
+  +                  "July",
+  +                  "August",
+  +                  "September",
+  +                  "October",
+  +                  "November",
+  +                  "December",
+  +                ].indexOf(form.birthMonth);
+  +                const birth_date = `${form.birthYear}-${String(monthIdx + 1).padStart(2, "0")}-${String(form.birthDay).padStart(2, "0")}`;
+  +
+  +                await saveProfile({
+  +                  gender: form.gender as "male" | "female",
+  +                  birth_date,
+  +                  height_cm: parseHeightCm(form.height),
+  +                  weight_kg: parseWeightKg(form.weight),
+  +                  activity_level: form.activity as any,
+  +                  goal: form.goal as any,
+  +                  goal_weight_kg: form.desiredWeight,
+  +                  step_goal: stepGoal,
+  +                  barriers: form.barriers,
+  +                });
+  +
+  +                toast.success("Profile updated successfully");
+  +                onSave({ form, stepGoal });
+  +              } catch (err: any) {
+  +                console.error(err);
+  +                toast.error(err.message || "Failed to update profile");
+  +              } finally {
+  +                setIsSaving(false);
+  +              }
+  +            }}
+               className="w-full h-14 rounded-full text-lg font-bold bg-black text-white"
+             >
+  -            Save Changes
+  +            {isSaving ? "Saving..." : "Save Changes"}
+             </Button>
+           </div>
+         </div>
+  +44 -2
+
+modules/modul_8/app/src/screens/Home.tsx
+  @@ -14,7 +14,8 @@
+  -import { useRef, useState } from "react";
+  +import { useEffect, useRef, useState } from "react";
+  +import { getDashboard, type DashboardData } from "../services/api";
+   import ProgressScreen from "./ProgressScreens";
+   import SettingsScreen from "./SettingsScreens";
+   import ScannerScreen from "./ScannerScreen";
+  @@ -39,66 +40,13 @@
+  -// ── Food Log Types & Mock Data ────────────────────────────────────────────────
+  +// ── Food Log Types ───────────────────────────────────────────────────────────
+   import FoodCard, { type FoodItem } from "@/components/template/FoodCard";
+   
+  -const MOCK_FOOD_LOGS: FoodItem[] = [
+  -  {
+  -    id: "1",
+  -    status: "analyzing",
+  -    imageUrl:
+  -      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80",
+  -    progress: 28,
+  -  },
+  -  {
+  -    id: "2",
+  -    status: "analyzed",
+  -    name: "De Milan Wafer Cream Chocolate",
+  -    time: "03:24 AM",
+  -    calories: 150,
+  -    protein: 2,
+  -    carbs: 20,
+  -    fats: 7,
+  -    imageUrl:
+  -      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80",
+  -  },
+  -  {
+  -    id: "3",
+  -    status: "analyzed",
+  -    name: "Peanut Butter",
+  -    time: "03:22 AM",
+  -    calories: 94,
+  -    protein: 4,
+  -    carbs: 3,
+  -    fats: 8,
+  -  },
+  -  {
+  -    id: "4",
+  -    status: "analyzed",
+  -    name: "Peanut Butter",
+  -    time: "03:22 AM",
+  -    calories: 94,
+  -    protein: 4,
+  -    carbs: 3,
+  -    fats: 8,
+  -  },
+  -];
+  -
+  -// ── Stub data (replaced by API later) ────────────────────────────────────────
+  -const DATA = {
+  -  calories: { left: 2583, target: 2850 },
+  -  protein: { leftG: 184, targetG: 213 },
+  -  carbs: { leftG: 300, targetG: 356 },
+  -  fats: { leftG: 71, targetG: 95 },
+  -  fiber: { leftG: 38, targetG: 38 },
+  -  sugar: { leftG: 59, targetG: 50 },
+  -  sodium: { leftMg: 2300, targetMg: 2300 },
+  -  steps: { count: 1109, goal: 10000 },
+  -  caloriesBurned: 44,
+  -  waterMl: 0,
+  -};
+  +// ── Stub data ────────────────────────────────────────────────────────────────
+   
+   function consumed(left: number, target: number) {
+  +  if (!target || target === 0) return 0;
+     return Math.min(Math.max((target - left) / target, 0), 1);
+   }
+   
+  @@ -167,7 +115,9 @@
+  -  const [foodLogs, setFoodLogs] = useState<FoodItem[]>(MOCK_FOOD_LOGS);
+  +  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  +  const [isLoading, setIsLoading] = useState(true);
+  +  const [error, setError] = useState<string | null>(null);
+     const scrollRef = useRef<HTMLDivElement>(null);
+   
+     function handleScroll() {
+  @@ -176,28 +126,82 @@
+  -  const today = new Date();
+  -  const isToday =
+  -    selectedDate.getFullYear() === today.getFullYear() &&
+  -    selectedDate.getMonth() === today.getMonth() &&
+  -    selectedDate.getDate() === today.getDate();
+  -
+  -  // Show real stub data for today; zeros for any other date
+  -  const d = isToday
+  -    ? DATA
+  +  useEffect(() => {
+  +    const dateStr = selectedDate.toISOString().split("T")[0];
+  +    setIsLoading(true);
+  +    setError(null);
+  +    getDashboard(dateStr)
+  +      .then((res) => {
+  +        setDashboardData(res.data);
+  +      })
+  +      .catch((err) => {
+  +        console.error(err);
+  +        setError("Failed to load dashboard data");
+  +      })
+  +      .finally(() => {
+  +        setIsLoading(false);
+  +      });
+  +  }, [selectedDate]);
+  +
+
+... (more changes truncated)
+  +25 -67
+[full diff: rtk git diff --no-compact]

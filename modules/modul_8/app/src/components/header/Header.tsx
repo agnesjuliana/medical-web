@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
   Sheet,
@@ -7,6 +8,7 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { X, ChevronRight } from "lucide-react";
+import { getUserInfo, logout, deleteAccount, toast } from "../../services/api";
 
 interface HeaderProps {
   title: string;
@@ -18,10 +20,7 @@ const MENU_GROUPS = [
   {
     id: "account-group",
     title: "Account",
-    items: [
-      { id: "account-details", label: "Account Details" },
-      { id: "goal-weight", label: "Goal & Current Weight" },
-    ],
+    items: [{ id: "account-details", label: "Account Details" }],
   },
   {
     id: "actions-group",
@@ -33,7 +32,44 @@ const MENU_GROUPS = [
   },
 ];
 
-export default function Header({ title, subtitle, onActionClick }: HeaderProps) {
+export default function Header({
+  title,
+  subtitle,
+  onActionClick,
+}: HeaderProps) {
+  const [initials, setInitials] = useState("?");
+
+  useEffect(() => {
+    getUserInfo()
+      .then((res) => setInitials(res.data.initials))
+      .catch((err) => console.error("Failed to load user info", err));
+  }, []);
+
+  const handleAction = async (actionId: string) => {
+    if (actionId === "logout") {
+      try {
+        await logout();
+        window.location.href = "/auth/login.php";
+      } catch (err: any) {
+        toast.error(err.message || "Failed to logout");
+      }
+      return;
+    }
+
+    if (actionId === "delete-account") {
+      if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) return;
+      try {
+        await deleteAccount();
+        window.location.href = "/auth/login.php";
+      } catch (err: any) {
+        toast.error(err.message || "Failed to delete account");
+      }
+      return;
+    }
+
+    onActionClick?.(actionId);
+  };
+
   return (
     <div className="mb-2.5 flex flex-row justify-between items-center">
       <div className="text-left">
@@ -45,7 +81,7 @@ export default function Header({ title, subtitle, onActionClick }: HeaderProps) 
         <SheetTrigger asChild>
           <Avatar size="lg" className="cursor-pointer">
             <AvatarImage />
-            <AvatarFallback>CD</AvatarFallback>
+            <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </SheetTrigger>
         <SheetContent
@@ -65,7 +101,7 @@ export default function Header({ title, subtitle, onActionClick }: HeaderProps) 
             <Avatar className="h-[96px] w-[96px]">
               <AvatarImage src="/avatar-placeholder.png" />
               <AvatarFallback className="text-3xl font-medium bg-blue-500 text-white">
-                CD
+                {initials}
               </AvatarFallback>
             </Avatar>
           </div>
@@ -80,8 +116,8 @@ export default function Header({ title, subtitle, onActionClick }: HeaderProps) 
                   {group.items.map((item, index) => (
                     <div key={item.id}>
                       <SheetClose asChild>
-                        <button 
-                          onClick={() => onActionClick?.(item.id)}
+                        <button
+                          onClick={() => handleAction(item.id)}
                           className="w-full flex items-center justify-between px-4 py-4 bg-transparent transition-colors"
                         >
                           <span className="text-base text-foreground">
