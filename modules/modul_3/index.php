@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../components/components.php';
-// Path database disesuaikan dengan struktur folder kamu di modul_3/config/
 require_once __DIR__ . '/config/database3.php'; 
 
 requireLogin(BASE_URL . '/modules/modul_3/login.php');
@@ -10,13 +9,13 @@ startSession();
 $user = getCurrentUser();
 $pageTitle = 'PulmoAI - TBC Detection';
 
-// Ambil riwayat dari database
 global $db;
 $histories = [];
 $patientsList = [];
 
 if (isset($db) && $db !== null) {
     try {
+        // Ambil riwayat join dengan nama pasien
         $stmt = $db->prepare("
             SELECT h.*, p.name as patient_name 
             FROM modul3_history h 
@@ -27,6 +26,7 @@ if (isset($db) && $db !== null) {
         $stmt->execute([$user['id']]);
         $histories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Ambil list pasien untuk dropdown
         $stmt2 = $db->prepare("SELECT id, name FROM modul3_patients WHERE user_id = ? ORDER BY name ASC");
         $stmt2->execute([$user['id']]);
         $patientsList = $stmt2->fetchAll(PDO::FETCH_ASSOC);
@@ -157,7 +157,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 80px; }
 
           <div class="hidden md:flex items-center gap-2">
             <span class="text-sm font-bold opacity-70 text-black">Hi, <?= htmlspecialchars($user['name'] ?? 'User') ?>!</span>
-            <a href="../../dashboard.php" class="px-4 py-2 rounded-md gradient-primary text-primary-foreground text-sm font-medium shadow-soft hover:opacity-90">Dashboard</a>
+            <a href="../../index.php" class="px-4 py-2 rounded-md gradient-primary text-primary-foreground text-sm font-medium shadow-soft hover:opacity-90">Dashboard</a>
             <a href="logout.php" class="p-2 ml-1 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Keluar"><i data-lucide="log-out" class="w-5 h-5"></i></a>
           </div>
         </nav>
@@ -172,15 +172,12 @@ html { scroll-behavior: smooth; scroll-padding-top: 80px; }
       <div class="max-w-7xl mx-auto px-4 relative z-10 w-full">
         <div class="grid lg:grid-cols-2 gap-12 items-center">
           <div class="text-primary-foreground animate-slide-up">
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass border border-white/20 mb-6">
-              <i data-lucide="sparkles" class="h-3.5 w-3.5 text-accent"></i>
-              <span class="text-xs font-medium text-white">Powered by Deep Learning AI</span>
-            </div>
+            
 
-            <h1 class="text-4xl md:text-5xl lg:text-5xl font-bold tracking-tight leading-[1.1] mb-6 text-white">
-              Skrining Awal <br>
-              <span class="bg-gradient-to-r from-accent to-white bg-clip-text text-transparent">Tuberkulosis</span><br>
-              Lewat Citra Rontgen
+            <h1 class="text-4xl md:text-5xl lg:text-5xl font-bold tracking-tighter text-white flex flex-col leading-none">
+              <span class="mb-[-10px]">Skrining Awal</span>
+              <span class="bg-gradient-to-r from-accent to-white bg-clip-text text-transparent mb-[-10px]">Tuberkulosis</span>
+              <span class="mb-4">Lewat Citra Rontgen</span>
             </h1>
 
             <p class="text-lg text-primary-foreground/80 max-w-xl mb-8 leading-relaxed text-white">
@@ -215,24 +212,18 @@ html { scroll-behavior: smooth; scroll-padding-top: 80px; }
             </div>
           </div>
 
-          <div class="relative animate-scale-in flex justify-center">
-            <div class="absolute inset-0 gradient-primary blur-3xl opacity-40 rounded-full"></div>
-            <div class="relative rounded-3xl overflow-hidden shadow-elegant border border-white/10 w-full max-w-md">
-              <img src="https://images.unsplash.com/photo-1583912265924-d922bbdc1f68?auto=format&fit=crop&q=80" alt="AI Rontgen" class="w-full h-auto object-cover md:max-h-[600px]">
-              <div class="absolute top-4 right-4 glass rounded-xl px-3 py-2 border-white/20 animate-pulse-glow">
-                <div class="flex items-center gap-2">
-                  <div class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></div>
-                  <span class="text-xs font-semibold text-white">AI Analyzing...</span>
-                </div>
-              </div>
-              <div class="absolute bottom-4 left-4 right-4 glass rounded-xl p-3 border-white/20">
-                <div class="flex items-center justify-between mb-1.5 text-white">
-                  <span class="text-xs font-medium">Confidence Score</span>
-                  <span class="text-xs font-bold text-accent">87%</span>
-                </div>
-                <div class="h-1.5 bg-white/20 rounded-full overflow-hidden">
-                  <div class="h-full w-[87%] gradient-primary rounded-full"></div>
-                </div>
+          <div class="relative animate-scale-in flex justify-center lg:justify-end">
+            <div class="absolute inset-0 gradient-primary blur-3xl opacity-30 rounded-full"></div>
+  
+            <div class="relative group w-full max-w-md">
+              <div class="absolute -inset-1 bg-gradient-to-r from-accent to-primary rounded-[2.2rem] blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
+    
+              <div class="relative glass p-3 rounded-[2rem] border border-white/20 shadow-elegant overflow-hidden">
+                <img src="assets/gambar1.jpeg" 
+                     alt="Rontgen Paru" 
+                     class="w-full h-auto rounded-[1.6rem] object-cover filter brightness-110 contrast-125 min-h-[350px] bg-black/40">
+      
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-accent/30 to-transparent h-1/2 w-full animate-float pointer-events-none"></div>
               </div>
             </div>
           </div>

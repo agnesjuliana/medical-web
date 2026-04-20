@@ -1,6 +1,4 @@
 <?php
-// modules/modul_3/config/database3.php
-
 $host = 'localhost';
 $db_name = 'medical_web3'; 
 $username = 'root';        
