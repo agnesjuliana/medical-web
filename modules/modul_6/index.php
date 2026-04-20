@@ -1,3 +1,16 @@
+<?php
+// ===== SSO INTEGRATION (MEDWEB) =====
+require_once __DIR__ . '/../../core/auth.php';
+
+// Pastikan session aktif
+startSession();
+
+// Cek login (kalau belum login → redirect ke login utama)
+requireLogin();
+
+// Ambil data user dari sistem utama
+$user = getCurrentUser();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
