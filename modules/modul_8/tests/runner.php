@@ -32,6 +32,7 @@ $suites = [
     'Integration/MealControllerTest.php',
     'Integration/DashboardControllerTest.php',
     'Integration/AiControllerTest.php',
+    'Integration/ProgressControllerTest.php',
 ];
 
 foreach ($suites as $file) {

@@ -229,6 +229,29 @@ class MealRepository
     }
 
     /**
+     * Get daily consumed calories for an exact date range (inclusive).
+     * Queries only the requested window — no over-scan.
+     */
+    public function getCaloriesByDateRange(int $userId, string $startDate, string $endDate): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT log_date,
+                   COALESCE(SUM(calories), 0) AS calories
+            FROM m8_meals
+            WHERE user_id = ? AND log_date BETWEEN ? AND ?
+            GROUP BY log_date
+            ORDER BY log_date ASC
+        ');
+        $stmt->execute([$userId, $startDate, $endDate]);
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        foreach ($rows as &$r) {
+            $r['calories'] = (int) $r['calories'];
+        }
+        unset($r);
+        return $rows;
+    }
+
+    /**
      * List saved foods for a user with optional search by name.
      * Supports pagination via limit and offset.
      */
