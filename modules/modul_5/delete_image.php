@@ -3,61 +3,53 @@ require_once __DIR__ . '/../../config/database.php';
 
 header('Content-Type: application/json');
 
-$data = json_decode(file_get_contents("php://input"), true);
+$data      = json_decode(file_get_contents("php://input"), true);
 $imagePath = $data['path'] ?? '';
 
 try {
-    $pdo = getAppDBConnection();
+    $pdo = getDBConnection(); // ← ganti ke backbone_medweb
 
     if (!$imagePath) {
         throw new Exception("Path kosong");
     }
 
-    // ======================
-    // AMBIL SEMUA PROJECT
-    // ======================
+    // Validasi path: cegah path traversal
+    $imagePath = ltrim($imagePath, '/');
+    if (strpos($imagePath, '..') !== false) {
+        throw new Exception("Path tidak valid");
+    }
+
+    // Cari project yang menyimpan gambar ini
     $stmt = $pdo->query("SELECT id, documentation FROM projects");
 
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-
         $images = json_decode($row['documentation'], true);
-
         if (!is_array($images)) continue;
 
-        // cek apakah gambar ada di project ini
         if (in_array($imagePath, $images)) {
+            $images = array_values(array_filter($images, fn($img) => $img !== $imagePath));
 
-            // hapus gambar dari array
-            $images = array_values(array_filter($images, function($img) use ($imagePath) {
-                return $img !== $imagePath;
-            }));
-
-            // update DB
-            $pdo->prepare("
-                UPDATE projects 
-                SET documentation = ?
-                WHERE id = ?
-            ")->execute([
-                count($images) > 0 ? json_encode($images) : null,
-                $row['id']
-            ]);
-
+            $pdo->prepare("UPDATE projects SET documentation = ? WHERE id = ?")
+                ->execute([
+                    count($images) > 0 ? json_encode($images) : null,
+                    $row['id']
+                ]);
             break;
         }
     }
 
-    // ======================
-    // HAPUS FILE FISIK
-    // ======================
+    // Hapus file fisik
     $fullPath = __DIR__ . '/../../' . $imagePath;
+    $deleted  = false;
 
     if (file_exists($fullPath)) {
-        unlink($fullPath);
+        $deleted = unlink($fullPath);
     }
 
-    echo json_encode(['success' => true]);
+    echo json_encode(['success' => true, 'file_deleted' => $deleted]);
 
 } catch (Exception $e) {
+    http_response_code(500);
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
