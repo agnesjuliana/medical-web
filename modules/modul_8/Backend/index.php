@@ -93,7 +93,6 @@ try {
             $controller = new DashboardController(
                 new ProfileRepository($pdo),
                 new MealRepository($pdo),
-                new WaterRepository($pdo),
                 new HealthScoreRepository($pdo),
                 new NutritionService()
             );

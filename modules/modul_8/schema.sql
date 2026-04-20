@@ -118,6 +118,8 @@ CREATE TABLE IF NOT EXISTS m8_meals (
 );
 CREATE INDEX IF NOT EXISTS m8_meals_user_date_idx
     ON m8_meals (user_id, log_date);
+CREATE INDEX IF NOT EXISTS m8_meals_user_date_created_desc_idx
+    ON m8_meals (user_id, log_date, created_at DESC);
 CREATE INDEX IF NOT EXISTS m8_meals_source_idx
     ON m8_meals (source);
 

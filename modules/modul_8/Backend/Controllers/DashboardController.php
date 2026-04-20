@@ -5,7 +5,6 @@ namespace Backend\Controllers;
 use Backend\Core\Controller;
 use Backend\Repositories\ProfileRepository;
 use Backend\Repositories\MealRepository;
-use Backend\Repositories\WaterRepository;
 use Backend\Repositories\HealthScoreRepository;
 use Backend\Services\NutritionService;
 
@@ -13,20 +12,17 @@ class DashboardController extends Controller
 {
     private ProfileRepository     $profiles;
     private MealRepository        $meals;
-    private WaterRepository       $water;
     private HealthScoreRepository $scores;
     private NutritionService      $nutrition;
 
     public function __construct(
         ProfileRepository     $profiles,
         MealRepository        $meals,
-        WaterRepository       $water,
         HealthScoreRepository $scores,
         NutritionService      $nutrition
     ) {
         $this->profiles  = $profiles;
         $this->meals     = $meals;
-        $this->water     = $water;
         $this->scores    = $scores;
         $this->nutrition = $nutrition;
     }
@@ -56,10 +52,11 @@ class DashboardController extends Controller
             'step_goal' => (int) $profile['step_goal'],
         ];
 
-        // Aggregate meal data
-        $mealTotals   = $this->meals->getAggregatesByDate($userId, $date);
-        $waterTotal   = $this->water->getTotalByDate($userId, $date);
-        $recentMeals  = $this->meals->getRecentByDate($userId, $date);
+        // Aggregate summary data using single repository call
+        $summary      = $this->meals->getDashboardSummaryByDate($userId, $date);
+        $mealTotals   = $summary['meal_totals'];
+        $waterTotal   = $summary['water_ml'];
+        $recentMeals  = $summary['recent_meals'];
 
         $consumed = [
             'calories'  => (int)   $mealTotals['calories'],
@@ -79,9 +76,8 @@ class DashboardController extends Controller
             'fats_g'    => $targets['fats_g']    - $consumed['fats_g'],
         ];
 
-        // Compute & persist health score
+        // Compute health score (no longer persisting to DB on read)
         $scoreData = $this->nutrition->computeHealthScore($targets, $consumed);
-        $this->scores->upsert($userId, $date, $scoreData['score'], $scoreData['cal_dev'], $scoreData['macro_dev']);
 
         $this->jsonSuccess([
             'date'         => $date,

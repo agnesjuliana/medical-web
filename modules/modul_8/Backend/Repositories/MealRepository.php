@@ -93,6 +93,53 @@ class MealRepository
         return $meals;
     }
 
+    public function getDashboardSummaryByDate(int $userId, string $date): array
+    {
+        // 1) Aggregate query for meals and water
+        $aggStmt = $this->pdo->prepare('
+            WITH meal_agg AS (
+                SELECT
+                    COALESCE(SUM(calories), 0) as calories,
+                    COALESCE(SUM(protein_g), 0) as protein_g,
+                    COALESCE(SUM(carbs_g), 0) as carbs_g,
+                    COALESCE(SUM(fats_g), 0) as fats_g,
+                    COALESCE(SUM(fiber_g), 0) as fiber_g,
+                    COALESCE(SUM(sugar_g), 0) as sugar_g,
+                    COALESCE(SUM(sodium_mg), 0) as sodium_mg
+                FROM m8_meals
+                WHERE user_id = ? AND log_date = ?
+            ),
+            water_agg AS (
+                SELECT COALESCE(SUM(amount_ml), 0) as water_ml
+                FROM m8_water_logs
+                WHERE user_id = ? AND log_date = ?
+            )
+            SELECT
+                m.calories, m.protein_g, m.carbs_g, m.fats_g,
+                m.fiber_g, m.sugar_g, m.sodium_mg, w.water_ml
+            FROM meal_agg m CROSS JOIN water_agg w
+        ');
+        $aggStmt->execute([$userId, $date, $userId, $date]);
+        $aggRow = $aggStmt->fetch(PDO::FETCH_ASSOC);
+
+        // 2) Recent meals query
+        $recentMeals = $this->getRecentByDate($userId, $date, 5);
+
+        return [
+            'meal_totals' => [
+                'calories'  => (int)   $aggRow['calories'],
+                'protein_g' => (float) $aggRow['protein_g'],
+                'carbs_g'   => (float) $aggRow['carbs_g'],
+                'fats_g'    => (float) $aggRow['fats_g'],
+                'fiber_g'   => (float) $aggRow['fiber_g'],
+                'sugar_g'   => (float) $aggRow['sugar_g'],
+                'sodium_mg' => (float) $aggRow['sodium_mg'],
+            ],
+            'water_ml'     => (int) $aggRow['water_ml'],
+            'recent_meals' => $recentMeals,
+        ];
+    }
+
     public function insert(array $data): array
     {
         $stmt = $this->pdo->prepare('
