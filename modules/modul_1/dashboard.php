@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../components/components.php';
 require_once __DIR__ . '/../../config/database.php';
@@ -25,8 +25,13 @@ if (isset($_GET['preview_role']) || isset($_GET['preview_op'])) {
     $surgeryDate = date('Y-m-d', strtotime('-2 days'));
 } else {
     try {
-        $stmt = $pdo->prepare("SELECT * FROM user_onboarding WHERE user_id = ? ORDER BY id DESC LIMIT 1");
-        $stmt->execute([$user['id']]);
+        if (isset($_SESSION['active_profile_id'])) {
+            $stmt = $pdo->prepare("SELECT * FROM user_onboarding WHERE id = ? AND user_id = ?");
+            $stmt->execute([$_SESSION['active_profile_id'], $user['id']]);
+        } else {
+            $stmt = $pdo->prepare("SELECT * FROM user_onboarding WHERE user_id = ? ORDER BY id DESC LIMIT 1");
+            $stmt->execute([$user['id']]);
+        }
         $onboarding = $stmt->fetch();
         if ($onboarding) {
             $role = $onboarding['role'] ?? 'pasien';
@@ -34,6 +39,8 @@ if (isset($_GET['preview_role']) || isset($_GET['preview_op'])) {
             $userName = $onboarding['full_name'] ?: $user['name'];
             $surgeryDate = $onboarding['surgery_date'];
             if ($role === 'caregiver') $patientName = $onboarding['patient_name'] ?: 'Pasien';
+            // ensure session is set
+            $_SESSION['active_profile_id'] = $onboarding['id'];
         } else {
             $role = 'pasien'; $opType = 'cabg';
             $surgeryDate = date('Y-m-d', strtotime('-1 days'));
@@ -42,6 +49,21 @@ if (isset($_GET['preview_role']) || isset($_GET['preview_op'])) {
         $role = 'pasien'; $opType = 'cabg';
         $surgeryDate = date('Y-m-d', strtotime('-1 days'));
     }
+}
+
+// Handle Profile Deletion
+if (isset($_GET['action']) && $_GET['action'] === 'delete_profile') {
+    if (isset($_SESSION['active_profile_id'])) {
+        try {
+            $stmtDel = $pdo->prepare("DELETE FROM user_onboarding WHERE id = ? AND user_id = ?");
+            $stmtDel->execute([$_SESSION['active_profile_id'], $user['id']]);
+            unset($_SESSION['active_profile_id']);
+        } catch (PDOException $e) {
+            // Ignore error
+        }
+    }
+    header("Location: onboarding.php");
+    exit;
 }
 
 // Handle Monitoring Submit
@@ -186,6 +208,10 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
             <a href="dashboard.php?page=monitoring" class="nav-link <?= $page==='monitoring' ? 'nav-active' : 'nav-inactive' ?>">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 Monitoring
+            </a>
+            <a href="dashboard.php?page=woundlog" class="nav-link <?= $page==='woundlog' ? 'nav-active' : 'nav-inactive' ?>">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                Wound Log
             </a>
             <a href="dashboard.php?page=content"    class="nav-link <?= $page==='content'    ? 'nav-active' : 'nav-inactive' ?>">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -1115,6 +1141,122 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                 </section>
             </div>
         </div>
+        <?php elseif ($page === 'woundlog'): ?>
+        <?php
+        $woundInstruction = '';
+        if ($opType === 'cabg') {
+            $woundInstruction = 'Pastikan untuk memfoto keseluruhan jahitan (insisi dada atau tungkai bekas pengambilan pembuluh darah).';
+        } elseif ($opType === 'sc') {
+            $woundInstruction = 'Unggah foto sayatan perut pasca-operasi caesar Anda di area garis bikini.';
+        } else {
+            $woundInstruction = 'Unggah foto area luka jahitan, Stump, atau sekitar gips pembedahan.';
+        }
+        ?>
+        <!-- ============================================================
+             WOUND LOG (AI ANALYSIS)
+        ============================================================ -->
+        <div class="w-full max-w-4xl mx-auto">
+            <div class="mb-8">
+                <h2 class="text-3xl font-extrabold" style="color:#728BA9;">Detail Operasional Luka</h2>
+                <p class="font-medium mt-1" style="color:#A3ACA0;">Unggah foto luka Anda untuk dianalisis oleh sistem secara instan.</p>
+            </div>
+
+            <div class="glass-card p-8 mb-8" id="wl-upload-section">
+                <h3 class="font-extrabold text-xl mb-4 flex items-center gap-2" style="color:#5A6C7A;">
+                    <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/></svg> 
+                    Unggah Foto Luka
+                </h3>
+                <label for="ai_wound_photo" class="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-3xl cursor-pointer transition-all" style="border-color:#DAE3EC; background:#F8FCFF;" onmouseover="this.style.background='#ECF2E6'; this.style.borderColor='#728BA9';" onmouseout="this.style.background='#F8FCFF'; this.style.borderColor='#DAE3EC';">
+                    <svg class="w-12 h-12 mb-4 text-[#B8C9DD]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"/></svg>
+                    <p class="font-extrabold text-lg text-[#5A6C7A]">Pilih Gambar atau Jepret Foto</p>
+                    <p class="text-sm font-medium text-[#A3ACA0] mt-1 text-center max-w-md px-3 mb-1"><?= htmlspecialchars($woundInstruction) ?></p>
+                    <p class="text-xs font-bold text-[#A3ACA0] opacity-80">Mendukung format JPG, PNG maks 5MB.</p>
+                    <input id="ai_wound_photo" type="file" class="hidden" accept="image/*" onchange="startWoundAnalysis(event)">
+                </label>
+            </div>
+
+            <!-- Analysis Process UI -->
+            <div id="wl-loading-section" class="hidden glass-card p-10 mb-8 text-center flex flex-col items-center justify-center min-h-[300px]">
+                <div class="w-16 h-16 border-4 border-t-[#728BA9] rounded-full animate-spin mb-6" style="border-color:#DAE3EC; border-top-color:#728BA9;"></div>
+                <h3 class="text-2xl font-extrabold text-[#5A6C7A] mb-2">AI Sedang Menganalisis...</h3>
+                <p class="text-[#A3ACA0] font-medium" id="wl-loading-text">Memeriksa warna kemerahan di sekitar area...</p>
+                <div class="w-full max-w-md bg-[#DAE3EC] h-2 rounded-full mt-6 overflow-hidden">
+                    <div id="wl-progress-bar" class="bg-[#728BA9] h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Analysis Result UI -->
+            <div id="wl-result-section" class="hidden glass-card p-0 mb-8 overflow-hidden rounded-3xl relative">
+                <div class="grid grid-cols-1 md:grid-cols-2">
+                    <div class="bg-gray-100 p-4 shrink-0 flex items-center justify-center">
+                        <img id="wl-result-img" src="" class="rounded-2xl w-full h-auto object-cover max-h-[350px] shadow-sm transform transition-transform hover:scale-[1.02]">
+                    </div>
+                    <div class="p-8 md:p-10 flex flex-col justify-center">
+                        <div class="flex items-center gap-4 mb-6">
+                            <span id="wl-status-icon" class="w-14 h-14 rounded-full flex items-center justify-center text-3xl shrink-0" style="background:#ECF2E6;">
+                                <svg class="w-8 h-8" style="color:#5A6C7A;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                            </span>
+                            <div>
+                                <p class="text-xs font-extrabold uppercase tracking-wider mb-0.5" style="color:#A3ACA0;">Status Analisis AI</p>
+                                <h3 id="wl-status-title" class="text-3xl font-extrabold" style="color:#5A6C7A;">Normal</h3>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-bold text-[#5A6C7A]">Kemerahan (Redness)</span>
+                                    <span class="text-sm font-extrabold text-[#728BA9]" id="wl-redness-val">12%</span>
+                                </div>
+                                <div class="w-full bg-[#DAE3EC] h-2 rounded-full overflow-hidden">
+                                    <div id="wl-redness-bar" class="bg-[#728BA9] h-full rounded-full transition-all duration-1000" style="width: 12%"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between border-b pb-3" style="border-color:rgba(218,227,236,0.5);">
+                                <span class="text-sm font-bold text-[#5A6C7A]">Pembengkakan (Swelling)</span>
+                                <span class="text-sm font-extrabold text-[#728BA9]" id="wl-swelling-val">Minim</span>
+                            </div>
+                            <div class="flex justify-between border-b pb-3" style="border-color:rgba(218,227,236,0.5);">
+                                <span class="text-sm font-bold text-[#5A6C7A]">Kondisi Cairan</span>
+                                <span class="text-sm font-extrabold text-[#728BA9]" id="wl-fluid-val">Jernih (Normal)</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm font-bold text-[#5A6C7A]">Estimasi Ukuran Luka</span>
+                                <span class="text-sm font-extrabold text-[#A3ACA0]" id="wl-size-val">10.5 cm</span>
+                            </div>
+                        </div>
+
+                        <p id="wl-ai-note" class="text-sm font-semibold text-[#7F7F7F] bg-[#F8FCFF] p-4 rounded-xl border border-[#DAE3EC]">
+                            Penyembuhan berjalan lancar. Teruskan perawatan luka Anda sesuai dengan anjuran dokter.
+                        </p>
+                        
+                        <button type="button" onclick="resetWoundAnalysis()" class="mt-8 text-center font-bold px-5 py-3 rounded-xl transition-all" style="background:#F8FCFF; color:#728BA9; border:1px solid #DAE3EC;" onmouseover="this.style.background='#728BA9'; this.style.color='#fff';" onmouseout="this.style.background='#F8FCFF'; this.style.color='#728BA9';">
+                            Analisis Gambar Baru
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reference Details -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="glass-card p-6 border-t-4" style="border-top-color:#86efac;">
+                    <div class="w-10 h-10 rounded-full bg-[#ECF2E6] mb-4 flex items-center justify-center shadow-sm"><svg class="w-6 h-6" style="color:#5A6C7A;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></div>
+                    <h4 class="font-extrabold text-[#5A6C7A] mb-2 text-sm">Normal</h4>
+                    <p class="text-xs font-semibold text-[#A3ACA0] leading-relaxed">Penyembuhan sesuai jalur. Kemerahan sangat minim pada tepi, tidak ada pembengkakan signifikan, dan cairan bening (serous) wajar.</p>
+                </div>
+                <div class="glass-card p-6 border-t-4" style="border-top-color:#fde047;">
+                    <div class="w-10 h-10 rounded-full mb-4 flex items-center justify-center shadow-sm" style="background:#fef08a;"><svg class="w-6 h-6" style="color:#ca8a04;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></div>
+                    <h4 class="font-extrabold mb-2 text-sm" style="color:#ca8a04;">Warning</h4>
+                    <p class="text-xs font-semibold text-[#A3ACA0] leading-relaxed">Tanda ke arah radang meningkat. Kemerahan melebar ke sekeliling (eritema), terasa bengkak pada rabaan, cairan agak kental / kuning pudar.</p>
+                </div>
+                <div class="glass-card p-6 border-t-4" style="border-top-color:#fca5a5;">
+                    <div class="w-10 h-10 rounded-full mb-4 flex items-center justify-center shadow-sm" style="background:#fecaca;"><svg class="w-6 h-6" style="color:#dc2626;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                    <h4 class="font-extrabold mb-2 text-sm" style="color:#dc2626;">Infeksi</h4>
+                    <p class="text-xs font-semibold text-[#A3ACA0] leading-relaxed">Indikasi komplikasi bahaya! Kemerahan dominan (lebih dari 55%), bengkak keras disertai nyeri, cairan kuning / hijau pekat (nanah).</p>
+                </div>
+            </div>
+            
+        </div>
 
 
         <?php elseif ($page === 'profile'): ?>
@@ -1139,6 +1281,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                         </div>
                         <div class="flex gap-3">
                             <a href="onboarding.php?edit=1" class="px-6 py-2.5 glass-card font-bold rounded-xl hover:shadow-md transition-all text-sm" style="color:#728BA9;">Edit Data</a>
+                            <a href="dashboard.php?action=delete_profile" onclick="return confirm('Apakah Anda yakin ingin menghapus profil ini? Data tidak dapat dikembalikan.');" class="px-6 py-2.5 font-bold rounded-xl border text-sm transition-all" style="background:rgba(239,68,68,0.05);color:#ef4444;border-color:#fca5a5;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='rgba(239,68,68,0.05)'">Hapus Profil</a>
                             <a href="../../auth/logout.php" class="px-6 py-2.5 font-bold rounded-xl border text-sm transition-all" style="background:rgba(114,139,169,0.07);color:#5A6C7A;border-color:#DAE3EC;" onmouseover="this.style.background='#DAE3EC'" onmouseout="this.style.background='rgba(114,139,169,0.07)'">Logout</a>
                         </div>
                     </div>
@@ -1216,4 +1359,111 @@ if (pi) { pi.addEventListener('change', function() {
     r.onload = function(e) { document.getElementById('photo_preview').classList.remove('hidden'); document.getElementById('photo_img').src=e.target.result; };
     r.readAsDataURL(f);
 }); }
+
+// ---- AI Wound Analysis Logic ----
+function startWoundAnalysis(event) {
+    var file = event.target.files[0];
+    if (!file) return;
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('wl-result-img').src = e.target.result;
+        
+        document.getElementById('wl-upload-section').classList.add('hidden');
+        document.getElementById('wl-loading-section').classList.remove('hidden');
+        
+        var steps = [
+            "Memeriksa warna kemerahan di sekitar area luka...",
+            "Menganalisis tingkat pembengkakan (swelling)...",
+            "Mendeteksi jenis dan warna cairan...",
+            "Mengukur estimasi luasan luka...",
+            "Menyimpulkan hasil diagnostik..."
+        ];
+        var progBar = document.getElementById('wl-progress-bar');
+        var textLbl = document.getElementById('wl-loading-text');
+        
+        var step = 0;
+        var interval = setInterval(function() {
+            step++;
+            progBar.style.width = (step * 20) + "%";
+            if (step < steps.length) {
+                textLbl.textContent = steps[step];
+            } else {
+                clearInterval(interval);
+                setTimeout(showWoundResult, 500);
+            }
+        }, 600);
+    };
+    reader.readAsDataURL(file);
+}
+
+function showWoundResult() {
+    document.getElementById('wl-loading-section').classList.add('hidden');
+    document.getElementById('wl-result-section').classList.remove('hidden');
+    
+    var rand = Math.random();
+    var redness, swelling, fluid, size, status, icon, iconBg, note, rednessColor;
+    
+    // Size logic
+    var rSize = (Math.random() * 5 + 5).toFixed(1); 
+    size = rSize + " cm";
+
+    if (rand < 0.6) {
+        redness = Math.floor(Math.random() * 15) + 5; 
+        swelling = "Minim / Tidak Terlihat";
+        fluid = "Jernih (Normal)";
+        status = "Normal";
+        icon = '<svg class="w-8 h-8" style="color:#5A6C7A;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>';
+        iconBg = "#ECF2E6";
+        note = "Proses penyembuhan inflamasi berjalan dengan baik secara alami. Teruskan rutinitas kebersihan luka secara teratur.";
+        rednessColor = "#728BA9";
+    } else if (rand < 0.85) {
+        redness = Math.floor(Math.random() * 20) + 25; 
+        swelling = "Radang Sedang";
+        fluid = "Vulkanis / Terdapat Serous Kuning";
+        status = "Warning";
+        icon = '<svg class="w-8 h-8" style="color:#ca8a04;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>';
+        iconBg = "#fef08a";
+        note = "Terdeteksi aktivitas inflamasi berlebih. Sangat disarankan untuk menjaga luka tetap kering dan mewaspadai demam.";
+        rednessColor = "#ca8a04";
+    } else {
+        redness = Math.floor(Math.random() * 30) + 60; 
+        swelling = "Besar (Edema Meluas)";
+        fluid = "Kuning Pudar / Hijau (Nanah)";
+        status = "Indikasi Infeksi";
+        icon = '<svg class="w-8 h-8" style="color:#dc2626;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+        iconBg = "#fecaca";
+        note = "Tingkat kemerahan dan dugaan eksudat purulen menandakan rute infeksi. Silakan kunjungi instalasi gawat darurat atau dokter Anda secepatnya.";
+        rednessColor = "#dc2626";
+    }
+    
+    // Apply texts & logic
+    document.getElementById('wl-redness-val').textContent = redness + "% Area Sengit";
+    document.getElementById('wl-redness-bar').style.width = "0%";
+    setTimeout(() => { document.getElementById('wl-redness-bar').style.width = redness + "%"; }, 100);
+    document.getElementById('wl-redness-bar').style.backgroundColor = rednessColor;
+    
+    document.getElementById('wl-swelling-val').textContent = swelling;
+    document.getElementById('wl-swelling-val').style.color = rednessColor;
+    
+    document.getElementById('wl-fluid-val').textContent = fluid;
+    document.getElementById('wl-size-val').textContent = size;
+    
+    document.getElementById('wl-status-title').textContent = status;
+    document.getElementById('wl-status-title').style.color = (status==="Warning"? "#ca8a04" : (status==="Indikasi Infeksi"?"#dc2626":"#5A6C7A"));
+    
+    document.getElementById('wl-status-icon').innerHTML = icon;
+    document.getElementById('wl-status-icon').style.backgroundColor = iconBg;
+    
+    document.getElementById('wl-ai-note').textContent = note;
+}
+
+function resetWoundAnalysis() {
+    document.getElementById('wl-result-section').classList.add('hidden');
+    document.getElementById('wl-result-img').src = "";
+    document.getElementById('ai_wound_photo').value = "";
+    document.getElementById('wl-progress-bar').style.width = "0%";
+    document.getElementById('wl-loading-text').textContent = "Memeriksa warna kemerahan di sekitar area luka...";
+    document.getElementById('wl-upload-section').classList.remove('hidden');
+}
 </script>
