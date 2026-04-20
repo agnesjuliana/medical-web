@@ -46,7 +46,6 @@ $modules = [
     <!-- Module Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
         <?php foreach ($modules as $id => $module): ?>
-<<<<<<< HEAD
 
         <?php if (!empty($module['logo'])): ?>
         <!-- SIMRS-TB Card with Vanta NET -->
@@ -64,44 +63,6 @@ $modules = [
                     <span class="font-medium">Open</span>
                     <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </div>
-=======
-        <?php 
-            $hasBg = !empty($module['bg_image']);
-            $cardClass = $hasBg 
-                ? "group rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 block relative overflow-hidden bg-gray-900 border border-gray-800" 
-                : "group bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 block";
-            
-            $textClass = $hasBg ? "text-white" : "text-gray-800";
-            $subTextClass = $hasBg ? "text-gray-400" : "text-gray-400";
-            $hoverTextClass = $hasBg ? "group-hover:text-emerald-400" : "group-hover:text-cyan-600";
-        ?>
-        <a href="<?= BASE_URL ?>/modules/modul_<?= $id ?>/index.php" class="<?= $cardClass ?>">
-            <?php if ($hasBg): ?>
-                <div class="absolute inset-0 z-0 opacity-40 group-hover:opacity-60 transition-opacity duration-300" style="background-image: url('<?= htmlspecialchars($module['bg_image']) ?>'); background-size: cover; background-position: center;"></div>
-                <div class="absolute inset-0 z-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent"></div>
-                <div class="relative z-10 p-6 h-full flex flex-col">
-            <?php endif; ?>
-            
-            <!-- Icon -->
-            <div class="w-12 h-12 bg-gradient-to-br <?= $module['color'] ?> rounded-xl flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition-transform duration-300 relative z-10">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <?= $module['icon'] ?>
-                </svg>
-            </div>
-
-            <!-- Label -->
-            <h3 class="text-base font-semibold <?= $textClass ?> <?= $hoverTextClass ?> transition-colors relative z-10">
-                <?= htmlspecialchars($module['name']) ?>
-            </h3>
-            <p class="text-sm <?= $subTextClass ?> mt-1 relative z-10">Click to open module</p>
-
-            <!-- Arrow -->
-            <div class="mt-4 flex items-center text-sm <?= $subTextClass ?> group-hover:text-cyan-400 transition-colors relative z-10">
-                <span class="font-medium">Open</span>
-                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                </svg>
->>>>>>> kelompok-4
             </div>
 
             <?php if ($hasBg): ?>
