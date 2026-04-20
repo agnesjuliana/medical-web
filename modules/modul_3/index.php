@@ -380,7 +380,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 80px; }
             <span class="text-xs font-semibold">Tim Pengembang</span>
           </div>
           <h2 class="text-3xl md:text-4xl font-bold mb-4 text-black">
-            Dikembangkan oleh <span class="gradient-text">Tim Mahasiswa</span>
+            Dikembangkan oleh <span class="gradient-text">Kelompok 3</span>
           </h2>
         </div>
 
@@ -389,7 +389,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 80px; }
           <div class="p-8 text-center shadow-soft hover:shadow-elegant hover:-translate-y-2 transition-all bg-white rounded-3xl border border-gray-100">
             <div class="mx-auto mb-5 h-24 w-24 rounded-[2rem] bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-3xl font-black shadow-glow">AR</div>
             <h3 class="font-bold text-lg text-black">Andhika Rastra</h3>
-            <p class="text-xs mt-1 text-primary font-semibold tracking-wider">NRP: 5049231117</p>
+            <p class="text-xs mt-1 text-primary font-semibold tracking-wider">NRP: 5049231115</p>
           </div>
           <div class="p-8 text-center shadow-soft hover:shadow-elegant hover:-translate-y-2 transition-all bg-white rounded-3xl border border-gray-100">
             <div class="mx-auto mb-5 h-24 w-24 rounded-[2rem] bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-3xl font-black shadow-lg">MA</div>
