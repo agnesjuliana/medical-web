@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../components/components.php';
 require_once __DIR__ . '/../../config/database.php';
@@ -83,6 +83,14 @@ try {
     $stmtMon = $pdo->prepare("SELECT * FROM user_daily_monitoring WHERE user_id = ? AND record_date = ? LIMIT 1");
     $stmtMon->execute([$user['id'], $today]);
     $todayMonitoring = $stmtMon->fetch(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {}
+
+// Fetch monitoring history (last 30 records)
+$monitoringHistory = [];
+try {
+    $stmtHist = $pdo->prepare("SELECT * FROM user_daily_monitoring WHERE user_id = ? ORDER BY record_date DESC LIMIT 30");
+    $stmtHist->execute([$user['id']]);
+    $monitoringHistory = $stmtHist->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {}
 
 // Days post-op
@@ -246,7 +254,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
         <!-- ============================================================
              HOME — COMMAND CENTER
         ============================================================ -->
-        <div class="max-w-5xl mx-auto">
+        <div class="w-full">
             <!-- Greeting -->
             <div class="flex items-start justify-between mb-8">
                 <div>
@@ -559,7 +567,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
             </div>
         </div>
 
-        <div class="max-w-5xl mx-auto">
+        <div class="w-full">
             <!-- Header -->
             <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
                 <div>
@@ -668,6 +676,12 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
             $weekEnd   = $weekStart + 6;
             $curPhase  = $phases[$currentPhaseIdx];
             $wNames    = ['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
+            $surgeryDow = 0;
+            if ($surgeryDate) {
+                $sDate = new DateTime($surgeryDate);
+                $phpDow = (int)$sDate->format('N');
+                $surgeryDow = $phpDow - 1;
+            }
             ?>
             <div class="glass-card p-6">
                 <div class="flex items-center justify-between mb-5">
@@ -684,7 +698,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                     <?php for ($d=$weekStart; $d<=$weekEnd; $d++):
                         $isToday = ($d === $dayPostOp);
                         $isPast  = ($d < $dayPostOp);
-                        $wIdx    = ($d - $weekStart) % 7;
+                        $wIdx    = ($surgeryDow + ($d - 1)) % 7;
                         $dayBg   = $isToday ? '#728BA9' : ($isPast ? 'rgba(114,139,169,0.12)' : 'rgba(218,227,236,0.2)');
                         $dayGlow = $isToday ? 'box-shadow:0 4px 16px rgba(114,139,169,0.35);' : '';
                         $numClr  = $isToday ? '#fff'    : ($isPast ? '#728BA9' : '#B8C9DD');
@@ -751,7 +765,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
         <!-- ============================================================
              MONITORING
         ============================================================ -->
-        <div class="max-w-3xl mx-auto">
+        <div class="w-full">
             <div class="mb-8">
                 <h2 class="text-3xl font-extrabold" style="color:#728BA9;">Log Kondisi Harian</h2>
                 <p class="font-medium mt-1" style="color:#A3ACA0;">Isi formulir ini setiap hari untuk memantau perkembangan pemulihan Anda.</p>
@@ -908,6 +922,140 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                 <p class="text-[#728BA9] font-medium text-sm text-center"><?= htmlspecialchars($errorMsg) ?></p>
                 <?php endif; ?>
             </form>
+
+            <!-- ===== MONITORING HISTORY ===== -->
+            <?php if (!empty($monitoringHistory)): ?>
+            <div class="mt-10">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:#ECF2E6;">
+                        <svg class="w-5 h-5" fill="none" stroke="#728BA9" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-lg" style="color:#5A6C7A;">Riwayat Pemantauan</h3>
+                        <p class="text-xs font-medium" style="color:#A3ACA0;">Perkembangan kondisi Anda dari waktu ke waktu</p>
+                    </div>
+                </div>
+
+                <!-- Mini sparkline chart using bar chart -->
+                <?php
+                $histReversed = array_reverse($monitoringHistory);
+                $painKey = ($opType === 'amputation') ? 'stump_pain' : 'pain_level';
+                $sparkPains = array_filter(array_map(fn($r) => $r[$painKey] ?? null, $histReversed), fn($v) => $v !== null);
+                if (!empty($sparkPains)):
+                    $sparkMax = max(10, max($sparkPains));
+                ?>
+                <div class="glass-card p-6 mb-5">
+                    <p class="text-xs font-extrabold uppercase tracking-wider mb-4" style="color:#728BA9;">Grafik Nyeri <?= count($sparkPains) ?> Hari Terakhir</p>
+                    <div class="flex items-end gap-1.5 h-20">
+                        <?php foreach ($sparkPains as $i => $pv):
+                            $barH = max(8, round(($pv/$sparkMax)*80));
+                            $isLast = ($i === count($sparkPains)-1);
+                            $barColor = $pv >= 7 ? '#5A6C7A' : ($pv >= 4 ? '#A3ACA0' : '#728BA9');
+                        ?>
+                        <div class="flex-1 flex flex-col items-center gap-1 group relative">
+                            <div class="absolute -top-7 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center justify-center bg-white rounded-lg px-2 py-0.5 shadow text-xs font-extrabold z-10" style="color:#5A6C7A;white-space:nowrap;border:1px solid #DAE3EC;"><?= $pv ?>/10</div>
+                            <div class="w-full rounded-t-md transition-all" style="height:<?= $barH ?>px;background:<?= $isLast ? '#728BA9' : $barColor ?>;opacity:<?= $isLast ? '1' : '0.55' ?>;"></div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="flex justify-between text-[10px] font-bold mt-2" style="color:#A3ACA0;">
+                        <span><?= date('d M', strtotime(reset($histReversed)['record_date'])) ?></span>
+                        <span class="font-extrabold" style="color:#728BA9;">Hari Ini</span>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <!-- History Table -->
+                <div class="glass-card overflow-hidden">
+                    <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr style="background:rgba(114,139,169,0.08);border-bottom:1.5px solid #DAE3EC;">
+                                <th class="text-left px-5 py-3 font-extrabold text-xs uppercase tracking-wider" style="color:#A3ACA0;">Tanggal</th>
+                                <th class="text-left px-5 py-3 font-extrabold text-xs uppercase tracking-wider" style="color:#A3ACA0;">Hari ke-</th>
+                                <?php if ($opType === 'cabg'): ?>
+                                <th class="text-left px-5 py-3 font-extrabold text-xs uppercase tracking-wider" style="color:#A3ACA0;">SpO₂</th>
+                                <th class="text-left px-5 py-3 font-extrabold text-xs uppercase tracking-wider" style="color:#A3ACA0;">HR</th>
+                                <th class="text-left px-5 py-3 font-extrabold text-xs uppercase tracking-wider" style="color:#A3ACA0;">Nyeri</th>
+                                <?php elseif ($opType === 'sc'): ?>
+                                <th class="text-left px-5 py-3 font-extrabold text-xs uppercase tracking-wider" style="color:#A3ACA0;">Suhu</th>
+                                <th class="text-left px-5 py-3 font-extrabold text-xs uppercase tracking-wider" style="color:#A3ACA0;">Perdarahan</th>
+                                <th class="text-left px-5 py-3 font-extrabold text-xs uppercase tracking-wider" style="color:#A3ACA0;">Nyeri</th>
+                                <?php else: ?>
+                                <th class="text-left px-5 py-3 font-extrabold text-xs uppercase tracking-wider" style="color:#A3ACA0;">Nyeri Area Op.</th>
+                                <th class="text-left px-5 py-3 font-extrabold text-xs uppercase tracking-wider" style="color:#A3ACA0;">Nyeri Sendi</th>
+                                <th class="text-left px-5 py-3 font-extrabold text-xs uppercase tracking-wider" style="color:#A3ACA0;">Kondisi Luka</th>
+                                <?php endif; ?>
+                                <th class="text-left px-5 py-3 font-extrabold text-xs uppercase tracking-wider" style="color:#A3ACA0;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($monitoringHistory as $idx => $rec):
+                            $recDate = new DateTime($rec['record_date']);
+                            $surgStart = new DateTime($surgeryDate ?? $rec['record_date']);
+                            $surgStart->setTime(0,0,0); $recDate->setTime(0,0,0);
+                            $recDayNum = $surgStart->diff($recDate)->days + 1;
+                            $isToday = ($rec['record_date'] === date('Y-m-d'));
+                            // Determine pain level for this record type
+                            if ($opType === 'cabg') {
+                                $recPain = $rec['pain_level'];
+                            } elseif ($opType === 'sc') {
+                                $recPain = $rec['pain_level'];
+                            } else {
+                                $recPain = $rec['stump_pain'];
+                            }
+                            $painStatus = '';
+                            $painColor = '#A3ACA0';
+                            $painBg = '#F8FCFF';
+                            if ($recPain !== null) {
+                                if ($recPain <= 3) { $painStatus='Ringan'; $painColor='#728BA9'; $painBg='#ECF2E6'; }
+                                elseif ($recPain <= 6) { $painStatus='Sedang'; $painColor='#A3ACA0'; $painBg='rgba(218,227,236,0.5)'; }
+                                else { $painStatus='Berat'; $painColor='#5A6C7A'; $painBg='rgba(90,108,122,0.12)'; }
+                            }
+                        ?>
+                        <tr style="border-bottom:1px solid rgba(218,227,236,0.5);<?= $isToday ? 'background:rgba(114,139,169,0.05);' : '' ?>" class="hover:bg-white/40 transition-all">
+                            <td class="px-5 py-3.5">
+                                <div class="flex items-center gap-2">
+                                    <?php if ($isToday): ?><span class="w-1.5 h-1.5 rounded-full bg-[#728BA9] inline-block"></span><?php endif; ?>
+                                    <span class="font-bold" style="color:#5A6C7A;"><?= date('d M Y', strtotime($rec['record_date'])) ?></span>
+                                </div>
+                            </td>
+                            <td class="px-5 py-3.5">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold" style="background:#ECF2E6;color:#728BA9;">Hari ke-<?= $recDayNum ?></span>
+                            </td>
+                            <?php if ($opType === 'cabg'): ?>
+                            <td class="px-5 py-3.5 font-bold" style="color:<?= ($rec['spo2'] !== null && $rec['spo2'] < 92) ? '#5A6C7A' : '#5A6C7A' ?>;"><?= $rec['spo2'] !== null ? $rec['spo2'].'%' : '—' ?></td>
+                            <td class="px-5 py-3.5 font-bold" style="color:#5A6C7A;"><?= $rec['heart_rate'] !== null ? $rec['heart_rate'].' bpm' : '—' ?></td>
+                            <td class="px-5 py-3.5"><span class="font-extrabold" style="color:#728BA9;"><?= $rec['pain_level'] !== null ? $rec['pain_level'].'/10' : '—' ?></span></td>
+                            <?php elseif ($opType === 'sc'): ?>
+                            <td class="px-5 py-3.5 font-bold" style="color:#5A6C7A;"><?= $rec['temp'] !== null ? $rec['temp'].'°C' : '—' ?></td>
+                            <td class="px-5 py-3.5 font-bold" style="color:#5A6C7A;"><?= !empty($rec['blood_volume']) ? htmlspecialchars($rec['blood_volume']) : '—' ?></td>
+                            <td class="px-5 py-3.5"><span class="font-extrabold" style="color:#728BA9;"><?= $rec['pain_level'] !== null ? $rec['pain_level'].'/10' : '—' ?></span></td>
+                            <?php else: ?>
+                            <td class="px-5 py-3.5"><span class="font-extrabold" style="color:#728BA9;"><?= $rec['stump_pain'] !== null ? $rec['stump_pain'].'/10' : '—' ?></span></td>
+                            <td class="px-5 py-3.5"><span class="font-extrabold" style="color:#A3ACA0;"><?= $rec['phantom_pain'] !== null ? $rec['phantom_pain'].'/10' : '—' ?></span></td>
+                            <td class="px-5 py-3.5 font-medium" style="color:#5A6C7A;"><?= !empty($rec['wound_color']) ? htmlspecialchars($rec['wound_color']) : '—' ?></td>
+                            <?php endif; ?>
+                            <td class="px-5 py-3.5">
+                                <?php if ($recPain !== null): ?>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold" style="background:<?= $painBg ?>;color:<?= $painColor ?>;"><?= $painStatus ?></span>
+                                <?php else: ?>
+                                <span class="text-xs font-medium" style="color:#A3ACA0;">—</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    </div>
+                    <?php if (count($monitoringHistory) >= 30): ?>
+                    <div class="px-5 py-3 text-center" style="border-top:1px solid #DAE3EC;">
+                        <p class="text-xs font-medium" style="color:#A3ACA0;">Menampilkan 30 catatan terbaru</p>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
 
 
@@ -915,7 +1063,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
         <!-- ============================================================
              CONTENT LIBRARY
         ============================================================ -->
-        <div class="max-w-5xl mx-auto">
+        <div class="w-full">
             <div class="mb-8">
                 <h2 class="text-3xl font-extrabold" style="color:#728BA9;">Pustaka Pemulihan</h2>
                 <p class="font-medium mt-1" style="color:#A3ACA0;">Materi edukasi untuk pasien <?= htmlspecialchars($opName) ?>.</p>
@@ -973,7 +1121,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
         <!-- ============================================================
              PROFILE
         ============================================================ -->
-        <div class="max-w-3xl mx-auto">
+        <div class="w-full max-w-3xl">
             <div class="mb-8"><h2 class="text-3xl font-extrabold" style="color:#728BA9;">Profil Saya</h2><p class="font-medium mt-1" style="color:#A3ACA0;">Informasi dan status pemulihan Anda</p></div>
             <div class="glass-card overflow-hidden">
                 <div class="h-36 relative" style="background:linear-gradient(135deg,#728BA9,#B8C9DD);">
