@@ -190,9 +190,12 @@ if (!$data) {
         <div class="glass-card image-card">
             <div class="image-title">Citra Rontgen Sefalogram</div>
             <div class="img-container">
-                <img src="uploads/<?= htmlspecialchars($data['foto_rontgen']) ?>" alt="Rontgen Pasien">
+                <img id="patientImg" src="uploads/<?= htmlspecialchars($data['foto_rontgen']) ?>" alt="Rontgen Pasien">
                 
-                <div class="ai-scanning-overlay">
+                <!-- KANVAS PENONTON TITIK AI -->
+                <canvas id="landmarkCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; pointer-events:none;"></canvas>
+
+                <div id="overlayAi" class="ai-scanning-overlay">
                     <div class="spinner"></div>
                     <div style="letter-spacing: 1px;">Sistem Siap Eksekusi...</div>
                 </div>
@@ -227,13 +230,77 @@ if (!$data) {
                 </div>
             </div>
 
-            <button class="btn-run-ai">Jalankan Analisis AI Sekarang</button>
+            <button id="btnRunAi" class="btn-run-ai">Jalankan Analisis AI Sekarang</button>
         </div>
 
     </div>
 </div>
 
 <script>
+    // --- SKRIP INTEGRASI ALGORITMA AI PYTHON ---
+    const idAnalisis = <?= $id_analisis ?>;
+    const btnRunAi = document.getElementById('btnRunAi');
+    const overlayAi = document.getElementById('overlayAi');
+    const img = document.getElementById('patientImg');
+    const canvas = document.getElementById('landmarkCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Sembunyikan overlay saat pertama kali load
+    overlayAi.style.display = 'none';
+
+    btnRunAi.addEventListener('click', async () => {
+        // Tampilkan animasi skeleton loading
+        overlayAi.style.display = 'flex';
+        overlayAi.innerHTML = '<div class="spinner"></div><div style="letter-spacing: 1px;">AI Python sedang menelaah Rontgen...</div>';
+        
+        try {
+            // Meluncurkan misil data ke Jembatan PHP kita
+            const response = await fetch(`api_bridge.php?id=${idAnalisis}`);
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                overlayAi.style.display = 'none';
+                
+                // Pastikan kanvas presisi diukur berdasarkan skala gambar di layar pengguna!
+                canvas.width = img.clientWidth;
+                canvas.height = img.clientHeight;
+                
+                // Mencari kalkulasi rasio Resolusi Asli Rontgen vs Resolusi Frame Web
+                const ratioX = img.clientWidth / img.naturalWidth;
+                const ratioY = img.clientHeight / img.naturalHeight;
+                
+                // Gambar 19 Pasukan Titik!
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                result.landmarks.forEach((point, index) => {
+                    const cx = point.x * ratioX;
+                    const cy = point.y * ratioY;
+                    
+                    // Titik Inti
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 4, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#fde047'; // Kuning menyala
+                    ctx.fill();
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeStyle = '#000';
+                    ctx.stroke();
+                    
+                    // Tulisan Label Medis (Kecil)
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '11px Plus Jakarta Sans';
+                    ctx.fillText(index+1, cx + 6, cy + 4);
+                });
+                
+                // Update teks Asisten untuk estetika UX
+                document.querySelector('.assistant-content').innerHTML = `<p style="color:#10b981; margin:0;"><b>Sukses 100%!</b><br>AI Python berhasil mendeteksi dan memetakan 19 titik Cephalometri di atas kanvas citra pasien secara presisi.</p>`;
+                
+            } else {
+                overlayAi.innerHTML = `<div style="color:#ef4444; font-size:0.9rem; text-align:center; padding: 20px;"><b>KONEKSI GAGAL</b><br>${result.message}</div>`;
+            }
+        } catch (error) {
+            overlayAi.innerHTML = `<div style="color:#ef4444; font-size:0.9rem; text-align:center; padding: 20px;"><b>FATAL ERROR.</b><br>Gagal menyambung ke Mesin AI. Pastikan file app.py menyala di latar belakang!</div>`;
+        }
+    });
+
     // JS for gooey blob trail
     const containerBlob = document.getElementById('blob-container');
     const blobstores = [];
