@@ -182,9 +182,7 @@
     <nav class="fixed w-full z-50 glass-card border-b-0 border-t-0 border-x-0 !rounded-none py-4 px-8">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-medical-cyan to-medical-blue flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-                </div>
+                <img src="assets/images/logo-neuroai.png" alt="NeuroAI Logo" class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]">
                 <span class="font-heading font-bold text-xl tracking-wider text-white">Neuro<span class="text-medical-cyan">AI</span></span>
             </div>
             <div class="hidden md:flex gap-8 text-sm font-medium text-gray-400">
@@ -231,8 +229,7 @@
 
             <div class="relative z-10 flex justify-center mt-12 lg:mt-0">
                 <div class="brain-container">
-                    <!-- Added an onerror fallback so if the local brain.png misses, it shows an online 3D brain icon -->
-                    <img src="assets/images/brain.png" alt="AI Brain Analysis" class="brain-img relative z-10" onerror="this.src='https://cdn3d.iconscout.com/3d/premium/thumb/brain-4993510-4159670.png'">
+                    <img src="assets/images/BrainTumor.jpg" alt="AI Brain Analysis" class="brain-img relative z-10 rounded-2xl" style="object-fit: cover;">
                     <div class="scanner-line"></div>
                     <div class="scanner-area"></div>
                     
