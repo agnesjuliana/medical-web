@@ -14,6 +14,7 @@ export interface FoodItem {
   fats?: number;
   imageUrl?: string;
   progress?: number;
+  confidence?: number;
 }
 
 export function AnalyzingFoodCard({ item }: { item: FoodItem }) {

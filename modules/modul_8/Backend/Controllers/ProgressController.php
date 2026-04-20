@@ -25,8 +25,6 @@ class ProgressController extends Controller
 
     /**
      * GET ?action=get_weight_progress[&range=90]
-     * Returns current weight, goal, start weight, logs for chart,
-     * and delta changes for 3/7/30 day windows.
      */
     public function getWeightProgress(int $userId): void
     {
@@ -37,48 +35,91 @@ class ProgressController extends Controller
             $this->jsonError('Profile not found', 404);
         }
 
+        $this->jsonSuccess($this->buildWeightProgress($userId, $range, $profile));
+    }
+
+    /**
+     * GET ?action=get_weekly_energy[&offset=0]
+     * offset=0 → this week, offset=1 → last week, etc.
+     */
+    public function getWeeklyEnergy(int $userId): void
+    {
+        $offset = (int) ($_GET['offset'] ?? 0);
+        $this->jsonSuccess($this->buildWeeklyEnergy($userId, $offset));
+    }
+
+    /**
+     * GET ?action=get_progress_summary
+     * One-shot payload: weight progress (90d) + weekly energy (offset 0) + calorie averages.
+     */
+    public function getProgressSummaryPayload(int $userId): void
+    {
+        $profile = $this->profiles->getByUserId($userId);
+        if (!$profile) {
+            $this->jsonError('Profile not found', 404);
+        }
+
+        $this->jsonSuccess([
+            'weight_progress'  => $this->buildWeightProgress($userId, 90, $profile),
+            'weekly_energy'    => $this->buildWeeklyEnergy($userId, 0),
+            'calorie_averages' => $this->buildCalorieAverages($userId),
+        ]);
+    }
+
+    /**
+     * GET ?action=get_calorie_averages
+     */
+    public function getCalorieAverages(int $userId): void
+    {
+        $this->jsonSuccess($this->buildCalorieAverages($userId));
+    }
+
+    // ─── Private helpers ─────────────────────────────────────────────────────
+
+    private function buildWeightProgress(int $userId, int $range, array $profile): array
+    {
         $currentWeight = (float) $profile['weight_kg'];
         $goalWeight    = $profile['goal_weight_kg'] ? (float) $profile['goal_weight_kg'] : null;
 
-        // Fetch historical logs for chart
-        $logs     = $this->weights->getRecentLogs($userId, $range);
-        $firstLog = $this->weights->getFirstLog($userId);
+        $summary     = $this->weights->getProgressSummary($userId, $range);
+        $logs        = $summary['logs'];
+        $firstLog    = $summary['first_log'];
         $startWeight = $firstLog ? (float) $firstLog['weight_kg'] : $currentWeight;
 
-        // Build chart data — label by "Mon", "Tue" etc. for last 7 entries when range<=90
         $chartData = [];
         foreach ($logs as $log) {
             $chartData[] = [
-                'day'    => date('D', strtotime($log['log_date'])), // e.g. "Mon"
+                'day'    => date('D', strtotime($log['log_date'])),
                 'date'   => $log['log_date'],
                 'weight' => $log['weight_kg'],
             ];
         }
 
-        // Compute deltas
-        $deltas = [];
+        // Delta source is always 30 days regardless of chart range,
+        // so narrow ranges (e.g. range=7) don't silently zero out 30d delta.
+        $deltaLogs = $this->weights->getRecentLogs($userId, 30);
+
+        $deltas = [3 => 0.0, 7 => 0.0, 30 => 0.0];
         foreach ([3, 7, 30] as $window) {
-            $windowLogs = $this->weights->getRecentLogs($userId, $window);
-            if (count($windowLogs) >= 2) {
-                $first = (float) $windowLogs[0]['weight_kg'];
-                $last  = (float) end($windowLogs)['weight_kg'];
-                $diff  = round($last - $first, 1);
-                $deltas[$window] = $diff;
-            } else {
-                $deltas[$window] = 0.0;
+            $cutoff     = date('Y-m-d', strtotime("-{$window} days"));
+            $windowLogs = array_values(array_filter($deltaLogs, fn($l) => $l['log_date'] >= $cutoff));
+
+            if (\count($windowLogs) >= 2) {
+                $first           = (float) $windowLogs[0]['weight_kg'];
+                $last            = (float) end($windowLogs)['weight_kg'];
+                $deltas[$window] = round($last - $first, 1);
             }
         }
 
-        // Goal progress
         $goalProgress = 0.0;
         if ($goalWeight !== null && $startWeight !== $goalWeight) {
-            $direction = $goalWeight > $startWeight ? 1 : -1;
-            $numerator = ($currentWeight - $startWeight) * $direction;
-            $denominator = abs($goalWeight - $startWeight);
+            $direction    = $goalWeight > $startWeight ? 1 : -1;
+            $numerator    = ($currentWeight - $startWeight) * $direction;
+            $denominator  = abs($goalWeight - $startWeight);
             $goalProgress = max(0, min(100, round(($numerator / $denominator) * 100, 1)));
         }
 
-        $this->jsonSuccess([
+        return [
             'current_weight' => $currentWeight,
             'start_weight'   => $startWeight,
             'goal_weight'    => $goalWeight,
@@ -89,75 +130,60 @@ class ProgressController extends Controller
                 '7d'  => $deltas[7],
                 '30d' => $deltas[30],
             ],
-            // BMI
             'height_cm' => (float) $profile['height_cm'],
-            'bmi'       => $this->calcBmi((float) $profile['weight_kg'], (float) $profile['height_cm']),
-        ]);
+            'bmi'       => $this->calcBmi($currentWeight, (float) $profile['height_cm']),
+        ];
     }
 
-    /**
-     * GET ?action=get_weekly_energy[&offset=0]
-     * offset=0 → this week, offset=1 → last week, etc.
-     * Returns per-day {day, consumed_cal} for that ISO week.
-     */
-    public function getWeeklyEnergy(int $userId): void
+    private function buildWeeklyEnergy(int $userId, int $offset): array
     {
-        $offset    = (int) ($_GET['offset'] ?? 0);
-        // Start of the target week (Monday)
-        $monday    = date('Y-m-d', strtotime("monday this week -{$offset} week"));
-        $sunday    = date('Y-m-d', strtotime("sunday this week -{$offset} week"));
+        $monday = date('Y-m-d', strtotime("monday this week -{$offset} week"));
+        $sunday = date('Y-m-d', strtotime("sunday this week -{$offset} week"));
 
-        $stmt = $this->meals->getDailyCalories($userId, 7 + ($offset * 7));
+        $rows = $this->meals->getCaloriesByDateRange($userId, $monday, $sunday);
 
-        // Build a full week skeleton then fill
-        $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        $result = [];
+        $dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        $result   = [];
         for ($i = 0; $i < 7; $i++) {
-            $date = date('Y-m-d', strtotime($monday . " +{$i} days"));
+            $date          = date('Y-m-d', strtotime("{$monday} +{$i} days"));
             $result[$date] = [
-                'day'          => $days[$i],
+                'day'          => $dayNames[$i],
                 'date'         => $date,
                 'consumed_cal' => 0,
             ];
         }
 
-        foreach ($stmt as $row) {
+        foreach ($rows as $row) {
             if (isset($result[$row['log_date']])) {
                 $result[$row['log_date']]['consumed_cal'] = $row['calories'];
             }
         }
 
-        $rows = array_values($result);
-        $totalConsumed = array_sum(array_column($rows, 'consumed_cal'));
+        $days          = array_values($result);
+        $totalConsumed = array_sum(array_column($days, 'consumed_cal'));
 
-        $this->jsonSuccess([
+        return [
             'week_start'     => $monday,
             'week_end'       => $sunday,
-            'days'           => $rows,
+            'days'           => $days,
             'total_consumed' => $totalConsumed,
-        ]);
+        ];
     }
 
-    /**
-     * GET ?action=get_calorie_averages
-     * Returns average daily calories over 7d, 30d.
-     */
-    public function getCalorieAverages(int $userId): void
+    private function buildCalorieAverages(int $userId): array
     {
         $logs7d  = $this->meals->getDailyCalories($userId, 7);
         $logs30d = $this->meals->getDailyCalories($userId, 30);
 
-        $avg7d  = count($logs7d)  > 0 ? (int) round(array_sum(array_column($logs7d,  'calories')) / count($logs7d))  : null;
-        $avg30d = count($logs30d) > 0 ? (int) round(array_sum(array_column($logs30d, 'calories')) / count($logs30d)) : null;
+        $avg7d  = \count($logs7d)  > 0 ? (int) round(array_sum(array_column($logs7d,  'calories')) / \count($logs7d))  : null;
+        $avg30d = \count($logs30d) > 0 ? (int) round(array_sum(array_column($logs30d, 'calories')) / \count($logs30d)) : null;
 
-        $this->jsonSuccess([
+        return [
             'avg_7d'  => $avg7d,
             'avg_30d' => $avg30d,
             'logs_7d' => $logs7d,
-        ]);
+        ];
     }
-
-    // ─── Helpers ─────────────────────────────────────────────────────────────
 
     private function calcBmi(float $weightKg, float $heightCm): float
     {

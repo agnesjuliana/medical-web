@@ -15,7 +15,10 @@ import {
   Heart,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { getDashboard, type DashboardData } from "../services/api";
+import { useDashboardStore } from "../store/dashboardStore";
+import { getPhoto } from "../lib/photoStorage";
+import { logger } from "../lib/logger";
+import { toast } from "sonner";
 import ProgressScreen from "./ProgressScreens";
 import SettingsScreen from "./SettingsScreens";
 import ScannerScreen from "./ScannerScreen";
@@ -112,12 +115,11 @@ function HomeContent({
   onFoodClick: (item: FoodItem) => void;
   onActionClick?: (actionId: string) => void;
 }) {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const { data: dashboardData, isLoading, error, selectedDate, setSelectedDate, fetchDashboard } =
+    useDashboardStore();
   const [slideIndex, setSlideIndex] = useState(0);
   const [bannerDismissed, setBannerDismissed] = useState(false);
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [localPhotos, setLocalPhotos] = useState<Map<string, string>>(new Map());
   const scrollRef = useRef<HTMLDivElement>(null);
 
   function handleScroll() {
@@ -127,21 +129,25 @@ function HomeContent({
   }
 
   useEffect(() => {
-    const dateStr = selectedDate.toISOString().split("T")[0];
-    setIsLoading(true);
-    setError(null);
-    getDashboard(dateStr)
-      .then((res) => {
-        setDashboardData(res.data);
-      })
-      .catch((err) => {
-        console.error(err);
-        setError("Failed to load dashboard data");
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    fetchDashboard(selectedDate.toISOString().split("T")[0]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
+
+  useEffect(() => {
+    const meals = dashboardData?.recent_meals;
+    if (!meals?.length) return;
+    Promise.all(
+      meals.map(async (m: { id: number | string }) => {
+        const photo = await getPhoto(String(m.id)).catch(() => null);
+        return [String(m.id), photo] as [string, string | null];
+      })
+    ).then((entries) => {
+      setLocalPhotos(
+        new Map(entries.filter((entry): entry is [string, string] => entry[1] !== null))
+      );
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dashboardData?.recent_meals]);
 
   const d = dashboardData
     ? {
@@ -162,11 +168,17 @@ function HomeContent({
           targetG: dashboardData.targets.fats_g,
         },
         fiber: {
-          leftG: dashboardData.consumed.fiber_g,
-          targetG: 38, // API doesn't provide fiber target yet
+          leftG: dashboardData.consumed.fiber_g ?? 0,
+          targetG: Math.round((dashboardData.targets.calories / 1000) * 14),
         },
-        sugar: { leftG: 0, targetG: 50 },
-        sodium: { leftMg: 0, targetMg: 2300 },
+        sugar: {
+          leftG: dashboardData.consumed.sugar_g ?? 0,
+          targetG: Math.round((dashboardData.targets.calories * 0.1) / 4),
+        },
+        sodium: {
+          leftMg: dashboardData.consumed.sodium_mg ?? 0,
+          targetMg: 2300,
+        },
         steps: { count: 0, goal: 10000 },
         caloriesBurned: 0,
         waterMl: dashboardData.consumed.water_ml,
@@ -198,12 +210,12 @@ function HomeContent({
     protein: m.protein_g,
     carbs: m.carbs_g,
     fats: m.fats_g,
-    imageUrl: m.photo_url || undefined,
+    imageUrl: localPhotos.get(String(m.id)) || m.photo_url || undefined,
     progress: m.progress,
   }));
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 w-full">
       {/* Header */}
       <Header
         title="Home"
@@ -220,11 +232,11 @@ function HomeContent({
       <Daylist selectedDate={selectedDate} onDaySelect={setSelectedDate} />
 
       {/* ── Carousel ───────────────────────────────────────────────────────── */}
-      <div>
+      <div className="w-full">
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex flex-row overflow-x-auto no-scrollbar snap-x snap-mandatory gap-4"
+          className="flex flex-row overflow-x-auto no-scrollbar snap-x snap-mandatory gap-4 w-full"
         >
           {/* Slide 1 — Calories + Macros */}
           <div className="snap-start shrink-0 w-full flex flex-col gap-3">
@@ -491,6 +503,23 @@ export default function HomeScreen() {
   const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
   const [showLogFood, setShowLogFood] = useState(false);
 
+  // Android back button — double-tap to exit
+  useEffect(() => {
+    try { window.history.pushState({ home: true }, ""); } catch (_) { /* unsupported env */ }
+    let backCount = 0;
+    const handle = () => {
+      backCount++;
+      if (backCount === 1) {
+        toast("Press back again to exit");
+        try { window.history.pushState({ home: true }, ""); } catch (_) { /* unsupported env */ }
+        setTimeout(() => { backCount = 0; }, 2000);
+      }
+    };
+    window.addEventListener("popstate", handle);
+    logger.info("HomeScreen", "mounted");
+    return () => window.removeEventListener("popstate", handle);
+  }, []);
+
   function handleMenuItemClick(id: string) {
     if (id === "scan_food") setShowScanner(true);
     else if (id === "saved_foods") setShowLogFood(true);
@@ -512,11 +541,11 @@ export default function HomeScreen() {
         </div>
 
         {activeTab === "home" && (
-          <HomeContent 
-            onFoodClick={setSelectedFood} 
+          <HomeContent
+            onFoodClick={setSelectedFood}
             onActionClick={(id) => {
               if (id === "account-details") setShowAccountDetails(true);
-            }} 
+            }}
           />
         )}
         {activeTab === "progress" && <ProgressScreen />}
@@ -526,28 +555,40 @@ export default function HomeScreen() {
       {showScanner && (
         <ScannerScreen
           onClose={() => setShowScanner(false)}
-          onCapture={async (mode, imageData) => {
+          onCapture={async (_mode, imageData) => {
             setShowScanner(false);
-            const { scanFood, toast } = await import("../services/api");
+            const { scanFood, saveFood, toast } = await import("../services/api");
             const loadingId = toast.loading("Analyzing food with AI...");
             try {
               const res = await scanFood(imageData);
               toast.dismiss(loadingId);
-              toast.success("Analysis complete!");
-              // Map backend result to FoodItem
+              const item = res.data?.items?.[0];
+              const foodName = item?.name || "Unknown Food";
+              const calories = item?.calories || 0;
+              const protein = item?.protein_g || 0;
+              const carbs = item?.carbs_g || 0;
+              const fats = item?.fats_g || 0;
+
+              // Auto-save to saved foods (fire-and-forget)
+              saveFood({ name: foodName, calories, protein_g: protein, carbs_g: carbs, fats_g: fats })
+                .then(() => toast.success("Saved to your foods!"))
+                .catch(() => {/* silently ignore */});
+
               setSelectedFood({
                 id: "scanned_" + Date.now(),
                 status: "analyzed",
-                name: res.data.name || "Unknown Food",
-                calories: res.data.calories || 0,
-                protein: res.data.protein_g || 0,
-                carbs: res.data.carbs_g || 0,
-                fats: res.data.fats_g || 0,
-                imageUrl: imageData, // Use captured image for display
+                name: foodName,
+                calories,
+                protein,
+                carbs,
+                fats,
+                imageUrl: imageData,
+                confidence: item?.confidence ?? 0.9,
               });
-            } catch (err: any) {
+            } catch (err: unknown) {
               toast.dismiss(loadingId);
-              toast.error(err.message || "Failed to analyze food");
+              const msg = err instanceof Error ? err.message : "Failed to analyze food";
+              toast.error(msg);
             }
           }}
         />
@@ -557,6 +598,11 @@ export default function HomeScreen() {
         <FoodDetailScreen
           item={selectedFood}
           onClose={() => setSelectedFood(null)}
+          onLogged={() => {
+            setSelectedFood(null);
+            const { selectedDate, fetchDashboard } = useDashboardStore.getState();
+            fetchDashboard(selectedDate.toISOString().split("T")[0]);
+          }}
         />
       )}
 

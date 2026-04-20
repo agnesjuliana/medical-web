@@ -312,6 +312,23 @@ function parseWeightKg(weightStr: string): number {
   return parseInt(weightStr) || 70;
 }
 
+// ─── Health score helpers ─────────────────────────────────────────────────────
+
+function computeHealthScore(form: FormData): number {
+  const kg = parseWeightKg(form.weight);
+  const cm = parseHeightCm(form.height);
+  const bmi = kg / Math.pow(cm / 100, 2);
+  const diff = Math.abs(form.desiredWeight - kg);
+
+  const bmiScore =
+    bmi >= 18.5 && bmi <= 24.9 ? 3 : bmi >= 17 && bmi <= 29.9 ? 1 : 0;
+  const activityScore =
+    form.activity === "athlete" ? 3 : form.activity === "active" ? 2 : 1;
+  const goalScore = diff <= 5 ? 2 : diff <= 15 ? 1 : 0;
+
+  return Math.min(10, Math.max(1, 2 + bmiScore + activityScore + goalScore));
+}
+
 // ─── TDEE helpers ─────────────────────────────────────────────────────────────
 
 function computeTDEE(form: FormData) {
@@ -669,7 +686,7 @@ export default function OnboardingPage({
           unit: "kcal",
           color: "#1e293b",
           icon: <Flame size={12} />,
-          percent: 75,
+          percent: 100,
         },
         {
           label: "Carbs",
@@ -677,7 +694,7 @@ export default function OnboardingPage({
           unit: "g",
           color: "#f97316",
           icon: <Wheat size={12} />,
-          percent: 60,
+          percent: Math.round(((carbs * 4) / calories) * 100),
         },
         {
           label: "Protein",
@@ -685,7 +702,7 @@ export default function OnboardingPage({
           unit: "g",
           color: "#ef4444",
           icon: <Beef size={12} />,
-          percent: 50,
+          percent: Math.round(((protein * 4) / calories) * 100),
         },
         {
           label: "Fats",
@@ -693,10 +710,10 @@ export default function OnboardingPage({
           unit: "g",
           color: "#3b82f6",
           icon: <Droplets size={12} />,
-          percent: 40,
+          percent: Math.round(((fats * 9) / calories) * 100),
         },
       ],
-      healthScore: 7,
+      healthScore: computeHealthScore(form),
       healthScoreMax: 10,
       goalItems: [
         {

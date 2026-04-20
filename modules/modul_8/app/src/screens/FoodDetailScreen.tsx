@@ -23,12 +23,23 @@ import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import type { FoodItem } from "@/components/template/FoodCard";
 
+function foodHealthScore(item: FoodItem): number {
+  if (!item.calories || item.calories === 0) return 5;
+  const pPct = (item.protein * 4) / item.calories;
+  const cPct = (item.carbs * 4) / item.calories;
+  const fPct = (item.fats * 9) / item.calories;
+  const deviation = Math.abs(pPct - 0.3) + Math.abs(cPct - 0.4) + Math.abs(fPct - 0.3);
+  return Math.min(10, Math.max(1, Math.round(10 - deviation * 10)));
+}
+
 export default function FoodDetailScreen({
   item,
   onClose,
+  onLogged,
 }: {
   item: FoodItem;
   onClose: () => void;
+  onLogged?: () => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [slideIndex, setSlideIndex] = useState(0);
@@ -232,12 +243,12 @@ export default function FoodDetailScreen({
                     <p className="text-sm font-medium text-foreground">
                       Health score
                     </p>
-                    <p className="text-sm font-bold text-foreground">6/10</p>
+                    <p className="text-sm font-bold text-foreground">{foodHealthScore(item)}/10</p>
                   </div>
                   <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[#4ADE80] rounded-full"
-                      style={{ width: "60%" }}
+                      style={{ width: `${foodHealthScore(item) * 10}%` }}
                     />
                   </div>
                 </div>
@@ -303,26 +314,33 @@ export default function FoodDetailScreen({
           onClick={async () => {
             try {
               const { logMeal, toast } = await import("../services/api");
+              const { savePhoto } = await import("../lib/photoStorage");
+              const { logger } = await import("../lib/logger");
               const loadingId = toast.loading("Logging meal...");
-              await logMeal({
-                meal_type: "snack", // default
+              const res = await logMeal({
+                meal_type: "snack",
                 name: item.name,
                 calories: item.calories,
                 protein_g: item.protein,
                 carbs_g: item.carbs,
                 fats_g: item.fats,
-                photo_url: item.imageUrl,
                 source: "ai_scan",
+                ai_confidence: item.confidence ?? 0.9,
               });
+              const mealId = res?.data?.id;
+              if (mealId && item.imageUrl) {
+                await savePhoto(String(mealId), item.imageUrl).catch((e) =>
+                  logger.warn("FoodDetail", "Photo save failed", e)
+                );
+              }
               toast.dismiss(loadingId);
               toast.success("Meal logged successfully!");
-              onClose();
-              // A slight delay to let the toast show, then ideally trigger a refresh
-              // For now, reloading the page is a surefire way to refresh dashboard
-              setTimeout(() => window.location.reload(), 1000);
-            } catch (err: any) {
+              logger.info("FoodDetail", "Meal logged", { mealId, name: item.name });
+              if (onLogged) { onLogged(); } else { onClose(); }
+            } catch (err: unknown) {
               const { toast } = await import("../services/api");
-              toast.error(err.message || "Failed to log meal");
+              const msg = err instanceof Error ? err.message : "Failed to log meal";
+              toast.error(msg);
             }
           }}
         >

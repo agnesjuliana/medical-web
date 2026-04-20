@@ -5,7 +5,9 @@ namespace Backend\Services;
 class AiScanService
 {
     private const DAILY_LIMIT = 20;
-    private const CLAUDE_URL = 'https://api.anthropic.com/v1/messages';
+    private const GEMINI_URL  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+    private const GROQ_URL    = 'https://api.groq.com/openai/v1/chat/completions';
+    private const GROQ_MODEL  = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
     public function getDailyLimit(): int
     {
@@ -48,64 +50,171 @@ class AiScanService
     }
 
     /**
-     * Call Anthropic Claude API with vision capabilities and return raw response text.
+     * Call Gemini Vision API and return raw JSON response text.
      * @throws \RuntimeException on HTTP/cURL failure
      */
-    public function callClaude(string $rawB64, string $mediaType, string $apiKey): string
+    public function callGemini(string $rawB64, string $mediaType, string $apiKey): string
     {
         $payload = [
-            'model' => 'claude-3-5-sonnet-20241022',
-            'max_tokens' => 1024,
-            'messages' => [
-                [
-                    'role' => 'user',
-                    'content' => [
-                        [
-                            'type' => 'image',
-                            'source' => [
-                                'type' => 'base64',
-                                'media_type' => $mediaType,
-                                'data' => $rawB64,
-                            ],
-                        ],
-                        [
-                            'type' => 'text',
-                            'text' => 'You are a food nutrition expert. When given a food photo, identify all visible food items and estimate their nutritional content. Always respond with valid JSON only — no prose, no markdown code fences. Respond with this exact schema: {"items":[{"name":"string","estimated_grams":number,"calories":number,"protein_g":number,"carbs_g":number,"fats_g":number,"confidence":number}],"notes":"string"}. confidence is 0.0-1.0. Return ONLY valid JSON.',
+            'contents' => [[
+                'parts' => [
+                    [
+                        'inline_data' => [
+                            'mime_type' => $mediaType,
+                            'data'      => $rawB64,
                         ],
                     ],
+                    [
+                        'text' => 'You are a food nutrition expert. Identify all visible food items in this photo and estimate their nutritional content. Return ONLY a JSON object with this exact schema: {"items":[{"name":"string","estimated_grams":number,"calories":number,"protein_g":number,"carbs_g":number,"fats_g":number,"confidence":number}],"notes":"string"}. confidence is 0.0–1.0.',
+                    ],
                 ],
+            ]],
+            'generationConfig' => [
+                'responseMimeType' => 'application/json',
             ],
         ];
 
-        $ch = curl_init(self::CLAUDE_URL);
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode($payload),
+        $url = self::GEMINI_URL . '?key=' . urlencode($apiKey);
+        $options = [
+            'http' => [
+                'header'  => "Content-type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($payload),
+                'timeout' => 30,
+                'ignore_errors' => true
+            ]
+        ];
+        $context  = \stream_context_create($options);
+        $response = @\file_get_contents($url, false, $context);
+        
+        $httpCode = 0;
+        if (isset($http_response_header) && is_array($http_response_header)) {
+            if (preg_match('#HTTP/\\d+\\.\\d+ (\\d+)#i', $http_response_header[0], $match)) {
+                $httpCode = (int)$match[1];
+            }
+        }
+
+        if ($response === false || $httpCode !== 200) {
+            $errDetails = $response ?: 'No response body';
+            throw new \RuntimeException('AI service error (code ' . $httpCode . '): ' . $errDetails);
+        }
+
+        $geminiData = json_decode($response, true);
+        if (isset($geminiData['error'])) {
+            throw new \RuntimeException('AI service error: ' . ($geminiData['error']['message'] ?? 'Unknown error'));
+        }
+
+        return $geminiData['candidates'][0]['content']['parts'][0]['text'] ?? '';
+    }
+
+    /**
+     * Call Groq Vision API (OpenAI-compatible) and return raw JSON response text.
+     * @throws \RuntimeException on HTTP/cURL failure
+     */
+    public function callGroq(string $rawB64, string $mediaType, string $apiKey): string
+    {
+        $prompt = 'Analyze this food photo. Return ONLY a JSON object with this exact schema: {"items":[{"name":"string","estimated_grams":number,"calories":number,"protein_g":number,"carbs_g":number,"fats_g":number,"confidence":number}],"notes":"string"}. confidence is 0.0–1.0. No prose, no markdown.';
+
+        $payload = [
+            'model'    => self::GROQ_MODEL,
+            'messages' => [[
+                'role'    => 'user',
+                'content' => [
+                    [
+                        'type'      => 'image_url',
+                        'image_url' => ['url' => 'data:' . $mediaType . ';base64,' . $rawB64],
+                    ],
+                    ['type' => 'text', 'text' => $prompt],
+                ],
+            ]],
+            'max_tokens'      => 1024,
+            'temperature'     => 0.1,
+            'response_format' => ['type' => 'json_object'],
+        ];
+
+        $ch = \curl_init(self::GROQ_URL);
+        \curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => \json_encode($payload),
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTPHEADER => [
+            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $apiKey,
+            ],
+        ]);
+        $response = \curl_exec($ch);
+        $httpCode = \curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        \curl_close($ch);
+
+        if ($response === false || $httpCode !== 200) {
+            $errDetails = $response ?: 'No response body';
+            throw new \RuntimeException('Groq API error (code ' . $httpCode . '): ' . $errDetails);
+        }
+
+        $data = json_decode($response, true);
+        if (isset($data['error'])) {
+            throw new \RuntimeException('Groq API error: ' . ($data['error']['message'] ?? 'Unknown error'));
+        }
+
+        return $data['choices'][0]['message']['content'] ?? '';
+    }
+
+    /**
+     * Call Anthropic Claude Vision API and return raw JSON response text.
+     * @throws \RuntimeException on HTTP/cURL failure
+     */
+    public function callAnthropic(string $rawB64, string $mediaType, string $apiKey): string
+    {
+        $prompt = 'Analyze this food photo and return JSON with this exact schema: {"items":[{"name":"string","estimated_grams":number,"calories":number,"protein_g":number,"carbs_g":number,"fats_g":number,"confidence":number}],"notes":"string"}. confidence is 0.0–1.0. Return ONLY valid JSON.';
+
+        $payload = [
+            'model'      => 'claude-haiku-4-5-20251001',
+            'max_tokens' => 1024,
+            'system'     => 'You are a food nutrition expert. When given a food photo, identify all visible food items and estimate their nutritional content. Always respond with valid JSON only — no prose, no markdown code fences.',
+            'messages'   => [[
+                'role'    => 'user',
+                'content' => [
+                    [
+                        'type'   => 'image',
+                        'source' => [
+                            'type'       => 'base64',
+                            'media_type' => $mediaType,
+                            'data'       => $rawB64,
+                        ],
+                    ],
+                    ['type' => 'text', 'text' => $prompt],
+                ],
+            ]],
+        ];
+
+        $ch = \curl_init('https://api.anthropic.com/v1/messages');
+        \curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => \json_encode($payload),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_HTTPHEADER     => [
                 'Content-Type: application/json',
                 'x-api-key: ' . $apiKey,
                 'anthropic-version: 2023-06-01',
             ],
         ]);
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $response = \curl_exec($ch);
+        $httpCode = \curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        \curl_close($ch);
 
         if ($response === false || $httpCode !== 200) {
-            throw new \RuntimeException('AI service error, please try again or log manually');
+            $errDetails = $response ?: 'No response body';
+            throw new \RuntimeException('Anthropic API error (code ' . $httpCode . '): ' . $errDetails);
         }
 
-        $claudeData = json_decode($response, true);
-        if (isset($claudeData['error'])) {
-            throw new \RuntimeException('AI service error: ' . ($claudeData['error']['message'] ?? 'Unknown error'));
+        $data = json_decode($response, true);
+        if (isset($data['error'])) {
+            throw new \RuntimeException('Anthropic API error: ' . ($data['error']['message'] ?? 'Unknown error'));
         }
 
-        $text = $claudeData['content'][0]['text'] ?? '';
-
-        // Strip markdown code fences as a safety net
-        return preg_replace('/```(?:json)?\s*(.*?)\s*```/s', '$1', $text);
+        return $data['content'][0]['text'] ?? '';
     }
 
     /**

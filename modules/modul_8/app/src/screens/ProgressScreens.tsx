@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect } from "react";
 import Header from "@/components/header/Header";
 import {
   Plus,
@@ -24,40 +24,10 @@ import {
   Bar,
 } from "recharts";
 import ChangeRow from "@/components/page/ChangeRow";
-import {
-  getWeightProgress,
-  getWeeklyEnergy,
-  getCalorieAverages,
-  toast,
-} from "@/services/api";
+import { useProgressStore } from "@/store/progressStore";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type WeightRange = 90 | 180 | 365 | "all";
-type WeekOffset = 0 | 1 | 2 | 3;
-
-interface WeightProgress {
-  current_weight: number;
-  start_weight: number;
-  goal_weight: number | null;
-  goal_progress: number;
-  height_cm: number;
-  bmi: number;
-  logs: Array<{ day: string; date: string; weight: number }>;
-  deltas: { "3d": number; "7d": number; "30d": number };
-}
-
-interface WeeklyEnergy {
-  week_start: string;
-  week_end: string;
-  days: Array<{ day: string; date: string; consumed_cal: number }>;
-  total_consumed: number;
-}
-
-interface CalorieAverages {
-  avg_7d: number | null;
-  avg_30d: number | null;
-  logs_7d: Array<{ log_date: string; calories: number }>;
-}
+import type { WeightRange, WeekOffset } from "@/store/progressStore";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function bmiCategory(bmi: number): {
@@ -92,7 +62,7 @@ function bmiCategory(bmi: number): {
 
 function deltaStatus(
   delta: number,
-  goal: "lose" | "gain" | null
+  goal: "lose" | "gain" | null,
 ): "increase" | "decrease" | "none" {
   if (delta === 0) return "none";
   return delta > 0 ? "increase" : "decrease";
@@ -164,58 +134,27 @@ function SkeletonCard() {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function ProgressScreen() {
-  const [weightRange, setWeightRange] = useState<WeightRange>(90);
-  const [energyOffset, setEnergyOffset] = useState<WeekOffset>(0);
+  const {
+    weightData, energyData, calorieData,
+    loadingWeight, loadingEnergy, loadingCalories,
+    weightRange, energyOffset, initialLoaded,
+    setWeightRange, setEnergyOffset,
+    fetchSummary, fetchWeightProgress, fetchWeeklyEnergy,
+  } = useProgressStore();
 
-  const [weightData, setWeightData] = useState<WeightProgress | null>(null);
-  const [energyData, setEnergyData] = useState<WeeklyEnergy | null>(null);
-  const [calorieData, setCalorieData] = useState<CalorieAverages | null>(null);
-
-  const [loadingWeight, setLoadingWeight] = useState(true);
-  const [loadingEnergy, setLoadingEnergy] = useState(true);
-  const [loadingCalories, setLoadingCalories] = useState(true);
-
-  // Fetch weight progress whenever range changes
-  const fetchWeightProgress = useCallback(async () => {
-    setLoadingWeight(true);
-    try {
-      const res = await getWeightProgress(weightRange);
-      setWeightData(res.data);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to load weight data");
-    } finally {
-      setLoadingWeight(false);
-    }
-  }, [weightRange]);
-
-  // Fetch weekly energy whenever offset changes
-  const fetchWeeklyEnergy = useCallback(async () => {
-    setLoadingEnergy(true);
-    try {
-      const res = await getWeeklyEnergy(energyOffset);
-      setEnergyData(res.data);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to load energy data");
-    } finally {
-      setLoadingEnergy(false);
-    }
-  }, [energyOffset]);
-
-  // Fetch calorie averages once
   useEffect(() => {
-    getCalorieAverages()
-      .then((res) => setCalorieData(res.data))
-      .catch((err) => toast.error(err.message || "Failed to load calorie data"))
-      .finally(() => setLoadingCalories(false));
+    if (!initialLoaded) fetchSummary();
   }, []);
 
   useEffect(() => {
+    if (!initialLoaded) return;
     fetchWeightProgress();
-  }, [fetchWeightProgress]);
+  }, [weightRange]);
 
   useEffect(() => {
+    if (!initialLoaded) return;
     fetchWeeklyEnergy();
-  }, [fetchWeeklyEnergy]);
+  }, [energyOffset]);
 
   // Derived
   const bmi = weightData?.bmi ?? 0;
@@ -263,7 +202,10 @@ export default function ProgressScreen() {
                   variant="secondary"
                   className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 rounded-full px-3 py-1 text-[11px] font-normal"
                 >
-                  Goal: {weightData.goal_weight ? `${weightData.goal_weight} kg` : "—"}
+                  Goal:{" "}
+                  {weightData.goal_weight
+                    ? `${weightData.goal_weight} kg`
+                    : "—"}
                 </Badge>
               </div>
               <h2 className="text-4xl font-bold mb-4 dark:text-white">
@@ -285,7 +227,9 @@ export default function ProgressScreen() {
                   <span>
                     Goal:{" "}
                     <span className="text-black dark:text-white font-semibold">
-                      {weightData.goal_weight ? `${weightData.goal_weight} kg` : "—"}
+                      {weightData.goal_weight
+                        ? `${weightData.goal_weight} kg`
+                        : "—"}
                     </span>
                   </span>
                 </div>
@@ -359,7 +303,12 @@ export default function ProgressScreen() {
                       stroke="#000"
                       strokeWidth={3}
                       dot={false}
-                      activeDot={{ r: 6, fill: "#000", stroke: "#fff", strokeWidth: 2 }}
+                      activeDot={{
+                        r: 6,
+                        fill: "#000",
+                        stroke: "#fff",
+                        strokeWidth: 2,
+                      }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -403,7 +352,8 @@ export default function ProgressScreen() {
               ) : (
                 (["3d", "7d", "30d"] as const).map((key) => {
                   const delta = weightData?.deltas[key] ?? 0;
-                  const label = key === "3d" ? "3 day" : key === "7d" ? "7 day" : "30 day";
+                  const label =
+                    key === "3d" ? "3 day" : key === "7d" ? "7 day" : "30 day";
                   return (
                     <ChangeRow
                       key={key}
@@ -536,14 +486,18 @@ export default function ProgressScreen() {
                     <span className="text-3xl font-bold dark:text-white">
                       {calorieData.avg_7d.toLocaleString()}
                     </span>
-                    <span className="text-xs text-gray-500 mt-1">7-day avg</span>
+                    <span className="text-xs text-gray-500 mt-1">
+                      7-day avg
+                    </span>
                   </div>
                   {calorieData.avg_30d && (
                     <div className="flex flex-col border-l pl-6 border-gray-100 dark:border-gray-800">
                       <span className="text-3xl font-bold dark:text-white">
                         {calorieData.avg_30d.toLocaleString()}
                       </span>
-                      <span className="text-xs text-gray-500 mt-1">30-day avg</span>
+                      <span className="text-xs text-gray-500 mt-1">
+                        30-day avg
+                      </span>
                     </div>
                   )}
                 </div>
@@ -610,9 +564,13 @@ export default function ProgressScreen() {
             ) : (
               <>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold dark:text-white">{bmi}</span>
+                  <span className="text-4xl font-bold dark:text-white">
+                    {bmi}
+                  </span>
                   <div className="flex items-center gap-1">
-                    <span className="text-sm text-gray-400">Your weight is </span>
+                    <span className="text-sm text-gray-400">
+                      Your weight is{" "}
+                    </span>
                     <Badge
                       variant="secondary"
                       className={`${bmiInfo.badgeClass} rounded-lg px-2 py-0.5 text-xs font-semibold border-none`}
@@ -638,13 +596,30 @@ export default function ProgressScreen() {
 
                 <div className="grid grid-cols-4 gap-2">
                   {[
-                    { color: "bg-blue-400", label: "Underweight", range: "<18.5" },
-                    { color: "bg-green-500", label: "Normal", range: "18.5-24.9" },
-                    { color: "bg-orange-400", label: "Overweight", range: "25-29.9" },
+                    {
+                      color: "bg-blue-400",
+                      label: "Underweight",
+                      range: "<18.5",
+                    },
+                    {
+                      color: "bg-green-500",
+                      label: "Normal",
+                      range: "18.5-24.9",
+                    },
+                    {
+                      color: "bg-orange-400",
+                      label: "Overweight",
+                      range: "25-29.9",
+                    },
                     { color: "bg-red-500", label: "Obese", range: ">30" },
                   ].map((item) => (
-                    <div key={item.label} className="flex flex-col items-center">
-                      <div className={`w-2 h-2 ${item.color} rounded-full mb-1`} />
+                    <div
+                      key={item.label}
+                      className="flex flex-col items-center"
+                    >
+                      <div
+                        className={`w-2 h-2 ${item.color} rounded-full mb-1`}
+                      />
                       <span className="text-[10px] text-gray-500 text-center leading-tight">
                         {item.label}
                         <br />
