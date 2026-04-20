@@ -8,200 +8,474 @@ requireLogin();
 startSession();
 
 $user = getCurrentUser();
-$pageTitle = 'TB-Scan AI';
+$pageTitle = 'PulmoAI - TBC Detection';
 
 // Ambil riwayat dari database
 global $db;
 $histories = [];
 
-// Pastikan koneksi DB tersedia sebelum menjalankan query
 if (isset($db) && $db !== null) {
     try {
         $stmt = $db->prepare("SELECT * FROM modul3_history WHERE user_id = ? ORDER BY created_at DESC");
         $stmt->execute([$user['id']]);
         $histories = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        // Jika tabel belum dibuat, history akan kosong tanpa merusak halaman
         $histories = [];
     }
 }
 ?>
 
 <?php require_once __DIR__ . '/../../layout/header.php'; ?>
+<!-- Menggunakan Lucide Icon dari CDN -->
+<script src="https://unpkg.com/lucide@latest"></script>
 
 <style>
-    html { scroll-behavior: smooth; }
-    .section-padding { padding: 100px 0; }
-    .nav-glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
-    .img-zoom { transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-    .group:hover .img-zoom { transform: scale(1.1); }
-    .text-gradient { background: linear-gradient(to right, #0891b2, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+/* CSS Variables & Keyframes dari file konfigurasi Lovable */
+:root {
+  --radius: 0.875rem;
+  --background: oklch(0.99 0.005 220);
+  --foreground: oklch(0.18 0.04 240);
+  --primary: oklch(0.58 0.14 210);
+  --primary-foreground: oklch(0.99 0.005 220);
+  --secondary: oklch(0.96 0.015 220);
+  --secondary-foreground: oklch(0.25 0.05 240);
+  --muted: oklch(0.96 0.01 220);
+  --muted-foreground: oklch(0.5 0.03 230);
+  --accent: oklch(0.72 0.15 195);
+  --destructive: oklch(0.6 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.65 0.16 155);
+  --success-foreground: oklch(0.99 0 0);
+  --border: oklch(0.92 0.01 220);
+  
+  --gradient-hero: linear-gradient(135deg, oklch(0.22 0.06 240) 0%, oklch(0.35 0.1 215) 50%, oklch(0.55 0.14 195) 100%);
+  --gradient-primary: linear-gradient(135deg, oklch(0.58 0.14 210), oklch(0.72 0.15 195));
+
+  --shadow-soft: 0 4px 20px -8px oklch(0.4 0.1 220 / 0.15);
+  --shadow-glow: 0 0 40px oklch(0.65 0.15 200 / 0.35);
+  --shadow-elegant: 0 20px 50px -20px oklch(0.3 0.08 230 / 0.3);
+
+  --glass-bg: oklch(1 0 0 / 0.7);
+  --glass-border: oklch(1 0 0 / 0.3);
+}
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes scale-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px oklch(0.65 0.15 200 / 0.4); }
+  50% { box-shadow: 0 0 40px oklch(0.65 0.15 200 / 0.7); }
+}
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+/* Base Utilities */
+body { background-color: var(--background); color: var(--foreground); }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+.glass { background: var(--glass-bg); backdrop-filter: blur(16px) saturate(180%); border: 1px solid var(--glass-border); }
+.gradient-hero { background: var(--gradient-hero); }
+.gradient-primary { background: var(--gradient-primary); }
+.gradient-text { background: var(--gradient-primary); -webkit-background-clip: text; color: transparent; }
+.shadow-elegant { box-shadow: var(--shadow-elegant); }
+.shadow-glow { box-shadow: var(--shadow-glow); }
+.shadow-soft { box-shadow: var(--shadow-soft); }
+
+.animate-fade-in { animation: fade-in 0.6s ease-out; }
+.animate-slide-up { animation: slide-up 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-scale-in { animation: scale-in 0.4s ease-out; }
+.animate-pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
+.animate-float { animation: float 6s ease-in-out infinite; }
+
+/* Custom colors untuk menggantikan standard Tailwind jika belum di config */
+.bg-background { background-color: var(--background); }
+.text-foreground { color: var(--foreground); }
+.bg-primary { background-color: var(--primary); }
+.text-primary { color: var(--primary); }
+.text-primary-foreground { color: var(--primary-foreground); }
+.bg-secondary { background-color: var(--secondary); }
+.text-secondary-foreground { color: var(--secondary-foreground); }
+.bg-muted { background-color: var(--muted); }
+.text-muted-foreground { color: var(--muted-foreground); }
+.bg-accent { background-color: var(--accent); }
+.text-accent { color: var(--accent); }
+.bg-destructive { background-color: var(--destructive); }
+.text-destructive { color: var(--destructive); }
+.text-destructive-foreground { color: var(--destructive-foreground); }
+.bg-success { background-color: var(--success); }
+.text-success { color: var(--success); }
+.text-success-foreground { color: var(--success-foreground); }
+
+/* Opacity variants */
+.bg-primary\/10 { background-color: oklch(0.58 0.14 210 / 0.1); }
+.bg-primary\/20 { background-color: oklch(0.58 0.14 210 / 0.2); }
+.bg-accent\/20 { background-color: oklch(0.72 0.15 195 / 0.2); }
+.bg-accent\/30 { background-color: oklch(0.72 0.15 195 / 0.3); }
+.bg-muted\/50 { background-color: oklch(0.96 0.01 220 / 0.5); }
+.bg-destructive\/10 { background-color: oklch(0.6 0.22 25 / 0.1); }
+.bg-success\/10 { background-color: oklch(0.65 0.16 155 / 0.1); }
+.border-destructive\/20 { border-color: oklch(0.6 0.22 25 / 0.2); }
+.border-success\/20 { border-color: oklch(0.65 0.16 155 / 0.2); }
+.bg-muted\/30 { background-color: oklch(0.96 0.01 220 / 0.3); }
+.border-border { border-color: var(--border); }
 </style>
 
-<nav class="sticky top-0 z-50 nav-glass border-b border-cyan-50">
-    <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-cyan-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-cyan-200">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            </div>
-            <span class="font-black text-gray-800 text-2xl tracking-tighter">TB-SCAN<span class="text-cyan-600">.AI</span></span>
-        </div>
-        <div class="hidden md:flex gap-10 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">
-            <a href="#home" class="hover:text-cyan-600 transition-colors">Home</a>
-            <a href="#deteksi" class="hover:text-cyan-600 transition-colors">Deteksi</a>
-            <a href="#history" class="hover:text-cyan-600 transition-colors">Riwayat</a>
-            <a href="#about" class="hover:text-cyan-600 transition-colors">Team</a>
-        </div>
-    </div>
-</nav>
+<div class="bg-background text-foreground shrink-0 pb-10">
 
-<main>
-    <section id="home" class="section-padding bg-white overflow-hidden">
-        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
-            <div class="relative z-10">
-                <span class="px-4 py-2 bg-cyan-50 text-cyan-600 rounded-lg text-xs font-black uppercase tracking-widest mb-6 inline-block border border-cyan-100">Smart Medical Solution</span>
-                <h1 class="text-7xl font-black text-gray-900 leading-[1.05] tracking-tight">Cek Paru <br><span class="text-gradient italic">Pake AI.</span></h1>
-                <p class="text-gray-500 mt-8 text-xl leading-relaxed max-w-lg font-medium">Platform skrining awal Tuberkulosis berbasis Deep Learning. Cepat, akurat, dan dapat diakses kapan saja.</p>
-                <div class="mt-12 flex flex-wrap items-center gap-6">
-                    <a href="#deteksi" class="px-10 py-5 bg-cyan-600 text-white rounded-2xl font-black shadow-xl shadow-cyan-200 hover:bg-cyan-700 hover:-translate-y-1 transition-all uppercase text-sm tracking-wider">Mulai Scan Sekarang</a>
+    <!-- NAVBAR -->
+    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 py-3" id="navbar">
+      <div class="max-w-7xl mx-auto px-4">
+        <nav class="glass flex items-center justify-between rounded-2xl px-5 py-3 shadow-soft">
+          <a href="#home" class="flex items-center gap-2.5">
+            <div class="flex h-9 w-9 items-center justify-center rounded-xl gradient-primary shadow-glow">
+              <i data-lucide="activity" class="h-5 w-5 text-primary-foreground stroke-[2.5px]"></i>
+            </div>
+            <div class="flex flex-col leading-none">
+              <span class="text-base font-bold text-black">PulmoAI</span>
+              <span class="text-[10px] text-muted-foreground">TBC Detection</span>
+            </div>
+          </a>
+
+          <ul class="hidden md:flex items-center gap-1">
+            <li><a href="#home" class="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-accent/20 transition-colors">Beranda</a></li>
+            <li><a href="#detection" class="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-accent/20 transition-colors">Deteksi AI</a></li>
+            <li><a href="#history" class="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-accent/20 transition-colors">Riwayat</a></li>
+            <li><a href="#about" class="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground rounded-lg hover:bg-accent/20 transition-colors">Tentang Kami</a></li>
+          </ul>
+
+          <div class="hidden md:flex items-center gap-2">
+            <span class="text-sm font-bold opacity-70 text-black">Hi, <?= htmlspecialchars($user['name'] ?? 'User') ?>!</span>
+            <a href="../../dashboard.php" class="px-4 py-2 rounded-md gradient-primary text-primary-foreground text-sm font-medium shadow-soft hover:opacity-90">Dashboard</a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section id="home" class="relative min-h-screen flex items-center pt-28 pb-16 overflow-hidden gradient-hero">
+      <div class="absolute top-1/4 -left-32 h-96 w-96 rounded-full bg-accent/30 blur-3xl animate-float"></div>
+      <div class="absolute bottom-0 right-0 h-[28rem] w-[28rem] rounded-full bg-primary/20 blur-3xl animate-float" style="animation-delay: 2s;"></div>
+
+      <div class="max-w-7xl mx-auto px-4 relative z-10 w-full">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+          <div class="text-primary-foreground animate-slide-up">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass border border-white/20 mb-6">
+              <i data-lucide="sparkles" class="h-3.5 w-3.5 text-accent"></i>
+              <span class="text-xs font-medium text-white">Powered by Deep Learning AI</span>
+            </div>
+
+            <h1 class="text-4xl md:text-5xl lg:text-5xl font-bold tracking-tight leading-[1.1] mb-6 text-white">
+              Skrining Awal <br>
+              <span class="bg-gradient-to-r from-accent to-white bg-clip-text text-transparent">Tuberkulosis</span><br>
+              Lewat Citra Rontgen
+            </h1>
+
+            <p class="text-lg text-primary-foreground/80 max-w-xl mb-8 leading-relaxed text-white">
+              Unggah hasil rontgen dada Anda dan dapatkan analisis indikasi TBC dalam hitungan detik.
+            </p>
+
+            <div class="flex flex-wrap gap-3 mb-10">
+              <a href="#detection" class="inline-flex items-center justify-center bg-white text-black font-semibold hover:bg-white/90 shadow-elegant h-12 px-6 rounded-md">
+                Mulai Skrining <i data-lucide="arrow-right" class="ml-1.5 h-4 w-4"></i>
+              </a>
+              <a href="#about" class="inline-flex items-center justify-center bg-transparent border border-white/30 text-white font-medium hover:bg-white/10 h-12 px-6 rounded-md">
+                Pelajari Lebih Lanjut
+              </a>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 max-w-lg">
+              <div class="glass rounded-xl p-3 border-white/10 text-white">
+                <i data-lucide="zap" class="h-4 w-4 text-accent mb-1.5"></i>
+                <div class="text-lg font-bold leading-none">< 5 dtk</div>
+                <div class="text-xs mt-1 opacity-70">Cepat</div>
+              </div>
+              <div class="glass rounded-xl p-3 border-white/10 text-white">
+                <i data-lucide="shield-check" class="h-4 w-4 text-accent mb-1.5"></i>
+                <div class="text-lg font-bold leading-none">94%+</div>
+                <div class="text-xs mt-1 opacity-70">Akurat</div>
+              </div>
+              <div class="glass rounded-xl p-3 border-white/10 text-white">
+                <i data-lucide="sparkles" class="h-4 w-4 text-accent mb-1.5"></i>
+                <div class="text-lg font-bold leading-none">Privat</div>
+                <div class="text-xs mt-1 opacity-70">Aman</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative animate-scale-in flex justify-center">
+            <div class="absolute inset-0 gradient-primary blur-3xl opacity-40 rounded-full"></div>
+            <div class="relative rounded-3xl overflow-hidden shadow-elegant border border-white/10 w-full max-w-md">
+              <img src="https://images.unsplash.com/photo-1583912265924-d922bbdc1f68?auto=format&fit=crop&q=80" alt="AI Rontgen" class="w-full h-auto object-cover md:max-h-[600px]">
+              <div class="absolute top-4 right-4 glass rounded-xl px-3 py-2 border-white/20 animate-pulse-glow">
+                <div class="flex items-center gap-2">
+                  <div class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                  <span class="text-xs font-semibold text-white">AI Analyzing...</span>
                 </div>
+              </div>
+              <div class="absolute bottom-4 left-4 right-4 glass rounded-xl p-3 border-white/20">
+                <div class="flex items-center justify-between mb-1.5 text-white">
+                  <span class="text-xs font-medium">Confidence Score</span>
+                  <span class="text-xs font-bold text-accent">87%</span>
+                </div>
+                <div class="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                  <div class="h-full w-[87%] gradient-primary rounded-full"></div>
+                </div>
+              </div>
             </div>
-            <div class="relative">
-                <div class="absolute -inset-10 bg-cyan-100 rounded-full blur-[100px] opacity-30"></div>
-                <img src="https://img.freepik.com/free-vector/health-professional-team-illustration_23-2148496884.jpg" class="relative rounded-[3rem] shadow-2xl border-8 border-white">
-            </div>
+          </div>
         </div>
+      </div>
     </section>
 
-    <section id="deteksi" class="section-padding bg-slate-50">
-        <div class="max-w-3xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-black text-gray-900 italic uppercase">Main Page Deteksi</h2>
-                <div class="h-2 w-16 bg-cyan-500 mx-auto mt-4 rounded-full"></div>
-            </div>
-            
-            <div class="bg-white p-12 rounded-[4rem] shadow-2xl shadow-cyan-100/50 border border-white">
-                <form action="process.php" method="POST" enctype="multipart/form-data" id="uploadForm">
-                    <label class="group flex flex-col items-center justify-center w-full h-80 border-4 border-dashed border-slate-100 rounded-[3rem] cursor-pointer hover:bg-cyan-50 hover:border-cyan-200 transition-all">
-                        <div class="w-20 h-20 bg-cyan-600 rounded-3xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all shadow-xl shadow-cyan-200">
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" stroke-width="2"/></svg>
-                        </div>
-                        <span class="font-black text-slate-700 text-lg uppercase tracking-widest">Pilih Citra Thorax</span>
-                        <p class="text-slate-400 text-sm mt-2 font-bold">Ambil Foto atau Upload Berkas</p>
-                        <input type="file" name="thorax_image" id="imageInput" class="hidden" accept="image/*" capture="environment" required />
-                    </label>
-                    
-                    <div id="filePreview" class="hidden mt-8 p-5 bg-slate-50 rounded-3xl border border-slate-100 items-center gap-4">
-                        <div class="p-2 bg-white rounded-xl shadow-sm"><svg class="w-6 h-6 text-cyan-600" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/></svg></div>
-                        <span id="fileName" class="text-sm font-black text-slate-800 truncate"></span>
-                    </div>
+    <!-- DETECTION -->
+    <section id="detection" class="py-24 bg-background">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary mb-4">
+            <i data-lucide="brain" class="h-3.5 w-3.5"></i>
+            <span class="text-xs font-semibold">AI-Powered Detection</span>
+          </div>
+          <h2 class="text-3xl md:text-4xl font-bold mb-4 text-black">
+            Deteksi TBC dari <span class="gradient-text">Rontgen Dada</span>
+          </h2>
+          <p class="text-muted-foreground">Unggah gambar rontgen thorax untuk skrining mandiri.</p>
+        </div>
 
-                    <button type="submit" id="submitBtn" class="w-full mt-10 py-6 bg-gray-900 text-white rounded-[2.5rem] font-black text-xl hover:bg-cyan-600 hover:shadow-2xl hover:shadow-cyan-100 transition-all flex items-center justify-center gap-3 tracking-widest uppercase">
-                        JALANKAN ANALISIS 
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <div class="max-w-3xl mx-auto">
+          <!-- INPUT CARD -->
+          <div class="bg-white p-6 md:p-10 shadow-soft rounded-2xl border border-gray-100">
+            <h3 class="text-xl font-bold mb-1 text-black">Unggah Citra Rontgen</h3>
+            <p class="text-sm text-muted-foreground mb-8">Format yang diizinkan meliputi JPG atau PNG.</p>
+
+            <form id="uploadForm" action="process.php" method="POST" enctype="multipart/form-data">
+                <div id="dropZone" class="space-y-3">
+                  <label class="block border-2 border-dashed border-gray-300 bg-gray-50 rounded-2xl p-10 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors duration-300">
+                    <input type="file" name="thorax_image" id="imageInput" accept="image/*" class="hidden" required>
+                    <div class="mx-auto mb-4 h-16 w-16 rounded-2xl gradient-primary flex items-center justify-center shadow-glow">
+                      <i data-lucide="upload-cloud" class="h-8 w-8 text-primary-foreground"></i>
+                    </div>
+                    <p class="font-bold text-black text-lg">Pilih file rontgen thorax</p>
+                    <p class="text-sm text-muted-foreground mt-1">atau tarik dan lepas ('drag and drop') file ke sini.</p>
+                  </label>
+                </div>
+
+                <div id="previewArea" class="hidden space-y-6 mt-4">
+                  <div class="relative rounded-2xl overflow-hidden border border-gray-200 bg-black flex justify-center items-center h-80 shadow-inner">
+                    <img id="previewImg" src="" alt="Preview" class="max-w-full max-h-full object-contain">
+                    <button type="button" id="resetBtn" class="absolute top-3 right-3 h-10 w-10 rounded-full bg-white flex items-center justify-center shadow-md text-black hover:bg-gray-100 transition">
+                      <i data-lucide="x" class="h-5 w-5"></i>
                     </button>
-                </form>
-            </div>
+                    <div id="loadingOverlay" class="hidden absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+                        <i data-lucide="loader-2" class="h-10 w-10 text-primary animate-spin"></i>
+                        <p class="text-sm font-bold text-black mt-2">AI sedang menganalisis piksel citra...</p>
+                    </div>
+                  </div>
+                  <button type="submit" id="submitBtn" class="w-full h-14 flex items-center justify-center gap-2 gradient-primary text-primary-foreground font-bold text-lg rounded-xl border-0 shadow-soft hover:shadow-elegant transition-all hover:-translate-y-1">
+                    <i data-lucide="scan-line" class="h-5 w-5"></i> Mulai Analisis Sekarang
+                  </button>
+                </div>
+            </form>
+          </div>
         </div>
+      </div>
     </section>
 
-    <section id="history" class="section-padding bg-white">
-        <div class="max-w-7xl mx-auto px-6">
-            <h2 class="text-5xl font-black text-gray-900 tracking-tighter italic mb-12">Riwayat Scan.</h2>
+    <!-- HISTORY SECTION -->
+    <section id="history" class="py-24 bg-muted/30">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary mb-4">
+              <i data-lucide="database" class="h-3.5 w-3.5"></i>
+              <span class="text-xs font-semibold">Cloud Memory</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-bold mb-2 text-black">
+              Riwayat <span class="gradient-text">Pemeriksaan Anda</span>
+            </h2>
+            <p class="text-muted-foreground">Semua hasil scan tersimpan aman.</p>
+          </div>
+          <div class="flex gap-3">
+            <div class="px-5 py-4 shadow-soft bg-white rounded-xl border border-gray-100 min-w-[120px]">
+              <div class="text-xs text-muted-foreground">Total Scan</div>
+              <div class="text-3xl font-bold text-black mt-1"><?= count($histories) ?></div>
+            </div>
+          </div>
+        </div>
 
-            <?php if (empty($histories)): ?>
-                <div class="bg-slate-50 border-4 border-dashed border-slate-100 rounded-[4rem] p-24 text-center">
-                    <p class="text-slate-300 font-black text-2xl italic">Belum ada data pemeriksaan terbaru.</p>
-                </div>
-            <?php else: ?>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-                    <?php foreach ($histories as $h): ?>
-                    <div class="group bg-white rounded-[3rem] border border-gray-100 shadow-sm hover:shadow-2xl transition-all overflow-hidden">
-                        <div class="relative overflow-hidden h-64 bg-slate-900">
-                            <img src="uploads/<?= htmlspecialchars($h['filename']) ?>" class="w-full h-full object-cover img-zoom opacity-80 group-hover:opacity-100">
-                            <div class="absolute bottom-4 left-4">
-                                <span class="px-5 py-2 text-[10px] font-black rounded-xl shadow-2xl <?= $h['confidence_score'] > 50 ? 'bg-red-500 text-white' : 'bg-green-500 text-white' ?> uppercase tracking-widest">
-                                    <?= htmlspecialchars($h['status']) ?>
-                                </span>
-                            </div>
+        <?php if (empty($histories)): ?>
+            <div class="border-2 border-dashed border-gray-300 bg-white rounded-3xl p-16 text-center max-w-2xl mx-auto shadow-sm">
+                <i data-lucide="folder-open" class="h-12 w-12 text-muted-foreground mx-auto mb-4"></i>
+                <p class="text-lg font-medium text-black">Belum ada riwayat pemeriksaan.</p>
+            </div>
+        <?php else: ?>
+            <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <?php foreach ($histories as $h): ?>
+                <?php 
+                    $isTbc = $h['status'] !== 'Normal' && $h['confidence_score'] > 50; 
+                    $badgeBg = $isTbc ? "bg-destructive text-destructive-foreground" : "bg-success text-success-foreground";
+                    $barBg = $isTbc ? "bg-destructive" : "bg-success";
+                ?>
+                <div class="overflow-hidden shadow-soft hover:shadow-elegant hover:-translate-y-1 transition-all duration-300 group bg-white rounded-2xl border border-gray-100 flex flex-col">
+                  <div class="h-44 bg-gradient-to-br from-secondary to-muted relative flex items-center justify-center overflow-hidden border-b border-gray-100">
+                    <img src="uploads/<?= htmlspecialchars($h['filename']) ?>" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
+                    <span class="absolute bottom-3 left-3 px-3 py-1 text-xs font-bold rounded-lg shadow-md <?= $badgeBg ?>">
+                      <?= htmlspecialchars($h['status']) ?>
+                    </span>
+                  </div>
+                  <div class="p-5 flex-1 flex flex-col">
+                    <div class="flex items-center gap-1.5 text-xs font-medium text-muted-foreground mb-3">
+                      <i data-lucide="calendar" class="h-3.5 w-3.5"></i>
+                      <span><?= date('d M Y • H:i', strtotime($h['created_at'])) ?></span>
+                    </div>
+                    
+                    <div class="mt-auto">
+                        <div class="flex items-center justify-between mb-2">
+                          <span class="text-xs text-muted-foreground flex items-center gap-1 font-semibold">
+                            <i data-lucide="activity" class="h-3 w-3"></i> SCORE AI
+                          </span>
+                          <span class="text-base font-bold text-black"><?= htmlspecialchars($h['confidence_score']) ?>%</span>
                         </div>
-                        <div class="p-8">
-                            <div class="flex justify-between items-center mb-3">
-                                <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]"><?= date('d M Y', strtotime($h['created_at'])) ?></span>
-                                <span class="text-[10px] font-black text-cyan-600 tracking-widest">AI RESULT</span>
-                            </div>
-                            <p class="font-black text-5xl text-gray-900 italic tracking-tighter"><?= htmlspecialchars($h['confidence_score']) ?><span class="text-2xl text-gray-200">%</span></p>
+                        <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div class="h-full rounded-full <?= $barBg ?>" style="width: <?= htmlspecialchars($h['confidence_score']) ?>%"></div>
                         </div>
                     </div>
-                    <?php endforeach; ?>
+                  </div>
                 </div>
-            <?php endif; ?>
-        </div>
+              <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+      </div>
     </section>
 
-    <section id="about" class="section-padding bg-gray-950 text-white rounded-t-[5rem]">
-        <div class="max-w-7xl mx-auto px-6 text-center">
-            <h2 class="text-6xl font-black mb-24 italic tracking-tighter uppercase underline decoration-cyan-600 underline-offset-[15px] decoration-8">The Team.</h2>
-            <div class="grid md:grid-cols-3 gap-20">
-                <div class="group">
-                    <div class="w-44 h-44 bg-cyan-600 rounded-[3.5rem] mx-auto mb-10 flex items-center justify-center font-black text-6xl shadow-2xl shadow-cyan-900 group-hover:rotate-12 transition-transform duration-500">AR</div>
-                    <h3 class="text-3xl font-black italic tracking-tight">Andhika Rastra</h3>
-                    <p class="text-cyan-500 font-black uppercase tracking-[0.3em] text-xs mt-3">Lead Project</p>
-                    <p class="text-gray-600 text-xs mt-5 font-bold uppercase">NRP: 502XXXXXXXX</p>
-                </div>
-                <div class="group">
-                    <div class="w-44 h-44 bg-gray-800 rounded-[3.5rem] mx-auto mb-10 flex items-center justify-center font-black text-6xl group-hover:-rotate-12 transition-transform duration-500">T1</div>
-                    <h3 class="text-3xl font-black italic tracking-tight text-gray-300">Nama Teman 1</h3>
-                    <p class="text-gray-600 font-black uppercase tracking-[0.3em] text-xs mt-3">Machine Learning</p>
-                </div>
-                <div class="group">
-                    <div class="w-44 h-44 bg-gray-800 rounded-[3.5rem] mx-auto mb-10 flex items-center justify-center font-black text-6xl group-hover:scale-110 transition-transform duration-500 text-gray-300">T2</div>
-                    <h3 class="text-3xl font-black italic tracking-tight text-gray-300">Nama Teman 2</h3>
-                    <p class="text-gray-600 font-black uppercase tracking-[0.3em] text-xs mt-3">Data Scientist</p>
-                </div>
-            </div>
-            
-            <div id="contact" class="mt-48 pt-20 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-10">
-                <div class="text-left">
-                    <p class="font-black text-gray-400 italic text-xl uppercase tracking-tighter">TB-SCAN.AI</p>
-                    <p class="text-gray-700 font-bold text-xs mt-1">Sistem Pendeteksi Tuberkulosis Mandiri</p>
-                </div>
-                <div class="flex gap-10 font-black text-xs uppercase tracking-[0.3em] text-gray-500">
-                    <a href="mailto:dhikaaaa12@gmail.com" class="hover:text-cyan-500 transition-colors">Business Inquiry</a>
-                    <span class="text-white/10">|</span>
-                    <span class="text-white">SURABAYA, IDN</span>
-                </div>
-            </div>
+    <!-- ABOUT SECTION -->
+    <section id="about" class="py-24 bg-background">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary mb-4">
+            <i data-lucide="users" class="h-3.5 w-3.5"></i>
+            <span class="text-xs font-semibold">Tim Pengembang</span>
+          </div>
+          <h2 class="text-3xl md:text-4xl font-bold mb-4 text-black">
+            Dikembangkan oleh <span class="gradient-text">Tim Mahasiswa</span>
+          </h2>
         </div>
+
+        <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+          <!-- Tim Sesuai Data Asli Sistem -->
+          <div class="p-8 text-center shadow-soft hover:shadow-elegant hover:-translate-y-2 transition-all bg-white rounded-3xl border border-gray-100">
+            <div class="mx-auto mb-5 h-24 w-24 rounded-[2rem] bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-3xl font-black shadow-glow">AR</div>
+            <h3 class="font-bold text-lg text-black">Andhika Rastra</h3>
+            <p class="text-xs mt-1 text-primary font-semibold tracking-wider uppercase">Lead Project</p>
+          </div>
+          <div class="p-8 text-center shadow-soft hover:shadow-elegant hover:-translate-y-2 transition-all bg-white rounded-3xl border border-gray-100">
+            <div class="mx-auto mb-5 h-24 w-24 rounded-[2rem] bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white text-3xl font-black shadow-lg">T1</div>
+            <h3 class="font-bold text-lg text-black">Nama Teman 1</h3>
+            <p class="text-xs mt-1 text-muted-foreground font-semibold tracking-wider uppercase">ML Engineer</p>
+          </div>
+          <div class="p-8 text-center shadow-soft hover:shadow-elegant hover:-translate-y-2 transition-all bg-white rounded-3xl border border-gray-100">
+            <div class="mx-auto mb-5 h-24 w-24 rounded-[2rem] bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white text-3xl font-black shadow-lg">T2</div>
+            <h3 class="font-bold text-lg text-black">Nama Teman 2</h3>
+            <p class="text-xs mt-1 text-muted-foreground font-semibold tracking-wider uppercase">Data Scientist</p>
+          </div>
+        </div>
+
+        <div class="mt-20 max-w-4xl mx-auto">
+          <div class="p-10 md:p-14 gradient-hero text-primary-foreground rounded-[2.5rem] border-0 shadow-elegant overflow-hidden relative">
+            <div class="absolute top-0 right-0 h-64 w-64 rounded-full bg-accent/30 blur-3xl"></div>
+            <div class="relative z-10 text-center">
+              <h3 class="text-3xl font-bold mb-4 text-white">Misi Kami</h3>
+              <p class="text-white/80 leading-relaxed max-w-2xl mx-auto text-lg">
+                Membiaskan masa depan teknologi medis dengan memanfaatkan Deep Learning AI untuk mempercepat skrining awal TBC, terutama di daerah dengan akses tenaga medis terbatas demi Indonesia Sehat.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
-</main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-gray-100 bg-white py-10 mt-10">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-xl gradient-primary flex items-center justify-center shadow-sm">
+              <i data-lucide="activity" class="h-5 w-5 text-primary-foreground stroke-[2.5px]"></i>
+            </div>
+            <div>
+              <div class="font-bold text-black">PulmoAI</div>
+              <div class="text-xs text-muted-foreground font-medium">TBC Detection System Modul 3</div>
+            </div>
+          </div>
+          <p class="text-sm font-medium text-muted-foreground flex items-center gap-2">
+            Dibuat dengan <i data-lucide="heart" class="h-4 w-4 text-destructive fill-destructive"></i> oleh Tim PulmoAI © 2026
+          </p>
+        </div>
+      </div>
+    </footer>
+
+</div>
 
 <script>
-    // Logic Preview Nama File
-    const imgInput = document.getElementById('imageInput');
-    const filePrev = document.getElementById('filePreview');
-    const nameDisp = document.getElementById('fileName');
-    const btnSubmit = document.getElementById('submitBtn');
+    // Initialize Lucide Icons
+    lucide.createIcons();
 
-    imgInput.addEventListener('change', function() {
+    // JS Form Upload UI Logic
+    const imgInput = document.getElementById('imageInput');
+    const dropZone = document.getElementById('dropZone');
+    const previewArea = document.getElementById('previewArea');
+    const previewImg = document.getElementById('previewImg');
+    const resetBtn = document.getElementById('resetBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    function showPreview(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewImg.src = e.target.result;
+            dropZone.classList.add('hidden');
+            previewArea.classList.remove('hidden');
+        }
+        reader.readAsDataURL(file);
+    }
+
+    imgInput.addEventListener('change', function(e) {
         if (this.files && this.files[0]) {
-            nameDisp.textContent = this.files[0].name;
-            filePrev.classList.remove('hidden');
-            filePrev.classList.add('flex');
+            showPreview(this.files[0]);
         }
     });
 
-    // Animasi Loading Tombol
-    document.getElementById('uploadForm').addEventListener('submit', function() {
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = `
-            <svg class="animate-spin h-6 w-6 text-white" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg> 
-            <span class="ml-2 uppercase tracking-widest">Processing Image...</span>
-        `;
-        btnSubmit.classList.add('opacity-50', 'cursor-wait');
+    resetBtn.addEventListener('click', function() {
+        imgInput.value = '';
+        previewImg.src = '';
+        previewArea.classList.add('hidden');
+        dropZone.classList.remove('hidden');
+    });
+
+    uploadForm.addEventListener('submit', function() {
+        // Show loading animations
+        loadingOverlay.classList.remove('hidden');
+        loadingOverlay.classList.add('flex');
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-wait');
+    });
+
+    // Drag and Drop (Opsional UI)
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-primary', 'bg-primary/5');
+    });
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-primary', 'bg-primary/5');
+    });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-primary', 'bg-primary/5');
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            imgInput.files = e.dataTransfer.files;
+            showPreview(e.dataTransfer.files[0]);
+        }
     });
 </script>
 
