@@ -22,6 +22,10 @@ export default defineConfig(({ command }) => ({
     host: '0.0.0.0',
     port: 5173,
     cors: true,
+    proxy: {
+      '/modules/modul_8/Backend': 'http://localhost:8000',
+      '/modules/modul_8/api.php': 'http://localhost:8000',
+    },
   },
   base: command === 'build' ? '/modules/modul_8/app/dist/' : '/',
   build: {

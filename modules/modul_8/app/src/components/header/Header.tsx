@@ -97,10 +97,9 @@ export default function Header({
 
       <Sheet>
         <SheetTrigger asChild>
-          <Avatar size="lg" className="cursor-pointer">
-            <AvatarImage />
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
+          <button className="rounded-full w-10 h-10 bg-muted flex items-center justify-center text-foreground font-bold text-sm">
+            {initials}
+          </button>
         </SheetTrigger>
         <SheetContent
           side="bottom"

@@ -36,6 +36,8 @@ export interface DashboardData {
     fats_g: number;
     fiber_g: number;
     water_ml: number;
+    sugar_g?: number;
+    sodium_mg?: number;
   };
   remaining: {
     calories: number;
@@ -62,8 +64,9 @@ export interface DashboardData {
 
 const BASE_URL = '/modules/modul_8/Backend/index.php';
 
-export const getProfile = async (): Promise<{ data: Profile }> => {
+export const getProfile = async (): Promise<{ data: Profile | null }> => {
   const response = await fetch(`${BASE_URL}?action=get_profile`);
+  if (response.status === 404) return { data: null };
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(errorText || 'Failed to fetch profile');
@@ -104,6 +107,26 @@ export const getSavedFoods = async (): Promise<{ data: any[] }> => {
   return response.json();
 };
 
+export const saveFood = async (payload: {
+  name: string;
+  calories: number;
+  protein_g?: number;
+  carbs_g?: number;
+  fats_g?: number;
+  source?: 'manual' | 'database' | 'barcode';
+}): Promise<{ data: { id: number } }> => {
+  const response = await fetch(`${BASE_URL}?action=save_food`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ source: 'manual', ...payload }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to save food');
+  }
+  return response.json();
+};
+
 export const getAiQuota = async (): Promise<{ data: { quota_used: number; limit: number; remaining: number } }> => {
   const response = await fetch(`${BASE_URL}?action=get_ai_quota`);
   if (!response.ok) throw new Error('Failed to fetch AI quota');
@@ -128,11 +151,36 @@ export const deleteAccount = async (): Promise<{ data: { message: string } }> =>
   return response.json();
 };
 
+async function normalizeImageToJpeg(dataUrl: string, maxDim = 1024, quality = 0.85): Promise<string> {
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = () => reject(new Error('Failed to decode image'));
+    el.src = dataUrl;
+  });
+  const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+  const w = Math.max(1, Math.round(img.width * scale));
+  const h = Math.max(1, Math.round(img.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas unsupported');
+  ctx.drawImage(img, 0, 0, w, h);
+  let out = canvas.toDataURL('image/jpeg', quality);
+  const maxBytes = 2 * 1024 * 1024 * 1.37;
+  for (let q = quality - 0.15; out.length > maxBytes && q >= 0.4; q -= 0.15) {
+    out = canvas.toDataURL('image/jpeg', q);
+  }
+  return out;
+}
+
 export const scanFood = async (image_b64: string): Promise<{ data: any }> => {
+  const normalized = await normalizeImageToJpeg(image_b64);
   const response = await fetch(`${BASE_URL}?action=ai_scan_food`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image_b64 }),
+    body: JSON.stringify({ image_b64: normalized }),
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
@@ -150,6 +198,7 @@ export const logMeal = async (payload: {
   fats_g: number;
   photo_url?: string;
   source?: string;
+  ai_confidence?: number;
 }): Promise<{ data: any }> => {
   const response = await fetch(`${BASE_URL}?action=log_meal`, {
     method: 'POST',
