@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../components/components.php';
 require_once __DIR__ . '/../../config/database.php';
@@ -235,7 +235,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                     <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Detak jantung tidak teratur (&gt;120 bpm)</li>
                     <?php elseif ($opType === 'sc'): ?>
                     <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Perdarahan sangat banyak atau gumpalan darah besar</li>
-                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Demam tinggi di atas 38.5 derajatC</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Demam tinggi di atas 38.5°C</li>
                     <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Luka terbuka atau mengeluarkan nanah berbau</li>
                     <?php else: ?>
                     <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Perdarahan aktif dari area operasi</li>
@@ -311,8 +311,8 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                 <?php elseif ($opType==='sc'): ?>
                 <div class="glass-card p-6">
                     <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#728BA9;">Suhu Tubuh</p>
-                    <p class="text-4xl font-extrabold" style="color:#728BA9;"><?= isset($todayMonitoring['temp'])&&$todayMonitoring['temp']!==null ? htmlspecialchars($todayMonitoring['temp']) : '--' ?><span class="text-lg"> derajatC</span></p>
-                    <p class="text-xs font-medium mt-1" style="color:#A3ACA0;">Normal 36–37.5 derajatC</p>
+                    <p class="text-4xl font-extrabold" style="color:#728BA9;"><?= isset($todayMonitoring['temp'])&&$todayMonitoring['temp']!==null ? htmlspecialchars($todayMonitoring['temp']) : '--' ?><span class="text-lg">°C</span></p>
+                    <p class="text-xs font-medium mt-1" style="color:#A3ACA0;">Normal 36–37.5°C</p>
                 </div>
                 <div class="glass-card p-6">
                     <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#A3ACA0;">Volume Perdarahan</p>
@@ -429,9 +429,9 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                 ['id'=>'p1','name'=>'Fase Akut','range'=>'Hari 1 s/d 7','days'=>[1,7],'badge'=>'Kritis - Rawat Ketat',
                  'desc'=>'Fase paling krusial. Tubuh belum stabil - fokus pada pemulihan luka, stabilitas pernapasan, dan pencegahan komplikasi.',
                  'goals'=>['SpO2 stabil >= 95%','Nyeri dada terkontrol < 5/10','Tidak ada tanda infeksi luka','Mobilisasi bertahap dimulai'],
-                 'activities'=>[['Latihan pernapasan dalam 5-10 rep/jam','Pagi & Siang'],['Batuk efektif 2-3x (tahan dada bantal)','Pagi & Siang'],['Duduk di tepi tempat tidur 15 menit','Siang'],['Cek SpO2 dan catat di Monitoring','Pagi & Malam'],['Minum obat sesuai jadwal dokter','Pagi, Siang, Malam'],['Tidur posisi semi-fowler (30-45 derajat)','Malam']],
+                 'activities'=>[['Latihan pernapasan dalam 5-10 rep/jam','Pagi & Siang'],['Batuk efektif 2-3x (tahan dada bantal)','Pagi & Siang'],['Duduk di tepi tempat tidur 15 menit','Siang'],['Cek SpO2 dan catat di Monitoring','Pagi & Malam'],['Minum obat sesuai jadwal dokter','Pagi, Siang, Malam'],['Tidur posisi semi-fowler (30-45°)','Malam']],
                  'restrictions'=>['Tidak angkat beban > 1 kg','Tidak mengemudi','Tidak aktivitas fisik berat','Tidak menekan area luka dada'],
-                 'warning'=>['SpO2 < 92% segera hubungi dokter','Demam > 38 derajat C lebih dari 2 hari','Luka kemerahan, bengkak, atau mengeluarkan cairan','Nyeri dada seperti tertindih batu'],
+                 'warning'=>['SpO2 < 92% segera hubungi dokter','Demam > 38 °C lebih dari 2 hari','Luka kemerahan, bengkak, atau mengeluarkan cairan','Nyeri dada seperti tertindih batu'],
                  'vid'=>'hz4bgO-Smk0','vtitle'=>'Latihan Pernapasan Pasca CABG'],
                 ['id'=>'p2','name'=>'Fase Mobilisasi','range'=>'Hari 8 s/d 21','days'=>[8,21],'badge'=>'Progresif - Gerak Bertahap',
                  'desc'=>'Mulai meningkatkan aktivitas secara bertahap. Luka mulai menutup, tubuh beradaptasi. Jalan kaki menjadi latihan utama.',
@@ -462,14 +462,14 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                  'goals'=>['Bisa duduk sendiri dari kasur','Perdarahan terkontrol (tidak melebihi pembalut 1 jam)','Nyeri < 5/10 dengan obat','Mulai menyusui / pompa ASI'],
                  'activities'=>[['Mobilisasi dini: duduk perlahan dari kasur','Pagi hari ke-2'],['Menyusui / pompa ASI setiap 2-3 jam','Sepanjang hari'],['Pantau volume dan warna perdarahan','Setiap ganti pembalut'],['Minum air putih 8 gelas/hari','Sepanjang hari'],['Minum obat analgesik sesuai resep','Pagi, Siang, Malam'],['Periksa luka SC di cermin','Pagi & Malam']],
                  'restrictions'=>['Tidak berdiri terlalu lama (> 10 menit)','Tidak angkat beban > 2 kg','Tidak membasahi luka operasi','Tidak hubungan seksual'],
-                 'warning'=>['Perdarahan sangat banyak (1 pembalut habis < 1 jam)','Demam > 38.5 derajat C','Luka SC terbuka atau mengeluarkan nanah','Nyeri yang tidak berkurang dengan obat'],
+                 'warning'=>['Perdarahan sangat banyak (1 pembalut habis < 1 jam)','Demam > 38.5 °C','Luka SC terbuka atau mengeluarkan nanah','Nyeri yang tidak berkurang dengan obat'],
                  'vid'=>'KG_SsDOfwpI','vtitle'=>'Perawatan Luka Caesar'],
                 ['id'=>'p2','name'=>'Fase Penyembuhan Luka','range'=>'Hari 4 s/d 14','days'=>[4,14],'badge'=>'Pemulihan Awal',
                  'desc'=>'Luka jahitan mulai menutup. Perdarahan berkurang menjadi flek coklat. Aktivitas harian mulai meningkat bertahap.',
                  'goals'=>['Bisa berdiri dan berjalan mandiri','Perdarahan berubah coklat/kuning (bukan merah segar)','Luka SC kering dan tidak bernanah','ASI mulai lancar'],
                  'activities'=>[['Berjalan mandiri di dalam rumah','Pagi & Sore'],['Mandi dengan hati-hati (jaga luka tetap kering)','Pagi'],['Lanjutkan menyusui/pompa ASI rutin','Setiap 2-3 jam'],['Makanan bergizi tinggi protein untuk penyembuhan luka','Setiap makan'],['Senam kegel untuk pemulihan dasar panggul','Pagi & Malam'],['Konsultasi dokter kandungan (kontrol luka)','Hari ke-7 s/d 10']],
                  'restrictions'=>['Tidak angkat beban > 3 kg','Tidak naik tangga berulang kali','Tidak berendam di bak mandi/kolam renang','Tidak olahraga berat'],
-                 'warning'=>['Luka SC kemerahan atau membengkak','Suhu tubuh > 38 derajat C lebih dari 2 hari','Bau tidak sedap dari area luka','Perdarahan merah segar kembali setelah berkurang'],
+                 'warning'=>['Luka SC kemerahan atau membengkak','Suhu tubuh > 38 °C lebih dari 2 hari','Bau tidak sedap dari area luka','Perdarahan merah segar kembali setelah berkurang'],
                  'vid'=>'P7hrkSlr3vo','vtitle'=>'4 Tips Cepat Pulih Pasca SC'],
                 ['id'=>'p3','name'=>'Fase Pemulihan','range'=>'Hari 15 s/d 42','days'=>[15,42],'badge'=>'Kembali Aktif',
                  'desc'=>'Luka sudah menutup sempurna. Aktivitas fisik dapat meningkat secara progresif. Fokus pada kekuatan core dan pemulihan hormonal.',
@@ -493,18 +493,18 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                  'goals'=>['Nyeri < 5/10 dengan obat','Luka tidak menunjukkan tanda infeksi','Posisi tubuh benar (sesuai instruksi)','Bisa mobilisasi ke kamar mandi dengan alat bantu'],
                  'activities'=>[['Periksa luka/perban setiap pagi dan malam','Pagi & Malam'],['Latihan isometrik ringan (kencangkan otot tanpa bergerak)','Setiap 2 jam'],['Posisi rebahan sesuai instruksi dokter','Sepanjang hari'],['Minum obat analgesik tepat waktu','Pagi, Siang, Malam'],['Kompres dingin di area bengkak (20 mnt, 3x/hari)','Pagi, Siang, Malam'],['Pantau sirkulasi (warna, suhu, rasa jari)','Setiap 4 jam']],
                  'restrictions'=>['Tidak menumpu berat badan penuh','Tidak putar atau tekuk sendi operasi','Tidak basahi area gips/luka','Tidak duduk di kursi rendah tanpa bantuan'],
-                 'warning'=>['Jari-jari bengkak atau biru/pucat (tanda pembuluh tersumbat)','Nyeri yang tidak berkurang dengan obat','Demam > 38.5 derajat C','Luka mengeluarkan cairan berwarna/berbau'],
+                 'warning'=>['Jari-jari bengkak atau biru/pucat (tanda pembuluh tersumbat)','Nyeri yang tidak berkurang dengan obat','Demam > 38.5 °C','Luka mengeluarkan cairan berwarna/berbau'],
                  'vid'=>'wch7bNy0EWE','vtitle'=>'Panduan Pasca Operasi Ortopedi'],
                 ['id'=>'p2','name'=>'Rehabilitasi Awal','range'=>'Hari 8 s/d 21','days'=>[8,21],'badge'=>'Mulai Bergerak',
                  'desc'=>'Fisioterapi dimulai. Latihan gerak sendi (ROM) bertahap dan berjalan dengan alat bantu. Luka dijahit mulai bisa dilepas jahitannya.',
-                 'goals'=>['Bisa berjalan dengan walker 5-10 menit','ROM (Range of Motion) meningkat 20-30 derajat','Jahitan dapat dilepas (hari ke-10 s/d 14)','Nyeri saat latihan < 4/10'],
+                 'goals'=>['Bisa berjalan dengan walker 5-10 menit','ROM (Range of Motion) meningkat 20-30°','Jahitan dapat dilepas (hari ke-10 s/d 14)','Nyeri saat latihan < 4/10'],
                  'activities'=>[['Latihan jalan dengan walker 5-10 menit','Pagi & Sore'],['Gerak sendi ROM sesuai instruksi fisioterapis','Pagi & Sore'],['Kontrol poliklinik untuk pelepasan jahitan','Hari ke-10 s/d 14'],['Latihan penguatan otot isometrik','Setiap hari'],['Elevasi kaki (lebih tinggi dari jantung)','Saat istirahat'],['Ganti balutan luka setelah jahitan dilepas','Sesuai instruksi']],
                  'restrictions'=>['Tidak menumpu berat badan tanpa izin dokter','Tidak memutar sendi berlebihan','Tidak berenang (sebelum luka kering)','Tidak naik tangga tanpa pegangan'],
-                 'warning'=>['Demam lebih dari 38 derajat C setelah jahitan dilepas','Sendi membengkak tiba-tiba (mungkin hematom)','Nyeri sangat hebat saat latihan ROM','Mati rasa atau kesemutan permanen di kaki'],
+                 'warning'=>['Demam lebih dari 38 °C setelah jahitan dilepas','Sendi membengkak tiba-tiba (mungkin hematom)','Nyeri sangat hebat saat latihan ROM','Mati rasa atau kesemutan permanen di kaki'],
                  'vid'=>'hWK3xL9WfQk','vtitle'=>'Cara Menggunakan Walker dengan Benar'],
                 ['id'=>'p3','name'=>'Rehabilitasi Progresif','range'=>'Hari 22 s/d 56','days'=>[22,56],'badge'=>'Kekuatan Meningkat',
                  'desc'=>'Transisi dari walker ke tongkat atau jalan mandiri. Program fisioterapi intensif. Penguatan otot dan peningkatan keseimbangan.',
-                 'goals'=>['Berjalan mandiri / dengan tongkat tanpa walker','ROM mendekati normal (> 90 derajat)','Naik tangga dengan pegangan 1 sisi','Bisa mandi dan berpakaian mandiri'],
+                 'goals'=>['Berjalan mandiri / dengan tongkat tanpa walker','ROM mendekati normal (> 90°)','Naik tangga dengan pegangan 1 sisi','Bisa mandi dan berpakaian mandiri'],
                  'activities'=>[['Latihan jalan 15-30 menit tanpa walker','Pagi & Sore'],['Latihan keseimbangan (sendi lutut/panggul)','Fisioterapi'],['Naik tangga (supervised)','Di bawah pengawasan'],['Penguatan otot dengan resistance band','Fisioterapi'],['Kontrol dokter ortopedi (X-ray follow-up)','Hari ke-28 s/d 42'],['Sepeda statis dengan resistansi rendah','Hari ke-35+']],
                  'restrictions'=>['Tidak berlari (belum diizinkan)','Tidak duduk bersila','Tidak mendaki / medan tidak rata tanpa bantuan','Tidak memaksakan ROM melewati batas nyeri'],
                  'warning'=>['Krepitasi (bunyi krek) baru pada sendi','Nyeri yang kembali parah setelah sempat membaik','Sendi terasa keluar dari posisinya','Bengkak yang membesar setelah aktivitas'],
@@ -809,11 +809,11 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                 <?php elseif ($opType === 'sc'): ?>
                 <!-- SC -->
                 <div class="glass-card p-8">
-                    <h3 class="font-extrabold text-lg mb-4 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Suhu Tubuh ( derajatC)</h3>
+                    <h3 class="font-extrabold text-lg mb-4 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Suhu Tubuh (°C)</h3>
                     <input type="number" step="0.1" name="temp" min="35" max="42" value="<?= htmlspecialchars($todayMonitoring['temp'] ?? '') ?>" placeholder="misal: 36.8"
                         class="w-full px-4 py-3 rounded-xl border outline-none font-semibold" style="border-color:#DAE3EC;background:rgba(255,255,255,0.8);color:#5A6C7A;"
                         onfocus="this.style.borderColor='#728BA9'" onblur="this.style.borderColor='#DAE3EC'">
-                    <p class="text-xs font-medium mt-2" style="color:#A3ACA0;">Normal: 36–37.5 derajatC. Demam jika &gt; 38 derajatC.</p>
+                    <p class="text-xs font-medium mt-2" style="color:#A3ACA0;">Normal: 36–37.5°C. Demam jika &gt; 38°C.</p>
                 </div>
                 <div class="glass-card p-8">
                     <h3 class="font-extrabold text-lg mb-6 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg> Pemantauan Perdarahan</h3>
