@@ -66,6 +66,75 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete_profile') {
     exit;
 }
 
+// --- Local JSON Monitoring Storage Helpers ---
+function getLocalMonitoringLogs() {
+    $file = __DIR__ . '/data/monitoring_logs.json';
+    if (!file_exists($file)) return [];
+    return json_decode(file_get_contents($file), true) ?: [];
+}
+
+function saveLocalMonitoringLog($newLog) {
+    $file = __DIR__ . '/data/monitoring_logs.json';
+    $dir = dirname($file);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0777, true);
+    }
+    $logs = getLocalMonitoringLogs();
+    
+    $found = false;
+    foreach ($logs as $i => $log) {
+        if ($log['user_id'] == $newLog['user_id'] && $log['profile_id'] == $newLog['profile_id'] && $log['record_date'] === $newLog['record_date']) {
+            $logs[$i] = array_merge($log, $newLog);
+            $found = true;
+            break;
+        }
+    }
+    if (!$found) $logs[] = $newLog;
+    file_put_contents($file, json_encode($logs, JSON_PRETTY_PRINT));
+}
+
+// --- Local JSON Wound Log Storage Helpers ---
+function getLocalWoundLogs() {
+    $file = __DIR__ . '/data/wound_logs.json';
+    if (!file_exists($file)) return [];
+    return json_decode(file_get_contents($file), true) ?: [];
+}
+
+function saveLocalWoundLog($newLog) {
+    $file = __DIR__ . '/data/wound_logs.json';
+    $dir = dirname($file);
+    if (!is_dir($dir)) mkdir($dir, 0777, true);
+    $logs = getLocalWoundLogs();
+    
+    $found = false;
+    foreach ($logs as $i => $log) {
+        if ($log['user_id'] == $newLog['user_id'] && $log['profile_id'] == $newLog['profile_id'] && $log['record_date'] === $newLog['record_date']) {
+            $logs[$i] = array_merge($log, $newLog);
+            $found = true;
+            break;
+        }
+    }
+    if (!$found) $logs[] = $newLog;
+    file_put_contents($file, json_encode($logs)); // no pretty print, base64 may be large
+}
+
+// Handle Wound Log Submit
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_wound_log') {
+    $today = date('Y-m-d');
+    $profile_id = $_SESSION['active_profile_id'] ?? 0;
+    
+    $newWoundLog = [
+        'user_id' => $user['id'],
+        'profile_id' => $profile_id,
+        'record_date' => $today,
+        'image_data' => $_POST['image_base64'] ?? '',
+        'status' => $_POST['ai_status'] ?? 'Normal'
+    ];
+
+    saveLocalWoundLog($newWoundLog);
+    header("Location: dashboard.php?page=woundlog"); exit;
+}
+
 // Handle Monitoring Submit
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_monitoring') {
     $today = date('Y-m-d');
@@ -82,38 +151,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $r_wSwell = $_POST['wound_swelling'] ?? null;
     $r_wFluid = $_POST['wound_fluid']    ?? null;
     $r_wOdor  = $_POST['wound_odor']     ?? null;
-    try {
-        $stmtIns = $pdo->prepare("INSERT INTO user_daily_monitoring
-            (user_id, record_date, spo2, heart_rate, pain_level, temp, blood_volume, blood_color, blood_clots, stump_pain, phantom_pain, wound_color, wound_swelling, wound_fluid, wound_odor)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-            spo2=VALUES(spo2), heart_rate=VALUES(heart_rate), pain_level=VALUES(pain_level), temp=VALUES(temp),
-            blood_volume=VALUES(blood_volume), blood_color=VALUES(blood_color), blood_clots=VALUES(blood_clots),
-            stump_pain=VALUES(stump_pain), phantom_pain=VALUES(phantom_pain), wound_color=VALUES(wound_color),
-            wound_swelling=VALUES(wound_swelling), wound_fluid=VALUES(wound_fluid), wound_odor=VALUES(wound_odor)");
-        $stmtIns->execute([$user['id'],$today,$r_spo2,$r_hr,$r_pain,$r_temp,$r_bVol,$r_bCol,$r_bClot,$r_stump,$r_phantom,$r_wCol,$r_wSwell,$r_wFluid,$r_wOdor]);
-        header("Location: dashboard.php?page=home"); exit;
-    } catch (PDOException $e) {
-        $errorMsg = "Error: " . $e->getMessage();
+
+    $profile_id = $_SESSION['active_profile_id'] ?? 0;
+
+    $newLog = [
+        'user_id' => $user['id'],
+        'profile_id' => $profile_id,
+        'record_date' => $today,
+        'spo2' => $r_spo2,
+        'heart_rate' => $r_hr,
+        'pain_level' => $r_pain,
+        'temp' => $r_temp,
+        'blood_volume' => $r_bVol,
+        'blood_color' => $r_bCol,
+        'blood_clots' => $r_bClot,
+        'stump_pain' => $r_stump,
+        'phantom_pain' => $r_phantom,
+        'wound_color' => $r_wCol,
+        'wound_swelling' => $r_wSwell,
+        'wound_fluid' => $r_wFluid,
+        'wound_odor' => $r_wOdor
+    ];
+
+    saveLocalMonitoringLog($newLog);
+    header("Location: dashboard.php?page=home"); exit;
+}
+
+// Fetch today monitoring & monitoring history
+$todayMonitoring = null;
+$profile_id = $_SESSION['active_profile_id'] ?? 0;
+$today = date('Y-m-d');
+$allLogs = getLocalMonitoringLogs();
+
+// Filter for current profile
+$profileLogs = array_filter($allLogs, function($l) use ($user, $profile_id) {
+    return $l['user_id'] == $user['id'] && $l['profile_id'] == $profile_id;
+});
+
+foreach ($profileLogs as $l) {
+    if ($l['record_date'] === $today) {
+        $todayMonitoring = $l;
+        break;
     }
 }
 
-// Fetch today monitoring
-$todayMonitoring = null;
-try {
-    $today = date('Y-m-d');
-    $stmtMon = $pdo->prepare("SELECT * FROM user_daily_monitoring WHERE user_id = ? AND record_date = ? LIMIT 1");
-    $stmtMon->execute([$user['id'], $today]);
-    $todayMonitoring = $stmtMon->fetch(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {}
-
 // Fetch monitoring history (last 30 records)
-$monitoringHistory = [];
-try {
-    $stmtHist = $pdo->prepare("SELECT * FROM user_daily_monitoring WHERE user_id = ? ORDER BY record_date DESC LIMIT 30");
-    $stmtHist->execute([$user['id']]);
-    $monitoringHistory = $stmtHist->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {}
+$monitoringHistory = $profileLogs;
+usort($monitoringHistory, function($a, $b) {
+    return strtotime($b['record_date']) - strtotime($a['record_date']);
+});
+$monitoringHistory = array_slice($monitoringHistory, 0, 30);
+
+// Fetch wound logs (last 30 records)
+$allWounds = getLocalWoundLogs();
+$profileWounds = array_filter($allWounds, function($l) use ($user, $profile_id) {
+    return $l['user_id'] == $user['id'] && $l['profile_id'] == $profile_id;
+});
+$woundHistory = $profileWounds;
+usort($woundHistory, function($a, $b) {
+    return strtotime($b['record_date']) - strtotime($a['record_date']);
+});
+$woundHistory = array_slice($woundHistory, 0, 30);
 
 // Days post-op
 $dayPostOp = 1;
@@ -1186,7 +1284,11 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
             </div>
 
             <!-- Analysis Result UI -->
-            <div id="wl-result-section" class="hidden glass-card p-0 mb-8 overflow-hidden rounded-3xl relative">
+            <form id="wl-result-section" class="hidden glass-card p-0 mb-8 overflow-hidden rounded-3xl relative" action="dashboard.php" method="POST">
+                <input type="hidden" name="action" value="save_wound_log">
+                <input type="hidden" name="image_base64" id="form-image-base64">
+                <input type="hidden" name="ai_status" id="form-ai-status">
+
                 <div class="grid grid-cols-1 md:grid-cols-2">
                     <div class="bg-gray-100 p-4 shrink-0 flex items-center justify-center">
                         <img id="wl-result-img" src="" class="rounded-2xl w-full h-auto object-cover max-h-[350px] shadow-sm transform transition-transform hover:scale-[1.02]">
@@ -1230,12 +1332,17 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                             Penyembuhan berjalan lancar. Teruskan perawatan luka Anda sesuai dengan anjuran dokter.
                         </p>
                         
-                        <button type="button" onclick="resetWoundAnalysis()" class="mt-8 text-center font-bold px-5 py-3 rounded-xl transition-all" style="background:#F8FCFF; color:#728BA9; border:1px solid #DAE3EC;" onmouseover="this.style.background='#728BA9'; this.style.color='#fff';" onmouseout="this.style.background='#F8FCFF'; this.style.color='#728BA9';">
-                            Analisis Gambar Baru
-                        </button>
+                        <div class="mt-8 flex gap-3">
+                            <button type="submit" class="flex-1 text-center font-extrabold px-5 py-3 rounded-xl transition-all shadow-md text-white" style="background:#728BA9; transform: translateY(0);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                Simpan Data ke Riwayat
+                            </button>
+                            <button type="button" onclick="resetWoundAnalysis()" class="px-5 py-3 rounded-xl transition-all font-bold" style="background:#F8FCFF; color:#728BA9; border:1px solid #DAE3EC;" onmouseover="this.style.background='#DAE3EC';" onmouseout="this.style.background='#F8FCFF';">
+                                Ulang
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </form>
             
             <!-- Reference Details -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -1256,6 +1363,74 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                 </div>
             </div>
             
+            <!-- ===== WOUND LOG HISTORY (DUMMY DATA) ===== -->
+            <div class="mt-12">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:#ECF2E6;">
+                        <svg class="w-6 h-6" fill="none" stroke="#728BA9" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-xl" style="color:#5A6C7A;">Riwayat Foto Luka</h3>
+                        <p class="text-sm font-medium" style="color:#A3ACA0;">Sistem menyimpan <strong style="color:#728BA9;">maksimal 1 foto terbaru</strong> untuk setiap harinya.</p>
+                    </div>
+                </div>
+
+                <?php
+                // Dummy images tailored to op-type as placeholders
+                $dummyImgs = [
+                    'cabg' => [
+                        'https://images.unsplash.com/photo-1631815589968-fdb09a223b1e?w=400&h=300&fit=crop', // bandage
+                        'https://images.unsplash.com/photo-1584432810601-6c7f27d2362b?w=400&h=300&fit=crop', // stethoscope
+                        'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop'  // hospital bed
+                    ],
+                    'sc' => [
+                        'https://images.unsplash.com/photo-1583324113626-70df0f4deaab?w=400&h=300&fit=crop', // plaster
+                        'https://images.unsplash.com/photo-1531983412531-1f49a365ffed?w=400&h=300&fit=crop', // pregnancy/belly
+                        'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=400&h=300&fit=crop'  // medical setting
+                    ],
+                    'amputation' => [
+                        'https://images.unsplash.com/photo-1580281657527-47f249e8f4df?w=400&h=300&fit=crop', // orthopedics/leg
+                        'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=400&h=300&fit=crop', // injury/bandage
+                        'https://images.unsplash.com/photo-1631815589968-fdb09a223b1e?w=400&h=300&fit=crop'  // bandage
+                    ]
+                ];
+                $selImgs = $dummyImgs[$opType] ?? $dummyImgs['cabg'];
+                ?>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <?php if (empty($woundHistory)): ?>
+                    <div class="col-span-1 md:col-span-3 text-center py-10 opacity-60">
+                        <p class="font-bold mb-1 text-[#728BA9]">Belum ada gambar yang tersimpan.</p>
+                        <p class="text-xs font-medium text-[#A3ACA0]">Unggah dan simpan foto luka Anda untuk mulai melacak riwayat penyembuhan.</p>
+                    </div>
+                    <?php else: ?>
+                    <?php foreach ($woundHistory as $wh): 
+                        $whDate = new DateTime($wh['record_date']);
+                        $surgStart = new DateTime($surgeryDate ?? $wh['record_date']);
+                        $surgStart->setTime(0,0,0); $whDate->setTime(0,0,0);
+                        $whDayNum = $surgStart->diff($whDate)->days + 1;
+
+                        $bgStatus = ($wh['status'] === 'Warning') ? '#fef08a' : (strpos($wh['status'], 'Infeksi') !== false ? '#fecaca' : '#ECF2E6');
+                        $textColor = ($wh['status'] === 'Warning') ? '#ca8a04' : (strpos($wh['status'], 'Infeksi') !== false ? '#dc2626' : '#728BA9');
+                    ?>
+                    <div class="glass-card p-5 group hover:-translate-y-1 transition-all">
+                        <div class="w-full aspect-video rounded-xl bg-gray-200 mb-4 overflow-hidden relative">
+                            <!-- Image -->
+                            <img src="<?= htmlspecialchars($wh['image_data']) ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 border border-white">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
+                            <div class="absolute top-2 right-2 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-white/90 shadow-sm" style="color:<?= $textColor ?>;">Hari ke-<?= $whDayNum ?></div>
+                        </div>
+                        <p class="font-extrabold text-sm text-[#5A6C7A] mb-1.5"><?= date('d M Y', strtotime($wh['record_date'])) ?></p>
+                        <div class="flex justify-between items-center bg-white/50 px-3 py-2 rounded-lg">
+                            <span class="text-xs font-bold text-[#A3ACA0]">Status AI:</span> 
+                            <span class="text-xs font-extrabold px-2 py-0.5 rounded-md" style="background:<?= $bgStatus ?>; color:<?= $textColor ?>;"><?= htmlspecialchars($wh['status']) ?></span>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+
         </div>
 
 
@@ -1456,6 +1631,9 @@ function showWoundResult() {
     document.getElementById('wl-status-icon').style.backgroundColor = iconBg;
     
     document.getElementById('wl-ai-note').textContent = note;
+    
+    document.getElementById('form-image-base64').value = document.getElementById('wl-result-img').src;
+    document.getElementById('form-ai-status').value = status;
 }
 
 function resetWoundAnalysis() {

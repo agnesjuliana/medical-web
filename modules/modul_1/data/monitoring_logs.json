@@ -1,0 +1,38 @@
+[
+    {
+        "user_id": 2,
+        "profile_id": 5,
+        "record_date": "2026-04-20",
+        "spo2": 98,
+        "heart_rate": 80,
+        "pain_level": 3,
+        "temp": null,
+        "blood_volume": null,
+        "blood_color": null,
+        "blood_clots": null,
+        "stump_pain": null,
+        "phantom_pain": null,
+        "wound_color": null,
+        "wound_swelling": null,
+        "wound_fluid": null,
+        "wound_odor": null
+    },
+    {
+        "user_id": 2,
+        "profile_id": 1,
+        "record_date": "2026-04-20",
+        "spo2": 90,
+        "heart_rate": 85,
+        "pain_level": 3,
+        "temp": null,
+        "blood_volume": null,
+        "blood_color": null,
+        "blood_clots": null,
+        "stump_pain": null,
+        "phantom_pain": null,
+        "wound_color": null,
+        "wound_swelling": null,
+        "wound_fluid": null,
+        "wound_odor": null
+    }
+]
