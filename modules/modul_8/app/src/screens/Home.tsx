@@ -127,20 +127,22 @@ function HomeContent({
   }
 
   useEffect(() => {
+    const controller = new AbortController();
     const dateStr = selectedDate.toISOString().split("T")[0];
     setIsLoading(true);
     setError(null);
-    getDashboard(dateStr)
+    getDashboard(dateStr, controller.signal)
       .then((res) => {
         setDashboardData(res.data);
+        setIsLoading(false);
       })
       .catch((err) => {
+        if (err.name === 'AbortError') return;
         console.error(err);
         setError("Failed to load dashboard data");
-      })
-      .finally(() => {
         setIsLoading(false);
       });
+    return () => controller.abort();
   }, [selectedDate]);
 
   const d = dashboardData

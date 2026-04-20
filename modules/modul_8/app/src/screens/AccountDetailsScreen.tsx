@@ -35,6 +35,10 @@ export default function AccountDetailsScreen({
   const [stepGoal, setStepGoal] = useState(10000);
 
   useEffect(() => {
+    if (initialData) {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     getProfile()

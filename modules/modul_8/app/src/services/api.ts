@@ -88,9 +88,9 @@ export const saveProfile = async (payload: Partial<Profile>) => {
   return response.json();
 };
 
-export const getDashboard = async (date?: string): Promise<{ data: DashboardData }> => {
+export const getDashboard = async (date?: string, signal?: AbortSignal): Promise<{ data: DashboardData }> => {
   const url = date ? `${BASE_URL}?action=get_dashboard&date=${date}` : `${BASE_URL}?action=get_dashboard`;
-  const response = await fetch(url);
+  const response = await fetch(url, { signal });
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(errorText || 'Failed to fetch dashboard');
@@ -203,6 +203,36 @@ export const getCalorieAverages = async (): Promise<{
 }> => {
   const response = await fetch(`${BASE_URL}?action=get_calorie_averages`);
   if (!response.ok) throw new Error('Failed to fetch calorie averages');
+  return response.json();
+};
+
+export interface ProgressSummary {
+  weight: {
+    current_weight: number;
+    start_weight: number;
+    goal_weight: number | null;
+    goal_progress: number;
+    height_cm: number;
+    bmi: number;
+    logs: Array<{ day: string; date: string; weight: number }>;
+    deltas: { '3d': number; '7d': number; '30d': number };
+  };
+  energy: {
+    week_start: string;
+    week_end: string;
+    days: Array<{ day: string; date: string; consumed_cal: number }>;
+    total_consumed: number;
+  };
+  calories: {
+    avg_7d: number | null;
+    avg_30d: number | null;
+    logs_7d: Array<{ log_date: string; calories: number }>;
+  };
+}
+
+export const getProgressSummary = async (signal?: AbortSignal): Promise<{ data: ProgressSummary }> => {
+  const response = await fetch(`${BASE_URL}?action=get_progress_summary`, { signal });
+  if (!response.ok) throw new Error('Failed to fetch progress summary');
   return response.json();
 };
 

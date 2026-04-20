@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Header from "@/components/header/Header";
 import {
   Plus,
@@ -28,6 +28,7 @@ import {
   getWeightProgress,
   getWeeklyEnergy,
   getCalorieAverages,
+  getProgressSummary,
   toast,
 } from "@/services/api";
 
@@ -175,7 +176,26 @@ export default function ProgressScreen() {
   const [loadingEnergy, setLoadingEnergy] = useState(true);
   const [loadingCalories, setLoadingCalories] = useState(true);
 
-  // Fetch weight progress whenever range changes
+  const initialLoaded = useRef(false);
+
+  // Combined initial fetch — one request instead of three
+  useEffect(() => {
+    getProgressSummary()
+      .then((res) => {
+        setWeightData(res.data.weight);
+        setEnergyData(res.data.energy);
+        setCalorieData(res.data.calories);
+        initialLoaded.current = true;
+      })
+      .catch((err) => toast.error(err.message || "Failed to load progress data"))
+      .finally(() => {
+        setLoadingWeight(false);
+        setLoadingEnergy(false);
+        setLoadingCalories(false);
+      });
+  }, []);
+
+  // Fetch weight progress whenever range changes (skip initial load)
   const fetchWeightProgress = useCallback(async () => {
     setLoadingWeight(true);
     try {
@@ -188,7 +208,7 @@ export default function ProgressScreen() {
     }
   }, [weightRange]);
 
-  // Fetch weekly energy whenever offset changes
+  // Fetch weekly energy whenever offset changes (skip initial load)
   const fetchWeeklyEnergy = useCallback(async () => {
     setLoadingEnergy(true);
     try {
@@ -201,19 +221,13 @@ export default function ProgressScreen() {
     }
   }, [energyOffset]);
 
-  // Fetch calorie averages once
   useEffect(() => {
-    getCalorieAverages()
-      .then((res) => setCalorieData(res.data))
-      .catch((err) => toast.error(err.message || "Failed to load calorie data"))
-      .finally(() => setLoadingCalories(false));
-  }, []);
-
-  useEffect(() => {
+    if (!initialLoaded.current) return;
     fetchWeightProgress();
   }, [fetchWeightProgress]);
 
   useEffect(() => {
+    if (!initialLoaded.current) return;
     fetchWeeklyEnergy();
   }, [fetchWeeklyEnergy]);
 
