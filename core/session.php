@@ -31,6 +31,7 @@ function setUser(array $user): void
     $_SESSION['user_id']    = $user['id'];
     $_SESSION['user_name']  = $user['name'];
     $_SESSION['user_email'] = $user['email'];
+    $_SESSION['user_role']  = $user['role'] ?? 'patient';
     $_SESSION['logged_in']  = true;
     $_SESSION['login_time'] = time();
 
@@ -53,6 +54,7 @@ function getSessionUser(): ?array
         'id'    => $_SESSION['user_id'],
         'name'  => $_SESSION['user_name'],
         'email' => $_SESSION['user_email'],
+        'role'  => $_SESSION['user_role'] ?? 'patient',
     ];
 }
 
