@@ -45,8 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['photo'])) {
 
         // QUERY FIX: Memasukkan data profil asli (bukan NULL)
         $sql = "INSERT INTO screening_results 
-                (patient_id, full_name, age, skin_type, main_concern, image_path, ml_severity_level, ml_papule_count, ml_pustule_count, ml_blackhead_count, status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                (patient_id, full_name, age, skin_type, main_concern, image_path, ml_severity_level, ml_papule_count, ml_pustule_count, ml_blackhead_count) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $db->prepare($sql);
         $stmt->execute([
             $user['id'], 
@@ -56,8 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['photo'])) {
             $profile['main_concern'], 
             $target_file, 
             $severity_upper, 
-            $papule, $pustule, $blackhead, 
-            'Completed'
+            $papule, $pustule, $blackhead
         ]);
         
         $new_id = $db->lastInsertId();

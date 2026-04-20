@@ -10,12 +10,12 @@
 <style>
     /* Dermalyze AI Custom Premium CSS - Light Theme */
     :root {
-        --derm-primary: #FFB7CE;        
-        --derm-secondary: #B2E2F2;     
-        --derm-accent: #C1E1C1;         
-        --derm-dark: #7D6E7D;           
+        --derm-primary: #FFB7CE;
+        --derm-secondary: #B2E2F2;
+        --derm-accent: #C1E1C1;
+        --derm-dark: #7D6E7D;
         --derm-card: #ffffff;
-        --derm-glass-border: #FFF0F5;   
+        --derm-glass-border: #FFF0F5;
         --derm-glass-bg: #FFFBFC;
     }
 
@@ -43,7 +43,7 @@
     }
 
     .derm-title {
-       background: linear-gradient(to right, #FFB7CE, #92DFF3);
+        background: linear-gradient(to right, #FFB7CE, #92DFF3);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 12px;
@@ -71,7 +71,7 @@
         padding: 12px 30px;
         border-radius: 30px;
         background: #FFB7CE;
-        color:white;
+        color: white;
         font-weight: 700;
         cursor: pointer;
         border: 2px solid transparent;
@@ -96,11 +96,11 @@
         padding: 60px 20px;
         text-align: center;
         cursor: pointer;
-        transition: all 0.3s ease;        
+        transition: all 0.3s ease;
     }
 
     .upload-area:hover {
-        background:  #FFF0F5;
+        background: #FFF0F5;
         border-color: var(--derm-primary);
         transform: translateY(-5px);
     }
@@ -175,9 +175,19 @@
     }
 
     @keyframes scanAnim {
-        0% { transform: translateY(-60px); opacity: 0.3; }
-        50% { opacity: 1; }
-        100% { transform: translateY(60px); opacity: 0.3; }
+        0% {
+            transform: translateY(-60px);
+            opacity: 0.3;
+        }
+
+        50% {
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateY(60px);
+            opacity: 0.3;
+        }
     }
 
     .scan-text {
@@ -228,8 +238,8 @@
 
 <script>
     // MASUKKAN LINK GOOGLE KAMU DI SINI
-    const URL_MODEL = "https://teachablemachine.withgoogle.com/models/P0MVm4rAa/"; 
-    
+    const URL_MODEL = "https://teachablemachine.withgoogle.com/models/P0MVm4rAa/";
+
     let model, currentStream;
 
     // Load model saat halaman terbuka
@@ -299,13 +309,13 @@
         // 1. Buat elemen gambar untuk diproses AI
         const img = document.createElement('img');
         img.src = window.URL.createObjectURL(file);
-        
+
         img.onload = async () => {
             // 2. Jalankan Prediksi Teachable Machine
             const prediction = await model.predict(img);
-            
+
             // Cari hasil dengan probabilitas tertinggi
-            let highest = prediction.reduce((prev, current) => 
+            let highest = prediction.reduce((prev, current) =>
                 (prev.probability > current.probability) ? prev : current
             );
 
