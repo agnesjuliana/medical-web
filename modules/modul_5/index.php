@@ -15,7 +15,7 @@ $pageTitle = 'Modul 5';
 
 <?php
 try {
-    $pdo = getDBConnection();
+    $pdo = getAppDBConnection();
     $stmt = $pdo->query("
         SELECT id, problem, title, methodology, skills, result, impact, documentation,
                contributor_name, created_at
