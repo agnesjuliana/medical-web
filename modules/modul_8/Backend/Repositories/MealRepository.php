@@ -13,7 +13,7 @@ class MealRepository
         $this->pdo = $pdo;
     }
 
-    public function getByDate(int $userId, string $date): array
+    public function getByDate(int $userId, string $date, int $limit = 20, int $offset = 0): array
     {
         $stmt = $this->pdo->prepare('
             SELECT id, meal_type, name, calories, protein_g, carbs_g, fats_g,
@@ -21,9 +21,14 @@ class MealRepository
                    ai_confidence, saved_food_id, created_at
             FROM m8_meals
             WHERE user_id = ? AND log_date = ?
-            ORDER BY created_at ASC
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
         ');
-        $stmt->execute([$userId, $date]);
+        $stmt->bindValue(1, $userId, PDO::PARAM_INT);
+        $stmt->bindValue(2, $date);
+        $stmt->bindValue(3, $limit, PDO::PARAM_INT);
+        $stmt->bindValue(4, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $meals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($meals as &$meal) {

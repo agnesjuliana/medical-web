@@ -45,9 +45,9 @@ class AiController extends Controller
             $this->jsonError($e->getMessage(), 422);
         }
 
-        // Atomic quota check + increment
+        // Check quota BEFORE processing (do not consume quota on validation failure)
         $limit = $this->service->getDailyLimit();
-        if (!$this->repo->checkAndIncrement($userId, $limit)) {
+        if (!$this->repo->canScanToday($userId, $limit)) {
             $this->jsonError("Daily AI scan limit reached ({$limit}/day)", 429);
         }
 
@@ -61,7 +61,9 @@ class AiController extends Controller
         try {
             $text = $this->service->callClaude($rawB64, $mediaType, $apiKey);
         } catch (\RuntimeException $e) {
-            $this->jsonError($e->getMessage(), 502);
+            // Log detailed error server-side, return generic message to client
+            error_log('[ai_scan] Claude API error: ' . $e->getMessage());
+            $this->jsonError('AI service temporarily unavailable', 502);
         }
 
         $prediction = json_decode($text, true);
@@ -75,6 +77,9 @@ class AiController extends Controller
         } catch (\UnexpectedValueException $e) {
             $this->jsonError($e->getMessage(), 422);
         }
+
+        // Increment quota only after successful parse/sanitization
+        $this->repo->incrementScanCount($userId);
 
         $this->jsonSuccess($prediction);
     }

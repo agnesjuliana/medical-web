@@ -15,6 +15,7 @@ class AiScanService
     /**
      * Parse and validate the raw base64 data URI.
      * Returns ['raw_b64' => string, 'media_type' => string] or throws.
+     * Enforces max 2MB size and JPEG signature validation.
      */
     public function parseImageUri(string $imageB64): array
     {
@@ -23,8 +24,19 @@ class AiScanService
         }
 
         $rawB64 = preg_replace('/^data:image\/[a-z]+(?:;[^,]+)*;base64,/', '', $imageB64);
-        if (base64_decode($rawB64, true) === false) {
+        $binary = base64_decode($rawB64, true);
+        if ($binary === false) {
             throw new \InvalidArgumentException('Invalid image encoding');
+        }
+
+        // Enforce max 2MB size limit
+        if (strlen($binary) > 2 * 1024 * 1024) {
+            throw new \InvalidArgumentException('Image exceeds 2MB limit');
+        }
+
+        // Enforce JPEG signature (magic bytes)
+        if (strncmp($binary, "\xFF\xD8\xFF", 3) !== 0) {
+            throw new \InvalidArgumentException('Only JPEG images are allowed');
         }
 
         preg_match('/^data:(image\/[a-z]+)(?:;[^,]+)*;base64,/', $imageB64, $mimeMatch);

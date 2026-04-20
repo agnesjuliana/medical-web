@@ -30,7 +30,11 @@ class MealController extends Controller
             $this->jsonError('Invalid date format', 422);
         }
 
-        $this->jsonSuccess($this->meals->getByDate($userId, $date));
+        // Add pagination support with sane limits
+        $limit = max(1, min(50, (int) ($_GET['limit'] ?? 20)));
+        $offset = max(0, (int) ($_GET['offset'] ?? 0));
+
+        $this->jsonSuccess($this->meals->getByDate($userId, $date, $limit, $offset));
     }
 
     public function logMeal(int $userId): void
@@ -54,14 +58,31 @@ class MealController extends Controller
             $this->jsonError('Invalid log_date', 422);
         }
 
+        // Validate log_date is not in the future
+        $logDateObj = new \DateTimeImmutable($log_date);
+        if ($logDateObj > new \DateTimeImmutable('today')) {
+            $this->jsonError('log_date cannot be in the future', 422);
+        }
+
         // Validate source enum strictly
         $validSources = ['manual', 'saved', 'database', 'barcode', 'ai_scan'];
         if (!in_array($source, $validSources, true)) {
             $this->jsonError('Invalid source. Must be one of: manual, saved, database, barcode, ai_scan', 422);
         }
 
-        if ($source === 'ai_scan' && $ai_confidence === null) {
-            $this->jsonError('ai_confidence is required when source is ai_scan', 422);
+        // Validate: source = saved requires saved_food_id
+        if ($source === 'saved' && $saved_food_id === null) {
+            $this->jsonError('saved_food_id is required when source is saved', 422);
+        }
+
+        // Validate: source = ai_scan requires ai_confidence in range 0..1
+        if ($source === 'ai_scan') {
+            if ($ai_confidence === null) {
+                $this->jsonError('ai_confidence is required when source is ai_scan', 422);
+            }
+            if ($ai_confidence < 0 || $ai_confidence > 1) {
+                $this->jsonError('ai_confidence must be between 0 and 1', 422);
+            }
         }
 
         // IDOR Check: If saved_food_id is provided, verify ownership
@@ -203,15 +224,17 @@ class MealController extends Controller
         $amount   = $body['amount_ml'] ?? 0;
         $log_date = $body['log_date']  ?? date('Y-m-d');
 
-        if ($amount <= 0) {
-            $this->jsonError('Amount must be positive', 422);
+        // Enforce bounded range: 50-5000 ml
+        if ($amount < 50 || $amount > 5000) {
+            $this->jsonError('amount_ml must be between 50 and 5000', 422);
         }
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $log_date)) {
             $this->jsonError('Invalid log_date', 422);
         }
 
         $id = $this->water->insert($userId, $log_date, (int) $amount);
-        $this->jsonSuccess(['id' => $id], 201);
+        $total = $this->water->getTotalByDate($userId, $log_date);
+        $this->jsonSuccess(['id' => $id, 'amount_ml' => (int) $amount, 'water_ml' => $total], 201);
     }
 
     public function logWeight(int $userId): void
@@ -219,6 +242,7 @@ class MealController extends Controller
         $body     = $this->getRequestBody();
         $weight   = $body['weight_kg'] ?? 0;
         $log_date = $body['log_date']  ?? date('Y-m-d');
+        $note     = isset($body['note']) ? trim((string) $body['note']) : null;
 
         if ($weight <= 0) {
             $this->jsonError('Weight must be positive', 422);
@@ -227,7 +251,12 @@ class MealController extends Controller
             $this->jsonError('Invalid log_date', 422);
         }
 
-        $id = $this->weight->insertAndUpdateProfile($userId, (float) $weight, $log_date);
+        // Validate note max length (500 characters)
+        if ($note !== null && mb_strlen($note) > 500) {
+            $this->jsonError('note max length is 500 characters', 422);
+        }
+
+        $id = $this->weight->insertAndUpdateProfile($userId, (float) $weight, $log_date, $note);
         $this->jsonSuccess(['id' => $id], 201);
     }
 }

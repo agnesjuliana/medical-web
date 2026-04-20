@@ -97,18 +97,19 @@ class WeightRepository
     /**
      * Insert a new weight log entry and update the profile snapshot.
      * Runs inside a transaction to guarantee atomicity.
+     * @param string|null $note Optional note with max 500 characters
      */
-    public function insertAndUpdateProfile(int $userId, float $weightKg, string $date): int
+    public function insertAndUpdateProfile(int $userId, float $weightKg, string $date, ?string $note = null): int
     {
         $this->pdo->beginTransaction();
         try {
-            // 1. Log to history
+            // 1. Log to history with optional note
             $stmt = $this->pdo->prepare('
-                INSERT INTO m8_weight_logs (user_id, weight_kg, log_date, created_at, updated_at)
-                VALUES (?, ?, ?, NOW(), NOW())
+                INSERT INTO m8_weight_logs (user_id, weight_kg, log_date, note, created_at, updated_at)
+                VALUES (?, ?, ?, ?, NOW(), NOW())
                 RETURNING id
             ');
-            $stmt->execute([$userId, $weightKg, $date]);
+            $stmt->execute([$userId, $weightKg, $date, $note]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
             // 2. Update profile snapshot
