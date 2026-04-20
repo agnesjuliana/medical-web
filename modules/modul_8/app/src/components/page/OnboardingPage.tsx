@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { Apple, Check, Flame, Wheat, Beef, Droplets, Loader2 } from "lucide-react";
-import { saveProfile, toast } from "../../services/api";
+import { Apple, Check, Flame, Wheat, Beef, Droplets } from "lucide-react";
 import OnboardingHeader from "../header/OnboardingHeader";
 import SelectionCard from "../ui/SelectionCard";
 import ScrollPickerColumn from "../ui/ScrollPickerColumn";
@@ -9,13 +8,9 @@ import FixedBottomBar from "../ui/FixedBottomBar";
 import { Switch } from "../ui/switch";
 import { cn } from "@/lib/utils";
 import OnboardingResults from "./OnboardingResults";
-import type {
-  FormData,
-  Step,
-  StringKey,
-  SelectOption,
-} from "./onboarding-config";
+import type { FormData, Step, StringKey, SelectOption } from "./onboarding-config";
 import { STEPS } from "./onboarding-config";
+
 
 // ─── Picker data ──────────────────────────────────────────────────────────────
 
@@ -350,6 +345,7 @@ function computeGoalDate(form: FormData): string {
   return d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
 }
 
+
 // ─── Loading content ──────────────────────────────────────────────────────────
 
 const LOADING_MSGS = [
@@ -426,6 +422,8 @@ function LoadingContent({ onComplete }: { onComplete: () => void }) {
   );
 }
 
+
+
 // ─── Save progress content ────────────────────────────────────────────────────
 
 function SaveProgressContent({
@@ -499,7 +497,6 @@ export default function OnboardingPage({
 }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [form, setForm] = useState<FormData>(INITIAL_FORM);
-  const [isSaving, setIsSaving] = useState(false);
 
   const step = STEPS[stepIndex];
   const totalSteps = STEPS.length;
@@ -540,35 +537,11 @@ export default function OnboardingPage({
     }
   }
 
-  async function handleContinue() {
-    if (stepIndex < totalSteps - 1) {
+  function handleContinue() {
+    if (stepIndex < totalSteps - 2) {
       setStepIndex((i) => i + 1);
     } else {
-      setIsSaving(true);
-      try {
-        const monthIdx = MONTHS.indexOf(form.birthMonth);
-        const birth_date = `${form.birthYear}-${String(monthIdx + 1).padStart(2, "0")}-${String(form.birthDay).padStart(2, "0")}`;
-
-        await saveProfile({
-          gender: form.gender as "male" | "female",
-          birth_date,
-          height_cm: parseHeightCm(form.height),
-          weight_kg: parseWeightKg(form.weight),
-          activity_level: form.activity as any,
-          goal: form.goal as any,
-          goal_weight_kg: form.desiredWeight,
-          step_goal: 10000,
-          barriers: form.barriers,
-        });
-
-        toast.success("Profile saved!");
-        onComplete?.();
-      } catch (err: any) {
-        console.error(err);
-        toast.error(err.message || "Failed to save profile");
-      } finally {
-        setIsSaving(false);
-      }
+      onComplete?.();
     }
   }
 
@@ -654,9 +627,7 @@ export default function OnboardingPage({
       : parseFloat((form.desiredWeight * 2.20462).toFixed(1));
     const targetUnit = isMetric ? "kg" : "lbs";
 
-    const diffWeight = isMetric
-      ? diff
-      : parseFloat((diff * 2.20462).toFixed(1));
+    const diffWeight = isMetric ? diff : parseFloat((diff * 2.20462).toFixed(1));
 
     const plan = {
       targetWeight,
@@ -774,19 +745,8 @@ export default function OnboardingPage({
       {showFooter && (
         <FixedBottomBar
           onContinue={handleContinue}
-          disabled={!canContinue() || isSaving}
-          label={
-            isSaving ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="animate-spin" size={18} />
-                Saving...
-              </div>
-            ) : stepIndex === totalSteps - 1 ? (
-              "Finish"
-            ) : (
-              "Continue"
-            )
-          }
+          disabled={!canContinue()}
+          label={stepIndex === totalSteps - 2 ? "Finish" : "Continue"}
         />
       )}
     </div>

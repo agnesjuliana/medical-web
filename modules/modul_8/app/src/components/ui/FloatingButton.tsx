@@ -1,7 +1,6 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { LucideIcon } from "lucide-react";
-import { Slot } from "radix-ui";
 import { cn } from "@/lib/utils";
 
 const floatingButtonVariants = cva(
@@ -33,51 +32,29 @@ const floatingButtonVariants = cva(
   },
 );
 
-const ICON_SIZE_MAP = {
-  small: 24,
-  medium: 28,
-  large: 36,
-} as const;
+function FloatingButton({
+  className,
+  size = "medium",
+  variant = "primary",
+  icon: Icon,
+  ...props
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof floatingButtonVariants> & {
+    icon: LucideIcon;
+  }) {
+  const iconSize = size === "small" ? 24 : size === "large" ? 36 : 28;
 
-export interface FloatingButtonProps
-  extends
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof floatingButtonVariants> {
-  icon?: LucideIcon;
-  asChild?: boolean;
+  return (
+    <button
+      data-slot="floating-button"
+      data-variant={variant}
+      data-size={size}
+      className={cn(floatingButtonVariants({ size, variant, className }))}
+      {...props}
+    >
+      <Icon size={iconSize} strokeWidth={2} />
+    </button>
+  );
 }
-
-const FloatingButton = React.forwardRef<HTMLButtonElement, FloatingButtonProps>(
-  (
-    {
-      className,
-      size = "medium",
-      variant = "primary",
-      icon: Icon,
-      asChild = false,
-      ...props
-    },
-    ref,
-  ) => {
-    const Comp = asChild ? Slot.Root : "button";
-    const iconSize = ICON_SIZE_MAP[size || "medium"];
-
-    return (
-      <Comp
-        ref={ref}
-        data-slot="floating-button"
-        data-variant={variant}
-        data-size={size}
-        aria-label={props["aria-label"] || "Floating action button"}
-        className={cn(floatingButtonVariants({ size, variant, className }))}
-        {...props}
-      >
-        {props.children || (Icon && <Icon size={iconSize} strokeWidth={2} />)}
-      </Comp>
-    );
-  },
-);
-
-FloatingButton.displayName = "FloatingButton";
 
 export { FloatingButton, floatingButtonVariants };
