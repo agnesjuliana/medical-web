@@ -3,7 +3,7 @@ from network.landmark_detection_network import LandmarkDetectionNetwork
 from network.semantic_fusion_block import SemanticFusionBlock
 from easydict import EasyDict as edict
 from network.pooling import ROIAlign2D
-from models import Backbone
+from network.models import Backbone
 import tensorflow as tf
 from config import cfg
 

@@ -3,8 +3,17 @@
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../config/database.php';
 
-$userName = $_SESSION['user_name'] ?? 'Ghaly Rakha Okusara';
-$userEmail = $_SESSION['user_email'] ?? 'rakha.okusara@gmail.com';
+requireLogin();
+startSession();
+
+if (empty($_SESSION['modul_11_authorized'])) {
+    header("Location: login.php");
+    exit;
+}
+
+$user = getCurrentUser();
+$userName = $user['name'] ?? 'Pengguna';
+$userInitials = getUserInitials();
 
 // Tarik data dari database
 $pdo = getDBConnection();
@@ -233,7 +242,7 @@ $riwayat_pasien = $stmt->fetchAll();
         </div>
         <a href="../../index.php" title="Kembali ke Dashboard">
             <div class="avatar">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <?= htmlspecialchars($userInitials) ?>
             </div>
         </a>
     </div>

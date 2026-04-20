@@ -3,8 +3,17 @@
 require_once __DIR__ . '/../../core/auth.php';
 require_once __DIR__ . '/../../config/database.php';
 
-$userName = $_SESSION['user_name'] ?? 'Dokter';
-$userEmail = $_SESSION['user_email'] ?? 'admin@medweb.com';
+requireLogin();
+startSession();
+
+if (empty($_SESSION['modul_11_authorized'])) {
+    header("Location: login.php");
+    exit;
+}
+
+$user = getCurrentUser();
+$userName = $user['name'] ?? 'Pengguna';
+$userInitials = getUserInitials();
 
 // 1. Tangkap ID Analisis dari URL (misal: result.php?id=5)
 $id_analisis = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -132,6 +141,19 @@ if (!$data) {
         .assistant-header { display: flex; align-items: center; gap: 10px; color: #38bdf8; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
         .assistant-content { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; }
         
+        /* Sliders */
+        .config-panel { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);}
+        .slider-group { margin-bottom: 12px; }
+        .slider-header { display: flex; justify-content: space-between; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 5px; }
+        .slider-val { color: #38bdf8; font-weight: bold; }
+        .custom-range { width: 100%; cursor: pointer; accent-color: #0ea5e9; height: 5px; border-radius: 5px;}
+        
+        /* Model Metrics */
+        .metrics-badge { display: flex; justify-content: space-around; background: rgba(15,23,42,0.6); padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px dashed rgba(56,189,248,0.3);}
+        .metric-item { text-align: center; }
+        .metric-title { font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .metric-num { font-size: 1.05rem; color: #f8fafc; font-weight: bold; background: linear-gradient(to right, #7dd3fc, #e0f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+
         /* Tombol Eksekusi Python */
         .btn-run-ai { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 16px; border-radius: 12px; cursor: pointer; font-weight: 700; width: 100%; margin-top: 25px; font-size: 1.05rem; transition: transform 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); letter-spacing: 0.5px;}
         .btn-run-ai:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5); }
@@ -164,7 +186,7 @@ if (!$data) {
         <div class="user-info">
             <div class="user-name"><?= htmlspecialchars($userName) ?></div>
         </div>
-        <div class="avatar">DR</div>
+        <div class="avatar"><?= htmlspecialchars($userInitials) ?></div>
     </div>
 </div>
 
@@ -220,6 +242,23 @@ if (!$data) {
                 </div>
             </div>
 
+            <div class="metrics-badge">
+                <div class="metric-item"><div class="metric-title">mAP@50</div><div class="metric-num">26.1%</div></div>
+                <div class="metric-item"><div class="metric-title">Precision</div><div class="metric-num">31.9%</div></div>
+                <div class="metric-item"><div class="metric-title">Recall</div><div class="metric-num">32.8%</div></div>
+            </div>
+
+            <div class="config-panel">
+                <div class="slider-group">
+                    <div class="slider-header"><span>Confidence Threshold</span><span id="confVal" class="slider-val">30%</span></div>
+                    <input type="range" class="custom-range" id="confSlider" min="1" max="100" value="30">
+                </div>
+                <div class="slider-group" style="margin-bottom:0">
+                    <div class="slider-header"><span>Overlap (NMS) Threshold</span><span id="overVal" class="slider-val">50%</span></div>
+                    <input type="range" class="custom-range" id="overSlider" min="1" max="100" value="50">
+                </div>
+            </div>
+
             <div class="assistant-box">
                 <div class="assistant-header">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
@@ -248,14 +287,24 @@ if (!$data) {
     // Sembunyikan overlay saat pertama kali load
     overlayAi.style.display = 'none';
 
+    // Logika Sinkronisasi Teks Slider
+    const confSlider = document.getElementById('confSlider');
+    const overSlider = document.getElementById('overSlider');
+    confSlider.oninput = () => document.getElementById('confVal').innerText = confSlider.value + '%';
+    overSlider.oninput = () => document.getElementById('overVal').innerText = overSlider.value + '%';
+
     btnRunAi.addEventListener('click', async () => {
         // Tampilkan animasi skeleton loading
         overlayAi.style.display = 'flex';
-        overlayAi.innerHTML = '<div class="spinner"></div><div style="letter-spacing: 1px;">AI Python sedang menelaah Rontgen...</div>';
+        overlayAi.innerHTML = '<div class="spinner"></div><div style="letter-spacing: 1px;">Roboflow AI sedang mengkalkulasi matriks Rontgen...</div>';
         
         try {
-            // Meluncurkan misil data ke Jembatan PHP kita
-            const response = await fetch(`api_bridge.php?id=${idAnalisis}`);
+            // Sinyal penghapusan hasil cache agar animasi Reset berjalan
+            document.querySelectorAll('.angle-value').forEach(el => el.innerHTML = '--°');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Meluncurkan misil data ke Jembatan PHP kita dengan memasukkan parameter Slider
+            const response = await fetch(`api_bridge.php?id=${idAnalisis}&conf=${confSlider.value}&overlap=${overSlider.value}`);
             const result = await response.json();
             
             if (result.status === 'success') {
@@ -290,8 +339,50 @@ if (!$data) {
                     ctx.fillText(index+1, cx + 6, cy + 4);
                 });
                 
-                // Update teks Asisten untuk estetika UX
-                document.querySelector('.assistant-content').innerHTML = `<p style="color:#10b981; margin:0;"><b>Sukses 100%!</b><br>AI Python berhasil mendeteksi dan memetakan 19 titik Cephalometri di atas kanvas citra pasien secara presisi.</p>`;
+                // Hitung jumlah titik total yang terdeteksi dengan threshold baru
+                const dotsCount = result.landmarks.length;
+
+                // --- ALGORITMA DIAGNOSTIK GEOMETRI SEFALOMETRI ---
+                let ptS, ptN, ptA, ptB;
+                result.landmarks.forEach(p => {
+                    const lab = p.label.toLowerCase();
+                    // Pencarian pintar (regex parsial) menyesuaikan model Michael Andraus
+                    if (lab.includes('sella') || lab.includes('-(s)')) ptS = p;
+                    if (lab.includes('nasion') || lab.includes('-(n)')) ptN = p;
+                    if (lab.includes('subnasal') || lab.includes('-a-') || lab.includes('(a)')) ptA = p;
+                    if (lab.includes('supramentale') || lab.includes('menton') || lab.includes('-b-') || lab.includes('(b)')) ptB = p; // Toleransi point B / menton
+                });
+                
+                let diagSNA = "--", diagSNB = "--", diagANB = "--";
+                let diagnosisText = `<p style="color:#ef4444; margin:0;"><b>Titik Anatomi Esensial Tidak Lengkap / Hilang!</b><br>Terdapat <b>${dotsCount} titik</b>. Namun, Cloud AI gagal mendeteksi formasi kuartet inti (S, N, A, dan B) secara utuh sehingga kalkulasi diagnostik medis tulang rahang tidak dapat dikerjakan. Coba geser / turunkan <i>Confidence Threshold</i> lalu jalankan ulang!</p>`;
+
+                if (ptS && ptN && ptA && ptB) {
+                    // Penemuan sempurna! Mulai Kalkulasi Fungsi Geometri 3 Titik
+                    function getAngle(P1, P2, P3) {
+                        // Rumus absolute delta sudut (P1-P2-P3 dengan Vertex P2)
+                        let ang = Math.abs(Math.atan2(P3.y - P2.y, P3.x - P2.x) - Math.atan2(P1.y - P2.y, P1.x - P2.x)) * 180 / Math.PI;
+                        return ang > 180 ? 360 - ang : ang;
+                    }
+                    
+                    let valSNA = getAngle(ptS, ptN, ptA);
+                    let valSNB = getAngle(ptS, ptN, ptB);
+                    let valANB = Math.abs(valSNA - valSNB); // Selisih Sudut (ANB)
+                    
+                    document.querySelectorAll('.angle-value')[0].innerText = valSNA.toFixed(1) + '°';
+                    document.querySelectorAll('.angle-value')[1].innerText = valSNB.toFixed(1) + '°';
+                    document.querySelectorAll('.angle-value')[2].innerText = valANB.toFixed(1) + '°';
+                    
+                    // Asisten Pintar Diagnosis Steiner's
+                    let kelasSkeletal = "Kelas I (Normal - Pertumbuhan Harmonis)";
+                    if (valANB < 0) kelasSkeletal = "Kelas III (Mandibular Prognathism / Menjorok ke depan)";
+                    if (valANB > 4) kelasSkeletal = "Kelas II (Maxillary Prognathism / Rahang Atas Maju)";
+                    
+                    diagnosisText = `<p style="color:#10b981; margin:0; line-height: 1.5;"><b>Sukses! ${dotsCount} Ditemukan. Analisis Penuh Diterbitkan:</b><br>
+                    Algoritma sukses mengunci titik krusial (A, B, N, S). Berdasarkan Steiner's Analysis yang telah dikalkulasi di atas, rasio pertumbuhan kerangka gigi wajah pasien ini diindikasikan masuk ke taksonomi medis: <br><b style="color:white; font-size:1.1rem; display:block; margin-top:5px;">Skeletal ${kelasSkeletal}</b></p>`;
+                }
+
+                // Update teks Asisten untuk UX Diagnostik
+                document.querySelector('.assistant-content').innerHTML = diagnosisText;
                 
             } else {
                 overlayAi.innerHTML = `<div style="color:#ef4444; font-size:0.9rem; text-align:center; padding: 20px;"><b>KONEKSI GAGAL</b><br>${result.message}</div>`;

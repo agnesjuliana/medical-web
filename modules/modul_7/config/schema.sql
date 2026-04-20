@@ -20,9 +20,6 @@ CREATE TABLE `screening_results` (
   `ml_pustule_count` int(11) DEFAULT 0,
   `ml_blackhead_count` int(11) DEFAULT 0,
   
-  `status` enum('completed_by_ml','pending_doctor_review','reviewed_by_doctor') NOT NULL DEFAULT 'completed_by_ml',
-  `doctor_id` int(11) DEFAULT NULL,
-  `doctor_notes` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
