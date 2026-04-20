@@ -3,7 +3,8 @@
  * Integration: ProgressController via Backend/index.php dispatcher
  *
  * Scenarios:
- *   get_weight_progress  — happy path, missing profile, delta computation
+ *   get_weight_progress  — happy path, missing profile, delta computation,
+ *                          range narrower than delta window (reviewer fix)
  *   get_weekly_energy    — exact week bounds (no over-scan), skeleton fill
  *   get_calorie_averages — backward-compat shape
  *   get_progress_summary — combined payload, all three sections present
@@ -29,18 +30,25 @@ function baseProfile(array $overrides = []): array
 /**
  * Enqueue a get_weight_progress run:
  *   1. profile fetch
- *   2. weight logs fetchAll  (getProgressSummary — range query)
+ *   2. weight logs fetchAll  (getProgressSummary — range query, for chart)
  *   3. first_log fetch       (getProgressSummary — getFirstLog)
+ *   4. delta logs fetchAll   (getRecentLogs(30) — always 30d, independent of range)
  */
-function enqueueWeightProgress(MockPdo $pdo, array $logs = [], ?array $firstLog = null, array $profileOverrides = []): void
-{
-    $pdo->enqueueRow(baseProfile($profileOverrides));
-    $pdo->enqueueRows($logs);
-    if ($firstLog !== null) {
+function enqueueWeightProgress(
+    MockPdo $pdo,
+    array   $chartLogs    = [],
+    ?array  $firstLog     = null,
+    array   $deltaLogs    = [],
+    array   $profileOverrides = []
+): void {
+    $pdo->enqueueRow(baseProfile($profileOverrides));  // 1. profile
+    $pdo->enqueueRows($chartLogs);                     // 2. chart logs (range)
+    if ($firstLog !== null) {                          // 3. first log
         $pdo->enqueueRow($firstLog);
     } else {
         $pdo->enqueueEmpty();
     }
+    $pdo->enqueueRows($deltaLogs);                     // 4. delta logs (always 30d)
 }
 
 /**
@@ -64,27 +72,36 @@ function enqueueCalorieAverages(MockPdo $pdo, array $rows7d = [], array $rows30d
 }
 
 /**
- * Enqueue a get_progress_summary run (all three sections in order).
+ * Enqueue a get_progress_summary run (all sections in order).
+ *   1. profile
+ *   2. chart logs (range)
+ *   3. first log
+ *   4. delta logs (30d, independent)
+ *   5. weekly energy (getCaloriesByDateRange)
+ *   6. avg 7d (getDailyCalories)
+ *   7. avg 30d (getDailyCalories)
  */
 function enqueueProgressSummary(
     MockPdo $pdo,
-    array   $weightLogs   = [],
+    array   $chartLogs    = [],
     ?array  $firstLog     = null,
+    array   $deltaLogs    = [],
     array   $weeklyRows   = [],
     array   $rows7d       = [],
     array   $rows30d      = [],
     array   $profileOverrides = []
 ): void {
     $pdo->enqueueRow(baseProfile($profileOverrides));  // 1. profile
-    $pdo->enqueueRows($weightLogs);                    // 2. weight logs (range)
+    $pdo->enqueueRows($chartLogs);                     // 2. chart logs
     if ($firstLog !== null) {                          // 3. first log
         $pdo->enqueueRow($firstLog);
     } else {
         $pdo->enqueueEmpty();
     }
-    $pdo->enqueueRows($weeklyRows);                    // 4. weekly energy
-    $pdo->enqueueRows($rows7d);                        // 5. avg 7d
-    $pdo->enqueueRows($rows30d);                       // 6. avg 30d
+    $pdo->enqueueRows($deltaLogs);                     // 4. delta logs (30d)
+    $pdo->enqueueRows($weeklyRows);                    // 5. weekly energy
+    $pdo->enqueueRows($rows7d);                        // 6. avg 7d
+    $pdo->enqueueRows($rows30d);                       // 7. avg 30d
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -93,7 +110,7 @@ print_suite_header('get_weight_progress');
 // TC-WP-01: Happy path — response shape
 {
     $t = new IntegrationBase();
-    enqueueWeightProgress($t->pdo, [], null);
+    enqueueWeightProgress($t->pdo);
     $r = $t->call('get_weight_progress');
     assert_true('TC-WP-01 data present', isset($r['data']));
     assert_key('TC-WP-01 current_weight', 'current_weight', $r['data']);
@@ -110,34 +127,38 @@ print_suite_header('get_weight_progress');
 {
     $t = new IntegrationBase();
     enqueueWeightProgress($t->pdo);
-    $r = $t->call('get_weight_progress');
+    $r      = $t->call('get_weight_progress');
     $deltas = $r['data']['deltas'] ?? [];
     assert_key('TC-WP-02 delta 3d',  '3d',  $deltas);
     assert_key('TC-WP-02 delta 7d',  '7d',  $deltas);
     assert_key('TC-WP-02 delta 30d', '30d', $deltas);
 }
 
-// TC-WP-03: Delta computed correctly from single fetched dataset
+// TC-WP-03: Delta computed correctly from independent delta dataset
 {
-    $t    = new IntegrationBase();
-    $logs = [
+    $t         = new IntegrationBase();
+    $deltaLogs = [
         ['log_date' => date('Y-m-d', strtotime('-6 days')), 'weight_kg' => '82.0'],
         ['log_date' => date('Y-m-d', strtotime('-3 days')), 'weight_kg' => '81.0'],
         ['log_date' => date('Y-m-d', strtotime('-1 day')),  'weight_kg' => '80.5'],
     ];
-    enqueueWeightProgress($t->pdo, $logs, ['log_date' => date('Y-m-d', strtotime('-90 days')), 'weight_kg' => '85.0']);
+    enqueueWeightProgress(
+        $t->pdo,
+        $deltaLogs,
+        ['log_date' => date('Y-m-d', strtotime('-90 days')), 'weight_kg' => '85.0'],
+        $deltaLogs
+    );
     $r = $t->call('get_weight_progress');
-    assert_equals('TC-WP-03 7d delta',  -1.5, $r['data']['deltas']['7d']);
-    assert_equals('TC-WP-03 3d delta',  -0.5, $r['data']['deltas']['3d']);
+    assert_equals('TC-WP-03 7d delta', -1.5, $r['data']['deltas']['7d']);
+    assert_equals('TC-WP-03 3d delta', -0.5, $r['data']['deltas']['3d']);
 }
 
-// TC-WP-04: Only 2 DB queries fired (no repeated range queries for 3d/7d/30d)
+// TC-WP-04: Exactly 4 DB queries (profile + chart_logs + first_log + delta_logs)
 {
     $t = new IntegrationBase();
     enqueueWeightProgress($t->pdo);
     $t->call('get_weight_progress');
-    // profile + weight_logs + first_log = 3 queries
-    assert_equals('TC-WP-04 query count', 3, count($t->pdo->queries));
+    assert_equals('TC-WP-04 query count', 4, count($t->pdo->queries));
 }
 
 // TC-WP-05: Missing profile returns error
@@ -152,10 +173,35 @@ print_suite_header('get_weight_progress');
 {
     $t = new IntegrationBase();
     $t->pdo->enqueueRow(baseProfile());
-    $t->pdo->enqueueRows([]);   // no range logs
+    $t->pdo->enqueueRows([]);   // no chart logs
     $t->pdo->enqueueEmpty();    // no first log
+    $t->pdo->enqueueRows([]);   // no delta logs
     $r = $t->call('get_weight_progress');
     assert_equals('TC-WP-06 start_weight fallback', 80.0, $r['data']['start_weight']);
+}
+
+// TC-WP-07: Narrow range (7d) does not corrupt 30d delta — reviewer regression fix
+// Chart logs only cover 7 days; delta logs cover 30 days and show real movement.
+{
+    $t         = new IntegrationBase();
+    $chartLogs = [
+        ['log_date' => date('Y-m-d', strtotime('-3 days')), 'weight_kg' => '81.0'],
+        ['log_date' => date('Y-m-d', strtotime('-1 day')),  'weight_kg' => '80.5'],
+    ];
+    $deltaLogs = [
+        ['log_date' => date('Y-m-d', strtotime('-29 days')), 'weight_kg' => '84.0'],
+        ['log_date' => date('Y-m-d', strtotime('-15 days')), 'weight_kg' => '82.0'],
+        ['log_date' => date('Y-m-d', strtotime('-3 days')),  'weight_kg' => '81.0'],
+        ['log_date' => date('Y-m-d', strtotime('-1 day')),   'weight_kg' => '80.5'],
+    ];
+    enqueueWeightProgress($t->pdo, $chartLogs, null, $deltaLogs);
+    $r = $t->call('get_weight_progress', ['range' => '7']);
+    // Chart should only have 2 entries (7d range)
+    assert_equals('TC-WP-07 chart logs scoped to range', 2, count($r['data']['logs']));
+    // 30d delta must reflect 30-day history from deltaLogs, not the narrow chart range
+    assert_equals('TC-WP-07 30d delta uses full history', -3.5, $r['data']['deltas']['30d']);
+    // 7d delta also correct
+    assert_equals('TC-WP-07 7d delta correct', -0.5, $r['data']['deltas']['7d']);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -204,8 +250,8 @@ print_suite_header('get_weekly_energy');
 // TC-WE-05: Missing days filled with 0
 {
     $t = new IntegrationBase();
-    enqueueWeeklyEnergy($t->pdo, []);   // no DB rows → all zeros
-    $r = $t->call('get_weekly_energy');
+    enqueueWeeklyEnergy($t->pdo, []);
+    $r   = $t->call('get_weekly_energy');
     $sum = array_sum(array_column($r['data']['days'], 'consumed_cal'));
     assert_equals('TC-WE-05 zero fill', 0, $sum);
     assert_equals('TC-WE-05 total_consumed zero', 0, $r['data']['total_consumed']);
@@ -241,7 +287,7 @@ print_suite_header('get_calorie_averages');
 {
     $t = new IntegrationBase();
     enqueueCalorieAverages($t->pdo, [
-        ['log_date' => date('Y-m-d', strtotime('-1 day')), 'calories' => 2000],
+        ['log_date' => date('Y-m-d', strtotime('-1 day')),  'calories' => 2000],
         ['log_date' => date('Y-m-d', strtotime('-2 days')), 'calories' => 1800],
     ]);
     $r = $t->call('get_calorie_averages');
@@ -273,7 +319,7 @@ print_suite_header('get_progress_summary');
 
 // TC-PS-02: Weight progress section has correct keys
 {
-    $t = new IntegrationBase();
+    $t  = new IntegrationBase();
     enqueueProgressSummary($t->pdo);
     $r  = $t->call('get_progress_summary');
     $wp = $r['data']['weight_progress'] ?? [];
@@ -284,7 +330,7 @@ print_suite_header('get_progress_summary');
 
 // TC-PS-03: Weekly energy section has correct keys
 {
-    $t = new IntegrationBase();
+    $t  = new IntegrationBase();
     enqueueProgressSummary($t->pdo);
     $r  = $t->call('get_progress_summary');
     $we = $r['data']['weekly_energy'] ?? [];
@@ -295,7 +341,7 @@ print_suite_header('get_progress_summary');
 
 // TC-PS-04: Calorie averages section has correct keys
 {
-    $t = new IntegrationBase();
+    $t   = new IntegrationBase();
     enqueueProgressSummary($t->pdo);
     $r   = $t->call('get_progress_summary');
     $avg = $r['data']['calorie_averages'] ?? [];
@@ -313,12 +359,12 @@ print_suite_header('get_progress_summary');
 
 // TC-PS-06: Delta values correct in combined payload
 {
-    $t    = new IntegrationBase();
-    $logs = [
+    $t         = new IntegrationBase();
+    $deltaLogs = [
         ['log_date' => date('Y-m-d', strtotime('-6 days')), 'weight_kg' => '82.0'],
         ['log_date' => date('Y-m-d', strtotime('-1 day')),  'weight_kg' => '80.0'],
     ];
-    enqueueProgressSummary($t->pdo, $logs, null);
+    enqueueProgressSummary($t->pdo, $deltaLogs, null, $deltaLogs);
     $r = $t->call('get_progress_summary');
     assert_equals('TC-PS-06 7d delta', -2.0, $r['data']['weight_progress']['deltas']['7d']);
 }

@@ -95,15 +95,19 @@ class ProgressController extends Controller
             ];
         }
 
+        // Delta source is always 30 days regardless of chart range,
+        // so narrow ranges (e.g. range=7) don't silently zero out 30d delta.
+        $deltaLogs = $this->weights->getRecentLogs($userId, 30);
+
         $deltas = [3 => 0.0, 7 => 0.0, 30 => 0.0];
         foreach ([3, 7, 30] as $window) {
             $cutoff     = date('Y-m-d', strtotime("-{$window} days"));
-            $windowLogs = array_values(array_filter($logs, fn($l) => $l['log_date'] >= $cutoff));
+            $windowLogs = array_values(array_filter($deltaLogs, fn($l) => $l['log_date'] >= $cutoff));
 
             if (\count($windowLogs) >= 2) {
-                $first             = (float) $windowLogs[0]['weight_kg'];
-                $last              = (float) end($windowLogs)['weight_kg'];
-                $deltas[$window]   = round($last - $first, 1);
+                $first           = (float) $windowLogs[0]['weight_kg'];
+                $last            = (float) end($windowLogs)['weight_kg'];
+                $deltas[$window] = round($last - $first, 1);
             }
         }
 
