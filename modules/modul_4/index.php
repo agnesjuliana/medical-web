@@ -219,6 +219,140 @@ $pageTitle = 'CalorieCare - Modul 4';
         color: #16a34a;
         white-space: nowrap;
     }
+    .history-actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+        margin-left: 4px;
+    }
+    .history-actions button {
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s ease;
+        color: #6b7280;
+    }
+    .dark .history-actions button { border-color: #4b5563; background: #374151; color: #9ca3af; }
+    .history-actions .btn-edit:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+    .dark .history-actions .btn-edit:hover { border-color: #60a5fa; color: #60a5fa; background: rgba(59,130,246,0.15); }
+    .history-actions .btn-delete:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+    .dark .history-actions .btn-delete:hover { border-color: #f87171; color: #f87171; background: rgba(239,68,68,0.15); }
+
+    /* --- Edit Modal --- */
+    #editModal {
+        position: fixed;
+        inset: 0;
+        z-index: 1001;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        animation: artFadeIn 0.3s ease;
+    }
+    #editModal.open { display: flex; }
+    .edit-modal-box {
+        background: white;
+        border-radius: 20px;
+        max-width: 480px;
+        width: 100%;
+        padding: 0;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+        animation: artSlideUp 0.35s cubic-bezier(0.16,1,0.3,1);
+    }
+    .dark .edit-modal-box { background: #111827; }
+    .edit-modal-header {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        padding: 18px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: white;
+    }
+    .edit-modal-header h3 { margin: 0; font-size: 16px; font-weight: 700; }
+    .edit-modal-header .btn-close-modal {
+        width: 30px; height: 30px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,255,255,0.2);
+        color: white;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.2s;
+    }
+    .edit-modal-header .btn-close-modal:hover { background: rgba(255,255,255,0.35); }
+    .edit-modal-body {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .edit-modal-body label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 4px;
+        display: block;
+    }
+    .dark .edit-modal-body label { color: #d1d5db; }
+    .edit-modal-body select,
+    .edit-modal-body input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: 'Poppins', sans-serif;
+        background: white;
+        color: #1f2937;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .dark .edit-modal-body select,
+    .dark .edit-modal-body input {
+        background: #1f2937;
+        border-color: #4b5563;
+        color: #e5e7eb;
+    }
+    .edit-modal-body select:focus,
+    .edit-modal-body input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+    .edit-modal-footer {
+        padding: 0 24px 24px;
+        display: flex;
+        gap: 10px;
+    }
+    .edit-modal-footer button {
+        flex: 1;
+        padding: 11px 16px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'Poppins', sans-serif;
+        border: none;
+    }
+    .edit-modal-footer .btn-cancel-edit {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #d1d5db;
+    }
+    .dark .edit-modal-footer .btn-cancel-edit { background: #374151; color: #d1d5db; border-color: #4b5563; }
+    .edit-modal-footer .btn-cancel-edit:hover { background: #e5e7eb; }
+    .dark .edit-modal-footer .btn-cancel-edit:hover { background: #4b5563; }
+    .edit-modal-footer .btn-save-edit {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+    }
+    .edit-modal-footer .btn-save-edit:hover { box-shadow: 0 4px 16px rgba(37,99,235,0.3); }
 
     /* --- Quick Chat Floating Widget --- */
     #qchat-toggle {
@@ -995,8 +1129,8 @@ $pageTitle = 'CalorieCare - Modul 4';
                     data-en="Activity History"
                     data-id="Riwayat Aktivitas">Activity History</h2>
                 <p class="text-lg text-gray-600 dark:text-gray-400 translatable"
-                    data-en="Your last 5 calculation results"
-                    data-id="5 hasil kalkulasi terakhirmu">Your last 5 calculation results</p>
+                    data-en="Your recent activity records"
+                    data-id="Catatan aktivitas terakhirmu">Your recent activity records</p>
             </div>
             <div id="historyList" class="space-y-3">
                 <!-- Filled by JS -->
@@ -1010,11 +1144,58 @@ $pageTitle = 'CalorieCare - Modul 4';
             <div class="text-center mt-6">
                 <button id="btnClearHistory"
                     class="text-sm text-gray-400 hover:text-red-500 transition-colors hidden translatable"
-                    data-en="🗑️ Clear History"
-                    data-id="🗑️ Hapus Riwayat">🗑️ Clear History</button>
+                    data-en="🗑️ Clear All History"
+                    data-id="🗑️ Hapus Semua Riwayat">🗑️ Clear All History</button>
             </div>
         </div>
     </section>
+
+    <!-- ========== EDIT ACTIVITY MODAL ========== -->
+    <div id="editModal">
+        <div class="edit-modal-box">
+            <div class="edit-modal-header">
+                <h3 class="translatable" data-en="✏️ Edit Activity" data-id="✏️ Edit Aktivitas">✏️ Edit Activity</h3>
+                <button class="btn-close-modal" id="btnCloseEditModal" title="Close">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="edit-modal-body">
+                <input type="hidden" id="editId">
+                <div>
+                    <label class="translatable" data-en="Activity Type" data-id="Jenis Aktivitas">Activity Type</label>
+                    <select id="editActivity">
+                        <option value="3.3" data-en="Walking (light pace)" data-id="Jalan Santai">Walking (light pace)</option>
+                        <option value="4.3" data-en="Walking (brisk pace)" data-id="Jalan Cepat">Walking (brisk pace)</option>
+                        <option value="8.0" data-en="Running (moderate pace)" data-id="Lari (Sedang)">Running (moderate pace)</option>
+                        <option value="10.0" data-en="Running (fast pace)" data-id="Lari (Cepat)">Running (fast pace)</option>
+                        <option value="6.0" data-en="Cycling (moderate)" data-id="Bersepeda (Sedang)">Cycling (moderate)</option>
+                        <option value="3.0" data-en="Yoga / Stretching" data-id="Yoga / Peregangan">Yoga / Stretching</option>
+                    </select>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div>
+                        <label class="translatable" data-en="Duration (min)" data-id="Durasi (menit)">Duration (min)</label>
+                        <input type="number" id="editDuration" min="1" required>
+                    </div>
+                    <div>
+                        <label class="translatable" data-en="Weight (kg)" data-id="Berat (kg)">Weight (kg)</label>
+                        <input type="number" id="editWeight" min="20" required>
+                    </div>
+                </div>
+            </div>
+            <div class="edit-modal-footer">
+                <button class="btn-cancel-edit" id="btnCancelEdit">
+                    <span class="translatable" data-en="Cancel" data-id="Batal">Cancel</span>
+                </button>
+                <button class="btn-save-edit" id="btnSaveEdit">
+                    <span class="translatable" data-en="💾 Save Changes" data-id="💾 Simpan Perubahan">💾 Save Changes</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ========== END EDIT ACTIVITY MODAL ========== -->
     <!-- ========== END ACTIVITY HISTORY ========== -->
 
     <!-- ========== ARTIKEL KESEHATAN SECTION ========== -->
@@ -1483,20 +1664,152 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ================================================================
-    // 8. ACTIVITY HISTORY (LocalStorage)
+    // 8. ACTIVITY HISTORY — FULL CRUD (LocalStorage)
     // ================================================================
-    function getHistory() {
-        return JSON.parse(localStorage.getItem('cc-history') || '[]');
+
+    /** Generate unique ID (crypto.randomUUID or fallback) */
+    function generateId() {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+            return crypto.randomUUID();
+        }
+        return 'id-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
     }
 
+    // --- READ ---
+    function getHistory() {
+        const data = JSON.parse(localStorage.getItem('cc-history') || '[]');
+        // Migrate old entries that lack an id
+        let changed = false;
+        data.forEach(item => {
+            if (!item.id) {
+                item.id = generateId();
+                changed = true;
+            }
+        });
+        if (changed) localStorage.setItem('cc-history', JSON.stringify(data));
+        return data;
+    }
+
+    function setHistory(data) {
+        localStorage.setItem('cc-history', JSON.stringify(data));
+    }
+
+    // --- CREATE ---
     function saveToHistory(entry) {
         const history = getHistory();
+        entry.id = generateId();
         entry.timestamp = new Date().toISOString();
         history.unshift(entry);
-        if (history.length > 5) history.pop();
-        localStorage.setItem('cc-history', JSON.stringify(history));
+        setHistory(history);
     }
 
+    // --- DELETE ---
+    function deleteFromHistory(id) {
+        let history = getHistory();
+        history = history.filter(item => item.id !== id);
+        setHistory(history);
+        renderHistory();
+        updateWeeklyProgress(currentLang);
+    }
+
+    // Expose globally for inline onclick
+    window.deleteFromHistory = function(id) {
+        const msg = currentLang === 'id' ? 'Hapus data aktivitas ini?' : 'Delete this activity record?';
+        if (confirm(msg)) {
+            deleteFromHistory(id);
+        }
+    };
+
+    // --- UPDATE (Edit Modal) ---
+    let editingId = null;
+
+    window.openEditModal = function(id) {
+        const history = getHistory();
+        const item = history.find(h => h.id === id);
+        if (!item) return;
+
+        editingId = id;
+        document.getElementById('editId').value = id;
+        document.getElementById('editDuration').value = item.durasi;
+        document.getElementById('editWeight').value = item.berat;
+
+        // Try to match MET value from the activity name
+        const editSelect = document.getElementById('editActivity');
+        const metMap = {
+            '3.3': ['Walking (light pace)', 'Jalan Santai'],
+            '4.3': ['Walking (brisk pace)', 'Jalan Cepat'],
+            '8.0': ['Running (moderate pace)', 'Lari (Sedang)'],
+            '10.0': ['Running (fast pace)', 'Lari (Cepat)'],
+            '6.0': ['Cycling (moderate)', 'Bersepeda (Sedang)'],
+            '3.0': ['Yoga / Stretching', 'Yoga / Peregangan']
+        };
+        let matched = false;
+        for (const [met, names] of Object.entries(metMap)) {
+            if (names.some(n => item.aktivitas.toLowerCase().includes(n.toLowerCase().split(' ')[0]))) {
+                editSelect.value = met;
+                matched = true;
+                break;
+            }
+        }
+        if (!matched) editSelect.value = '8.0'; // default
+
+        const modal = document.getElementById('editModal');
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    };
+
+    function closeEditModal() {
+        editingId = null;
+        document.getElementById('editModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    document.getElementById('btnCloseEditModal').addEventListener('click', closeEditModal);
+    document.getElementById('btnCancelEdit').addEventListener('click', closeEditModal);
+    document.getElementById('editModal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('editModal')) closeEditModal();
+    });
+
+    document.getElementById('btnSaveEdit').addEventListener('click', () => {
+        if (!editingId) return;
+
+        const editSelect = document.getElementById('editActivity');
+        const metValue = parseFloat(editSelect.value);
+        const duration = parseFloat(document.getElementById('editDuration').value);
+        const weight = parseFloat(document.getElementById('editWeight').value);
+
+        if (!duration || duration < 1 || !weight || weight < 20) {
+            alert(currentLang === 'id' ? 'Harap isi durasi dan berat badan dengan benar.' : 'Please fill in duration and weight correctly.');
+            return;
+        }
+
+        const option = editSelect.options[editSelect.selectedIndex];
+        const activityName = currentLang === 'en'
+            ? option.getAttribute('data-en')
+            : option.getAttribute('data-id');
+
+        const burnedCalories = Math.round(((metValue * 3.5 * weight) / 200) * duration);
+
+        const history = getHistory();
+        const idx = history.findIndex(h => h.id === editingId);
+        if (idx === -1) {
+            closeEditModal();
+            return;
+        }
+
+        // Update existing entry — keep id & timestamp intact
+        history[idx].aktivitas = activityName;
+        history[idx].durasi = duration;
+        history[idx].berat = weight;
+        history[idx].kalori = burnedCalories;
+
+        setHistory(history);
+        closeEditModal();
+        renderHistory();
+        updateWeeklyProgress(currentLang);
+    });
+
+    // --- RENDER (READ) ---
     function renderHistory() {
         const history = getHistory();
         const list = document.getElementById('historyList');
@@ -1520,6 +1833,7 @@ document.addEventListener('DOMContentLoaded', () => {
         history.forEach((item, i) => {
             const date = new Date(item.timestamp);
             const timeStr = date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+            const safeId = item.id.replace(/'/g, "\\'");
             list.innerHTML += `
                 <div class="history-item" style="animation: qcBubblePop 0.3s ease-out ${i * 0.08}s both">
                     <div class="history-icon ${actColor[item.tujuan] || 'bg-gray-100 dark:bg-gray-800'}">
@@ -1530,6 +1844,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="h-sub">${timeStr} · ${item.durasi} min · ${item.berat} kg</div>
                     </div>
                     <div class="history-cal">${item.kalori} kkal</div>
+                    <div class="history-actions">
+                        <button class="btn-edit" onclick="openEditModal('${safeId}')" title="${currentLang === 'id' ? 'Edit' : 'Edit'}">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </button>
+                        <button class="btn-delete" onclick="deleteFromHistory('${safeId}')" title="${currentLang === 'id' ? 'Hapus' : 'Delete'}">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>`;
         });
     }
