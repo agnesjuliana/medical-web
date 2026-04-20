@@ -128,7 +128,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         'profile_id' => $profile_id,
         'record_date' => $today,
         'image_data' => $_POST['image_base64'] ?? '',
-        'status' => $_POST['ai_status'] ?? 'Normal'
+        'status' => $_POST['ai_status'] ?? 'Normal',
+        'redness' => $_POST['ai_redness'] ?? '0% Area Sengit',
+        'swelling' => $_POST['ai_swelling'] ?? 'Minim',
+        'fluid' => $_POST['ai_fluid'] ?? 'Jernih',
+        'size' => $_POST['ai_size'] ?? '0 cm',
+        'note' => $_POST['ai_note'] ?? '',
+        'rednessColor' => $_POST['ai_redness_color'] ?? '#728BA9',
+        'iconBg' => $_POST['ai_icon_bg'] ?? '#ECF2E6',
+        'iconSvg' => $_POST['ai_icon_svg'] ?? '',
     ];
 
     saveLocalWoundLog($newWoundLog);
@@ -223,7 +231,7 @@ if ($surgeryDate) {
     if ($dStart > $dEnd) $dayPostOp = 0;
 }
 
-$opDisplay = ['cabg' => 'Jantung (CABG)', 'sc' => 'Sectio Caesarea', 'amputation' => 'Ortopedi'];
+$opDisplay = ['cabg' => 'Jantung (CABG)', 'sc' => 'Sectio Caesarea', 'orthopedic' => 'Ortopedi'];
 $opName = $opDisplay[$opType] ?? 'Operasi';
 $pageTitle = 'Dashboard RuangPulih';
 ?>
@@ -335,7 +343,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
         <!-- Persistent Red Flag Button -->
         <button onclick="document.getElementById('rf-modal').classList.remove('hidden'); document.getElementById('rf-modal').classList.add('flex');"
             class="fixed top-7 right-8 z-50 flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-bold text-sm transition-all transform hover:-translate-y-0.5"
-            style="background:#5A6C7A;box-shadow:0 8px 24px rgba(90,108,122,0.3);">
+            style="background:#D46A6A;box-shadow:0 8px 24px rgba(212,106,106,0.3);">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             Red Flag
         </button>
@@ -367,7 +375,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                     <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Nyeri tidak terkontrol meski sudah minum obat</li>
                     <?php endif; ?>
                 </ul>
-                <a href="tel:119" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl text-white font-extrabold text-lg transition-all" style="background:#5A6C7A;">
+                <a href="tel:119" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl text-white font-extrabold text-lg transition-all" style="background:#D46A6A;">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.338c0-1.14.88-2.073 2.019-2.128a48.974 48.974 0 0119.462 0 2.126 2.126 0 012.019 2.128 4.487 4.487 0 01-1.268 3.217l-3.02 3.297a4.5 4.5 0 00-1.09 2.85v1.478m0 0a48.667 48.667 0 01-2.658-.813m-2.658.813a48.8 48.8 0 01-2.658-.813m0-1.478a4.5 4.5 0 00-1.09-2.85l-3.02-3.297a4.487 4.487 0 01-1.268-3.217"/></svg>
                     Hubungi 119 — IGD Darurat
                 </a>
@@ -380,18 +388,22 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
         ============================================================ -->
         <div class="w-full">
             <!-- Greeting -->
-            <div class="flex items-start justify-between mb-8">
+            <div class="mb-8">
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1" style="color:#A3ACA0;"><?= date('l, d F Y') ?></p>
+                    <div class="flex items-center gap-3 mb-2">
+                        <p class="text-xs font-bold uppercase tracking-widest" style="color:#A3ACA0;"><?= date('l, d F Y') ?></p>
+                        <?php if ($role==='caregiver'): ?>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase border tracking-wider" style="background:#ECF2E6;color:#5A6C7A;border-color:#D1D9CA;"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Caregiver</span>
+                        <?php else: ?>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase border tracking-wider" style="background:#F8FCFF;color:#728BA9;border-color:#DAE3EC;"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg> Pasien</span>
+                        <?php endif; ?>
+                    </div>
                     <h2 class="text-3xl font-extrabold" style="color:#728BA9;">Halo, <?= htmlspecialchars(explode(' ',$userName)[0]) ?></h2>
                     <p class="font-medium mt-1" style="color:#7F7F7F;">
                         <?php if ($role==='caregiver'): ?>Memantau <strong style="color:#728BA9;"><?= htmlspecialchars($patientName) ?></strong> — <?php endif; ?>
                         Hari ke-<strong style="color:#728BA9;"><?= $dayPostOp ?></strong> pasca operasi <?= $opName ?>
                     </p>
                 </div>
-                <?php if ($role==='caregiver'): ?>
-                <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-extrabold uppercase border tracking-wider" style="background:#ECF2E6;color:#5A6C7A;border-color:#D1D9CA;"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Caregiver</span>
-                <?php endif; ?>
             </div>
 
             <!-- Priority Banner -->
@@ -806,6 +818,8 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                 $phpDow = (int)$sDate->format('N');
                 $surgeryDow = $phpDow - 1;
             }
+            $calStart = date('d M', strtotime($surgeryDate . ' + ' . ($weekStart - 1) . ' days'));
+            $calEnd   = date('d M Y', strtotime($surgeryDate . ' + ' . ($weekEnd - 1) . ' days'));
             ?>
             <div class="glass-card p-6">
                 <div class="flex items-center justify-between mb-5">
@@ -814,7 +828,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                             <svg class="w-5 h-5" fill="none" stroke="#728BA9" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                             Rencana Minggu Ini
                         </h3>
-                        <p class="text-xs font-medium mt-0.5" style="color:#A3ACA0;">Hari ke-<?= $weekStart ?> &mdash; Hari ke-<?= $weekEnd ?></p>
+                        <p class="text-xs font-medium mt-0.5" style="color:#A3ACA0;"><?= $calStart ?> &mdash; <?= $calEnd ?> <span class="mx-1">&bull;</span> Hari ke-<?= $weekStart ?> s/d <?= $weekEnd ?></p>
                     </div>
                     <span class="text-xs font-extrabold px-3 py-1.5 rounded-full" style="background:#ECF2E6;color:#728BA9;"><?= $curPhase['name'] ?></span>
                 </div>
@@ -823,14 +837,15 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                         $isToday = ($d === $dayPostOp);
                         $isPast  = ($d < $dayPostOp);
                         $wIdx    = ($surgeryDow + ($d - 1)) % 7;
+                        $calDate = date('j', strtotime($surgeryDate . ' + ' . ($d - 1) . ' days'));
                         $dayBg   = $isToday ? '#728BA9' : ($isPast ? 'rgba(114,139,169,0.12)' : 'rgba(218,227,236,0.2)');
                         $dayGlow = $isToday ? 'box-shadow:0 4px 16px rgba(114,139,169,0.35);' : '';
                         $numClr  = $isToday ? '#fff'    : ($isPast ? '#728BA9' : '#B8C9DD');
                     ?>
                     <div class="flex flex-col items-center gap-1">
                         <p class="text-[10px] font-bold" style="color:#A3ACA0;"><?= $wNames[$wIdx] ?></p>
-                        <div class="w-full aspect-square rounded-xl flex flex-col items-center justify-center transition-all hover:scale-105" style="background:<?= $dayBg ?>;<?= $dayGlow ?>">
-                            <span class="text-sm font-extrabold" style="color:<?= $numClr ?>;"><?= $d ?></span>
+                        <div class="w-full aspect-square rounded-xl flex flex-col items-center justify-center transition-all hover:scale-105" style="background:<?= $dayBg ?>;<?= $dayGlow ?>" title="Hari ke-<?= $d ?>">
+                            <span class="text-sm font-extrabold" style="color:<?= $numClr ?>;"><?= $calDate ?></span>
                             <?php if ($isPast): ?>
                                 <svg class="w-3 h-3 mt-0.5" fill="none" stroke="#728BA9" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                             <?php elseif ($isToday): ?>
@@ -1195,13 +1210,22 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
             <?php
             if ($opType==='cabg') {
                 $vids=[['sAx8_UXak1Q','Olahraga Pasca Operasi Jantung','Rehabilitasi awal oleh dr. Kevin Triangto'],['hz4bgO-Smk0','Apa Yang Dilakukan Setelah Operasi?','Langkah esensial pemulihan pasca bedah jantung'],['ZibrJpra3FA','Rehabilitasi Fase I Pasca CABG','Latihan menjaga sirkulasi di fase paling awal']];
-                $arts=[['heart','Aturan Pola Makan Jantung Sehat Pasca CABG','4 menit'],['shield','Mengenali Tanda Bahaya pada Luka Insisi Dada','3 menit']];
+                $arts=[
+                    ['heart','Diet Terbaik untuk Mempercepat Pemulihan Pasca CABG','5 menit','https://www.blkmaxhospital.com/blogs/diet-after-heart-bypass-surgery'],
+                    ['bandage','Cara Merawat Luka Sayatan CABG','4 menit','https://www.halodoc.com/artikel/bekas-operasi-bypass-jantung-kenali-dan-rawat-benar?srsltid=AfmBOopk5Tfyev-mU-K7OCSAqDXKHxa9OzK9LD_4r-GBsQUcdYCZY_kr']
+                ];
             } elseif ($opType==='sc') {
                 $vids=[['KG_SsDOfwpI','Pantangan Pasca Operasi Caesar','Hal yang wajib dihindari ibu setelah SC'],['P7hrkSlr3vo','4 Tips Agar Cepat Pulih Pasca SC','Panduan mempercepat penyembuhan'],['c3NRSqZooyk','Tips Cepat Pulih Pasca Sesar','Tips percepatan dari dr. Keven']];
-                $arts=[['bandage','Perawatan Mandiri Luka Caesar di Rumah','5 menit'],['drop','Panduan Nutrisi ASI Deras Pasca Operasi','4 menit']];
+                $arts=[
+                    ['bandage','Luka Jahitan Operasi Caesar dan Perawatannya','5 menit','https://www.alodokter.com/tips-memulihkan-bekas-luka-setelah-operasi-caesar'],
+                    ['drop','Moms, Konsumsi Makanan Ini Agar ASI Melimpah','4 menit','https://ayosehat.kemkes.go.id/moms-konsumsi-makanan-ini-agar-asi-melimpah']
+                ];
             } else {
                 $vids=[['wch7bNy0EWE','Hal Yang Dihindari Pasca Operasi Ortopedi','Panduan larangan keras setelah TKR'],['hWK3xL9WfQk','Cara Penggunaan Walker','Tutor pemakaian alat bantu jalan'],['ZwjCz8gj82A','Cara Mandi dengan Perban/Gips','Strategi aman mandi tanpa membasahi Cast']];
-                $arts=[['bone','Tips Menjaga Kebersihan Kulit di Bawah Gips','6 menit'],['activity','Membedakan Nyeri Normal dan Komplikasi','4 menit']];
+                $arts=[
+                    ['bone','Panduan Penting untuk Pemulihan Pasca Operasi Ortopedi','6 menit','https://gustavelorthopedics.com/guide-to-orthopedic-surgery-recovery'],
+                    ['activity',"Perawatan Gips: Do and Don'ts",'4 menit','https://www.mayoclinic.org/healthy-lifestyle/childrens-health/in-depth/cast-care/art-20047159']
+                ];
             }
             ?>
             <div class="space-y-10">
@@ -1229,8 +1253,11 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                             'bone' => '<svg class="w-7 h-7" fill="none" stroke="#728BA9" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2.25 2.25 4.5-4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
                             'activity' => '<svg class="w-7 h-7" fill="none" stroke="#728BA9" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>',
                         ];
-                        foreach ($arts as [$iconKey,$title,$dur]): ?>
-                        <a href="#" class="flex gap-4 p-5 glass-card hover:shadow-md transition-all">
+                        foreach ($arts as $art):
+                            $iconKey = $art[0]; $title = $art[1]; $dur = $art[2]; $url = $art[3] ?? '#';
+                            $target = $url !== '#' ? 'target="_blank" rel="noopener noreferrer"' : '';
+                        ?>
+                        <a href="<?=$url?>" <?=$target?> class="flex gap-4 p-5 glass-card hover:shadow-md transition-all">
                             <div class="w-16 h-16 rounded-xl shrink-0 flex items-center justify-center" style="background:#ECF2E6;"><?= $artIcons[$iconKey] ?? '' ?></div>
                             <div><h4 class="font-extrabold mb-1 text-sm" style="color:#5A6C7A;"><?=$title?></h4><p class="text-xs font-medium" style="color:#A3ACA0;">Est. baca <?=$dur?></p></div>
                         </a>
@@ -1288,6 +1315,14 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                 <input type="hidden" name="action" value="save_wound_log">
                 <input type="hidden" name="image_base64" id="form-image-base64">
                 <input type="hidden" name="ai_status" id="form-ai-status">
+                <input type="hidden" name="ai_redness" id="form-ai-redness">
+                <input type="hidden" name="ai_swelling" id="form-ai-swelling">
+                <input type="hidden" name="ai_fluid" id="form-ai-fluid">
+                <input type="hidden" name="ai_size" id="form-ai-size">
+                <input type="hidden" name="ai_note" id="form-ai-note">
+                <input type="hidden" name="ai_redness_color" id="form-ai-redness-color">
+                <input type="hidden" name="ai_icon_bg" id="form-ai-icon-bg">
+                <input type="hidden" name="ai_icon_svg" id="form-ai-icon-svg">
 
                 <div class="grid grid-cols-1 md:grid-cols-2">
                     <div class="bg-gray-100 p-4 shrink-0 flex items-center justify-center">
@@ -1413,7 +1448,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                         $bgStatus = ($wh['status'] === 'Warning') ? '#fef08a' : (strpos($wh['status'], 'Infeksi') !== false ? '#fecaca' : '#ECF2E6');
                         $textColor = ($wh['status'] === 'Warning') ? '#ca8a04' : (strpos($wh['status'], 'Infeksi') !== false ? '#dc2626' : '#728BA9');
                     ?>
-                    <div class="glass-card p-5 group hover:-translate-y-1 transition-all">
+                    <div class="glass-card p-5 group hover:-translate-y-1 transition-all cursor-pointer" onclick='openWoundHistoryModal(<?= json_encode($wh, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'>
                         <div class="w-full aspect-video rounded-xl bg-gray-200 mb-4 overflow-hidden relative">
                             <!-- Image -->
                             <img src="<?= htmlspecialchars($wh['image_data']) ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 border border-white">
@@ -1428,6 +1463,56 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                     </div>
                     <?php endforeach; ?>
                     <?php endif; ?>
+                </div>
+            </div>
+
+            </div>
+            
+            <!-- Modal Riwayat Luka -->
+            <div id="wound-history-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 transition-all" style="background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);" onclick="closeWoundHistoryModal(event)">
+                <div class="relative w-full max-w-4xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row transform transition-all scale-95" onclick="event.stopPropagation()">
+                    <div class="bg-gray-100 p-4 shrink-0 flex items-center justify-center md:w-1/2">
+                        <img id="whm-img" src="" class="rounded-2xl w-full h-auto object-cover max-h-[350px] md:max-h-[500px]">
+                    </div>
+                    <div class="p-8 md:p-10 flex flex-col justify-center w-full md:w-1/2 relative">
+                        <button type="button" onclick="closeWoundHistoryModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                        <p class="text-sm font-bold text-[#A3ACA0] mb-2" id="whm-date"></p>
+                        <div class="flex items-center gap-4 mb-6">
+                            <span id="whm-icon" class="w-14 h-14 rounded-full flex items-center justify-center text-3xl shrink-0"></span>
+                            <div>
+                                <p class="text-xs font-extrabold uppercase tracking-wider mb-0.5" style="color:#A3ACA0;">Status Analisis AI</p>
+                                <h3 id="whm-status" class="text-3xl font-extrabold">Normal</h3>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-bold text-[#5A6C7A]">Kemerahan (Redness)</span>
+                                    <span class="text-sm font-extrabold" id="whm-redness-val"></span>
+                                </div>
+                                <div class="w-full bg-[#DAE3EC] h-2 rounded-full overflow-hidden">
+                                    <div id="whm-redness-bar" class="h-full rounded-full transition-all duration-1000" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between border-b pb-3" style="border-color:rgba(218,227,236,0.5);">
+                                <span class="text-sm font-bold text-[#5A6C7A]">Pembengkakan (Swelling)</span>
+                                <span class="text-sm font-extrabold" id="whm-swelling-val"></span>
+                            </div>
+                            <div class="flex justify-between border-b pb-3" style="border-color:rgba(218,227,236,0.5);">
+                                <span class="text-sm font-bold text-[#5A6C7A]">Kondisi Cairan</span>
+                                <span class="text-sm font-extrabold text-[#728BA9]" id="whm-fluid-val"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm font-bold text-[#5A6C7A]">Estimasi Ukuran Luka</span>
+                                <span class="text-sm font-extrabold text-[#A3ACA0]" id="whm-size-val"></span>
+                            </div>
+                        </div>
+
+                        <p id="whm-note" class="text-sm font-semibold text-[#7F7F7F] bg-[#F8FCFF] p-4 rounded-xl border border-[#DAE3EC]"></p>
+                    </div>
                 </div>
             </div>
 
@@ -1634,6 +1719,60 @@ function showWoundResult() {
     
     document.getElementById('form-image-base64').value = document.getElementById('wl-result-img').src;
     document.getElementById('form-ai-status').value = status;
+    document.getElementById('form-ai-redness').value = redness + "% Area Sengit";
+    document.getElementById('form-ai-swelling').value = swelling;
+    document.getElementById('form-ai-fluid').value = fluid;
+    document.getElementById('form-ai-size').value = size;
+    document.getElementById('form-ai-note').value = note;
+    document.getElementById('form-ai-redness-color').value = rednessColor;
+    document.getElementById('form-ai-icon-bg').value = iconBg;
+    document.getElementById('form-ai-icon-svg').value = icon;
+}
+
+function openWoundHistoryModal(wh) {
+    document.getElementById('whm-img').src = wh.image_data || '';
+    
+    var d = new Date(wh.record_date);
+    document.getElementById('whm-date').textContent = "Riwayat: " + d.toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
+
+    var status = wh.status || "Normal";
+    var icon = wh.iconSvg || '<svg class="w-8 h-8" style="color:#5A6C7A;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>';
+    var iconBg = wh.iconBg || (status === 'Warning' ? '#fef08a' : (status.includes('Infeksi') ? '#fecaca' : '#ECF2E6'));
+    var titleColor = status === 'Warning' ? '#ca8a04' : (status.includes('Infeksi') ? '#dc2626' : '#5A6C7A');
+    var rednessColor = wh.rednessColor || titleColor;
+
+    document.getElementById('whm-status').textContent = status;
+    document.getElementById('whm-status').style.color = titleColor;
+    document.getElementById('whm-icon').innerHTML = icon;
+    document.getElementById('whm-icon').style.backgroundColor = iconBg;
+
+    var rednessRaw = wh.redness || (status.includes('Infeksi') ? "60% Area Sengit" : (status === "Warning" ? "30% Area Sengit" : "10% Area Sengit"));
+    var rNum = parseInt(rednessRaw) || 0;
+    
+    document.getElementById('whm-redness-val').textContent = rednessRaw;
+    document.getElementById('whm-redness-val').style.color = rednessColor;
+    document.getElementById('whm-redness-bar').style.backgroundColor = rednessColor;
+    document.getElementById('whm-redness-bar').style.width = rNum + "%";
+
+    document.getElementById('whm-swelling-val').textContent = wh.swelling || (status.includes('Infeksi') ? "Besar (Edema Meluas)" : (status === "Warning" ? "Radang Sedang" : "Minim / Tidak Terlihat"));
+    document.getElementById('whm-swelling-val').style.color = rednessColor;
+
+    document.getElementById('whm-fluid-val').textContent = wh.fluid || (status.includes('Infeksi') ? "Kuning Pudar / Hijau (Nanah)" : (status === "Warning" ? "Vulkanis / Terdapat Serous Kuning" : "Jernih (Normal)"));
+    document.getElementById('whm-size-val').textContent = wh.size || "Estimasi tidak tersedia (data lama)";
+
+    document.getElementById('whm-note').textContent = wh.note || "Catatan AI untuk riwayat ini tidak direkam secara langsung. Analisis didasarkan pada klasifikasi sistem.";
+
+    var modal = document.getElementById('wound-history-modal');
+    modal.classList.remove('hidden');
+    setTimeout(() => { modal.firstElementChild.classList.remove('scale-95'); modal.firstElementChild.classList.add('scale-100'); }, 10);
+}
+
+function closeWoundHistoryModal(e) {
+    if (e && e.target !== e.currentTarget) return;
+    var modal = document.getElementById('wound-history-modal');
+    modal.firstElementChild.classList.remove('scale-100');
+    modal.firstElementChild.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); }, 150);
 }
 
 function resetWoundAnalysis() {

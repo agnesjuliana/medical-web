@@ -7,6 +7,8 @@
  * This file is shared across all modules.
  */
 
+date_default_timezone_set('Asia/Jakarta');
+
 // Base URL — update this if the project moves to a different subdirectory
 define('BASE_URL', '/medical-web');
 
