@@ -1,56 +1,39 @@
 <?php
-// ============================================================
-//  HEALTHEDU — api/bmi.php
-//  POST  { token, bmi, category, weight, height, age, gender }  → simpan
-//  GET   ?token=xxx                                              → ambil riwayat
-//  POST  { token, action:'delete', id }                         → hapus satu
-//  POST  { token, action:'clear' }                              → hapus semua
-// ============================================================
 require_once __DIR__ . '/config.php';
 
 $db = getDB();
+// Get email from the shared MedWeb session
+$userEmail = requireAuth(); 
 
 // ─── GET: ambil riwayat ─────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $token = $_GET['token'] ?? '';
-    if (!$token) jsonError('Token diperlukan.', 401);
-
-    // resolve token → user_id
-    $s = $db->prepare('SELECT user_id, expires_at FROM sessions WHERE token = ?');
-    $s->execute([$token]);
-    $sess = $s->fetch();
-    if (!$sess || new DateTime() > new DateTime($sess['expires_at'])) {
-        jsonError('Sesi tidak valid.', 401);
-    }
-    $userId = (int) $sess['user_id'];
-
+    // No more token manual check; requireAuth() handles it via session
     $rows = $db->prepare(
         'SELECT id, bmi, category, weight, height, age, gender, recorded_at
            FROM bmi_log
-          WHERE user_id = ?
+          WHERE user_email = ?
           ORDER BY recorded_at DESC
           LIMIT 15'
     );
-    $rows->execute([$userId]);
+    $rows->execute([$userEmail]);
     jsonSuccess($rows->fetchAll());
 }
 
 // ─── POST: simpan / hapus ───────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $userId = requireAuth();
     $body   = json_decode(file_get_contents('php://input'), true);
     $action = $body['action'] ?? 'save';
 
     if ($action === 'delete') {
         $id = (int)($body['id'] ?? 0);
         if (!$id) jsonError('ID tidak valid.');
-        $db->prepare('DELETE FROM bmi_log WHERE id = ? AND user_id = ?')
-           ->execute([$id, $userId]);
+        $db->prepare('DELETE FROM bmi_log WHERE id = ? AND user_email = ?')
+           ->execute([$id, $userEmail]);
         jsonSuccess([], 'Riwayat BMI dihapus.');
     }
 
     if ($action === 'clear') {
-        $db->prepare('DELETE FROM bmi_log WHERE user_id = ?')->execute([$userId]);
+        $db->prepare('DELETE FROM bmi_log WHERE user_email = ?')->execute([$userEmail]);
         jsonSuccess([], 'Semua riwayat BMI dihapus.');
     }
 
@@ -63,22 +46,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $gender   = $body['gender']            ?? 'male';
 
     if (!$bmi || !$category || !$weight || !$height || !$age) jsonError('Data tidak lengkap.');
-    if (!in_array($gender, ['male','female'])) $gender = 'male';
 
-    // Batasi 15 entri per user
-    $count = (int) $db->query("SELECT COUNT(*) FROM bmi_log WHERE user_id = $userId")->fetchColumn();
+    // Limit 15 entries using email
+    $stmtCount = $db->prepare("SELECT COUNT(*) FROM bmi_log WHERE user_email = ?");
+    $stmtCount->execute([$userEmail]);
+    $count = (int)$stmtCount->fetchColumn();
+    
     if ($count >= 15) {
-        // Hapus yang paling lama
-        $db->prepare(
-            'DELETE FROM bmi_log WHERE user_id = ? ORDER BY recorded_at ASC LIMIT 1'
-        )->execute([$userId]);
+        $db->prepare('DELETE FROM bmi_log WHERE user_email = ? ORDER BY recorded_at ASC LIMIT 1')
+           ->execute([$userEmail]);
     }
 
     $ins = $db->prepare(
-        'INSERT INTO bmi_log (user_id, bmi, category, weight, height, age, gender)
-         VALUES (?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO bmi_log (user_email, bmi, category, weight, height, age, gender, user_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 0)'
     );
-    $ins->execute([$userId, $bmi, $category, $weight, $height, $age, $gender]);
+    $ins->execute([$userEmail, $bmi, $category, $weight, $height, $age, $gender]);
 
     jsonSuccess(['id' => (int)$db->lastInsertId()], 'BMI berhasil disimpan.');
 }

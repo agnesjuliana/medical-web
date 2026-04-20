@@ -23,6 +23,21 @@ $pageTitle = 'Modul 12';
     <meta name="description" content="MedWeb - Medical Web Application">
     <title><?= htmlspecialchars($pageTitle) ?> — MedWeb</title>
     
+    <!-- Bypass Local Login -->
+    <script>
+        // Inject parent session into sub-app's localStorage
+        // This tricks script.js into thinking a login already happened
+        const parentUser = <?php echo json_encode([
+            'id'    => $user['id'],
+            'name'  => $user['name'],
+            'email' => $user['email']
+        ]); ?>;
+        
+        localStorage.setItem('he_user', JSON.stringify(parentUser));
+        // Use a placeholder token so script.js bypasses 'if(!authToken)' checks
+        localStorage.setItem('he_token', 'sso_parent_session'); 
+    </script>
+
     <!-- TailwindCSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -93,6 +108,9 @@ $pageTitle = 'Modul 12';
     ══════════════════════════════════════════ -->
     <nav id="navbar">
         <div class="nav-wrap">
+            <a href="../../index.php" class="nav-back-link" title="Kembali ke MedWeb">
+                <i class="fas fa-chevron-left"></i>
+            </a>
             <a class="logo" onclick="navigate('home')">
                 <div class="logo-mark"><i class="fas fa-seedling"></i></div>
                 <span>HealthEdu</span>

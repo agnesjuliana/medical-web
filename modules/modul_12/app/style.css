@@ -87,6 +87,24 @@ em { font-style: italic; font-family: 'Fraunces', serif; }
 }
 .nav-a:hover { background: var(--gl); color: var(--gd); }
 
+.nav-back-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    margin-right: 12px;
+    color: #94a3b8; /* Muted slate color */
+    font-size: 1.1rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.nav-back-link:hover {
+    color: #0891b2; /* Cyan-600 on hover */
+    background-color: #f1f5f9;
+    transform: translateX(-3px); /* Subtle nudge to the left */
+}
+
 .hamburger {
   display: none; background: none; border: none;
   font-size: 1.2rem; color: var(--sld); cursor: pointer; padding: 8px;

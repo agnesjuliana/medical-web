@@ -1,15 +1,12 @@
 <?php
 // ============================================================
-//  HEALTHEDU — api/config.php
-//  ⚙️  Ganti DB_HOST, DB_USER, DB_PASS sesuai server kamu
+//  HEALTHEDU — api/config.php (SSO BRIDGE VERSION)
 // ============================================================
 
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');          // ← ganti sesuai user MySQL kamu
-define('DB_PASS', '');              // ← ganti sesuai password MySQL kamu
-define('DB_NAME', 'healthedu');
+// 1. Link to the parent application's core logic for session checks
+require_once __DIR__ . '/../../../core/auth.php';
 
-// CORS — izinkan request dari frontend (sesuaikan domain jika perlu)
+// 2. Set headers for AJAX communication
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -20,33 +17,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// ─────────────────────────────────────────────
-// Koneksi PDO
-// ─────────────────────────────────────────────
+/**
+ * 3. Module-Specific Database Connection
+ * Points to 'healthedu' instead of 'backbone_medweb'
+ */
 function getDB(): PDO {
-    static $pdo = null;
-    if ($pdo === null) {
+    static $modulePdo = null;
+
+    if ($modulePdo === null) {
+        // Use your local XAMPP credentials
+        $host = 'localhost';
+        $db   = 'healthedu'; // THE CORE FIX: Point here
+        $user = 'root';
+        $pass = ''; 
+        $charset = 'utf8mb4';
+
+        $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+        $options = [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+        ];
+
         try {
-            $pdo = new PDO(
-                'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
-                DB_USER,
-                DB_PASS,
-                [
-                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES   => false,
-                ]
-            );
+            $modulePdo = new PDO($dsn, $user, $pass, $options);
         } catch (PDOException $e) {
-            jsonError('Koneksi database gagal: ' . $e->getMessage(), 500);
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Module DB Connection failed']);
+            exit;
         }
     }
-    return $pdo;
+
+    return $modulePdo;
 }
 
-// ─────────────────────────────────────────────
-// Helper response
-// ─────────────────────────────────────────────
+// 4. Standard Response Helpers
 function jsonSuccess(array $data = [], string $msg = 'OK'): void {
     echo json_encode(['success' => true, 'message' => $msg, 'data' => $data]);
     exit();
@@ -58,39 +63,17 @@ function jsonError(string $msg, int $code = 400): void {
     exit();
 }
 
-// ─────────────────────────────────────────────
-// Auth helper — ambil user_id dari token
-// ─────────────────────────────────────────────
-function requireAuth(): int {
-    $token = '';
-
-    // Cek header Authorization: Bearer <token>
-    $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-    if (str_starts_with($auth, 'Bearer ')) {
-        $token = trim(substr($auth, 7));
+// 5. NEW SSO Auth Helper
+function requireSSO(): string {
+    // This still works because it uses the parent session internally
+    if (!isLoggedIn()) {
+        jsonError('Tidak terautentikasi. Silakan login via MedWeb.', 401);
     }
+    
+    $user = getCurrentUser(); 
+    return $user['email'];    
+}
 
-    // Fallback: cek body JSON
-    if (!$token) {
-        $body = json_decode(file_get_contents('php://input'), true);
-        $token = $body['token'] ?? '';
-    }
-
-    if (!$token) {
-        jsonError('Tidak terautentikasi. Silakan login terlebih dahulu.', 401);
-    }
-
-    $db   = getDB();
-    $stmt = $db->prepare('SELECT user_id, expires_at FROM sessions WHERE token = ?');
-    $stmt->execute([$token]);
-    $row  = $stmt->fetch();
-
-    if (!$row) {
-        jsonError('Token tidak valid. Silakan login ulang.', 401);
-    }
-    if (new DateTime() > new DateTime($row['expires_at'])) {
-        jsonError('Sesi telah kedaluwarsa. Silakan login ulang.', 401);
-    }
-
-    return (int) $row['user_id'];
+function requireAuth(): string {
+    return requireSSO();
 }

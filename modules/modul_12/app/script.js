@@ -53,12 +53,21 @@ const TYPE_EMOJI = { Sarapan:'🌅', 'Makan Siang':'☀️', 'Makan Malam':'🌙
 // API HELPER
 // ─────────────────────────────────────────────
 async function apiPost(endpoint, data = {}) {
-  if (authToken) data.token = authToken;
+  // We keep this for compatibility, but the PHP session cookie 
+  // (PHPSESSID) is what actually authenticates you now.
+  if (authToken) data.token = authToken; 
+  
   const res = await fetch(`${API}/${endpoint}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
+  
+  // If the server returns 401, the SSO session likely expired
+  if (res.status === 401) {
+      handleLogout();
+      return { success: false, message: 'Session Expired' };
+  }
   return res.json();
 }
 
@@ -66,6 +75,13 @@ async function apiGet(endpoint, params = {}) {
   if (authToken) params.token = authToken;
   const qs  = new URLSearchParams(params).toString();
   const res = await fetch(`${API}/${endpoint}${qs ? '?' + qs : ''}`);
+  
+  // ADD THIS CHECK HERE AS WELL
+  if (res.status === 401) {
+      handleLogout();
+      return { success: false, message: 'Session Expired' };
+  }
+  
   return res.json();
 }
 
@@ -78,10 +94,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   animateCounters();
   navScrollEffect();
 
-  if (authToken) {
+  // CHANGE: Check for either a real token or the SSO user data
+  if (authToken || authUser) {
+    // If we have a user but no token (first time entering from MedWeb),
+    // set a dummy token so the API helper doesn't skip auth headers.
+    if (!authToken && authUser) {
+        authToken = 'sso_active';
+        localStorage.setItem('he_token', 'sso_active');
+    }
     await loadAllDataFromServer();
   } else {
-    // Fallback ke localStorage jika belum login
+    // Fallback logic remains the same
     foodLog = JSON.parse(localStorage.getItem('he_food') || '[]');
     bmiLog  = JSON.parse(localStorage.getItem('he_bmi')  || '[]');
     weekLog = JSON.parse(localStorage.getItem('he_week') || '{}');
@@ -201,8 +224,16 @@ function updateNavAuth() {
       <button class="nav-btn-login" onclick="handleLogout()">
         <i class="fas fa-sign-out-alt"></i> Keluar
       </button>`;
+  } else {
+    // REDIRECT: Point buttons to parent auth folder
+    navAuth.innerHTML = `
+      <button class="nav-btn-login" onclick="window.location.href='../../auth/login.php'">
+        <i class="fas fa-sign-in-alt"></i> Masuk
+      </button>
+      <button class="nav-btn-signup" onclick="window.location.href='../../auth/register.php'">
+        <i class="fas fa-user-plus"></i> Daftar
+      </button>`;
   }
-  // Jika belum login, HTML default dari index.html sudah benar
 }
 
 // ─────────────────────────────────────────────
@@ -906,24 +937,24 @@ async function handleSignup() {
 }
 
 async function handleLogout() {
-  if (authToken) {
-    try { await apiPost('logout.php', { token: authToken }); } catch(e) {}
-  }
+  // Clear local sub-app data
   authToken = null;
   authUser  = null;
   localStorage.removeItem('he_token');
   localStorage.removeItem('he_user');
 
+  // Clear memory state
   foodLog = [];
   bmiLog  = [];
   weekLog = {};
 
-  updateNavAuth();
-  renderFoodLog();
-  renderBMILog();
-  updateLogSummary();
-  showToast('👋 Kamu telah keluar.');
-  navigate('home');
+  showToast('👋 Keluar dari sistem...');
+  
+  // REDIRECT: Go to the parent logout script
+  // This ensures the PHP Session is actually destroyed
+  setTimeout(() => {
+      window.location.href = '../../auth/logout.php'; 
+  }, 500);
 }
 
 function togglePass(inputId, btn) {
