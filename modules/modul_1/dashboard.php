@@ -1044,9 +1044,9 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                         <div class="rounded-2xl p-5" style="background:#ECF2E6;">
                             <p class="text-xs font-extrabold uppercase tracking-wider mb-3 flex items-center gap-1.5" style="color:#5A6C7A;"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> Referensi Luka</p>
                             <div class="space-y-3">
-                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#4ade80;"></span><div><p class="text-xs font-bold" style="color:#728BA9;">NORMAL</p><p class="text-xs font-medium" style="color:#7F7F7F;">Merah muda memudar, tepi rapat, cairan bening sedikit</p></div></div>
-                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#fbbf24;"></span><div><p class="text-xs font-bold" style="color:#A3ACA0;">PERHATIAN</p><p class="text-xs font-medium" style="color:#7F7F7F;">Kemerahan tepi luka, sedikit bengkak — pantau ketat</p></div></div>
-                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#f87171;"></span><div><p class="text-xs font-bold" style="color:#5A6C7A;">BAHAYA!</p><p class="text-xs font-medium" style="color:#7F7F7F;">Nanah, bau menyengat, merah meluas, jahitan terbuka</p></div></div>
+                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#728BA9;"></span><div><p class="text-xs font-bold" style="color:#728BA9;">NORMAL</p><p class="text-xs font-medium" style="color:#7F7F7F;">Merah muda memudar, tepi rapat, cairan bening sedikit</p></div></div>
+                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#D4AA6A;"></span><div><p class="text-xs font-bold" style="color:#A3ACA0;">PERHATIAN</p><p class="text-xs font-medium" style="color:#7F7F7F;">Kemerahan tepi luka, sedikit bengkak — pantau ketat</p></div></div>
+                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#D46A6A;"></span><div><p class="text-xs font-bold" style="color:#5A6C7A;">BAHAYA!</p><p class="text-xs font-medium" style="color:#7F7F7F;">Nanah, bau menyengat, merah meluas, jahitan terbuka</p></div></div>
                             </div>
                         </div>
                     </div>
@@ -1280,7 +1280,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
         <!-- ============================================================
              WOUND LOG (AI ANALYSIS)
         ============================================================ -->
-        <div class="w-full max-w-4xl mx-auto">
+        <div class="w-full">
             <div class="mb-8">
                 <h2 class="text-3xl font-extrabold" style="color:#728BA9;">Detail Operasional Luka</h2>
                 <p class="font-medium mt-1" style="color:#A3ACA0;">Unggah foto luka Anda untuk dianalisis oleh sistem secara instan.</p>
@@ -1381,19 +1381,19 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
             
             <!-- Reference Details -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div class="glass-card p-6 border-t-4" style="border-top-color:#86efac;">
+                <div class="glass-card p-6 border-t-4" style="border-top-color:#728BA9;">
                     <div class="w-10 h-10 rounded-full bg-[#ECF2E6] mb-4 flex items-center justify-center shadow-sm"><svg class="w-6 h-6" style="color:#5A6C7A;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></div>
                     <h4 class="font-extrabold text-[#5A6C7A] mb-2 text-sm">Normal</h4>
                     <p class="text-xs font-semibold text-[#A3ACA0] leading-relaxed">Penyembuhan sesuai jalur. Kemerahan sangat minim pada tepi, tidak ada pembengkakan signifikan, dan cairan bening (serous) wajar.</p>
                 </div>
-                <div class="glass-card p-6 border-t-4" style="border-top-color:#fde047;">
-                    <div class="w-10 h-10 rounded-full mb-4 flex items-center justify-center shadow-sm" style="background:#fef08a;"><svg class="w-6 h-6" style="color:#ca8a04;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></div>
-                    <h4 class="font-extrabold mb-2 text-sm" style="color:#ca8a04;">Warning</h4>
+                <div class="glass-card p-6 border-t-4" style="border-top-color:#D4AA6A;">
+                    <div class="w-10 h-10 rounded-full mb-4 flex items-center justify-center shadow-sm" style="background:#F7F2EB;"><svg class="w-6 h-6" style="color:#D4AA6A;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></div>
+                    <h4 class="font-extrabold mb-2 text-sm" style="color:#D4AA6A;">Warning</h4>
                     <p class="text-xs font-semibold text-[#A3ACA0] leading-relaxed">Tanda ke arah radang meningkat. Kemerahan melebar ke sekeliling (eritema), terasa bengkak pada rabaan, cairan agak kental / kuning pudar.</p>
                 </div>
-                <div class="glass-card p-6 border-t-4" style="border-top-color:#fca5a5;">
-                    <div class="w-10 h-10 rounded-full mb-4 flex items-center justify-center shadow-sm" style="background:#fecaca;"><svg class="w-6 h-6" style="color:#dc2626;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                    <h4 class="font-extrabold mb-2 text-sm" style="color:#dc2626;">Infeksi</h4>
+                <div class="glass-card p-6 border-t-4" style="border-top-color:#D46A6A;">
+                    <div class="w-10 h-10 rounded-full mb-4 flex items-center justify-center shadow-sm" style="background:#F9EAEA;"><svg class="w-6 h-6" style="color:#D46A6A;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                    <h4 class="font-extrabold mb-2 text-sm" style="color:#D46A6A;">Infeksi</h4>
                     <p class="text-xs font-semibold text-[#A3ACA0] leading-relaxed">Indikasi komplikasi bahaya! Kemerahan dominan (lebih dari 55%), bengkak keras disertai nyeri, cairan kuning / hijau pekat (nanah).</p>
                 </div>
             </div>
@@ -1445,8 +1445,8 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                         $surgStart->setTime(0,0,0); $whDate->setTime(0,0,0);
                         $whDayNum = $surgStart->diff($whDate)->days + 1;
 
-                        $bgStatus = ($wh['status'] === 'Warning') ? '#fef08a' : (strpos($wh['status'], 'Infeksi') !== false ? '#fecaca' : '#ECF2E6');
-                        $textColor = ($wh['status'] === 'Warning') ? '#ca8a04' : (strpos($wh['status'], 'Infeksi') !== false ? '#dc2626' : '#728BA9');
+                        $bgStatus = ($wh['status'] === 'Warning') ? '#F7F2EB' : (strpos($wh['status'], 'Infeksi') !== false ? '#F9EAEA' : '#ECF2E6');
+                        $textColor = ($wh['status'] === 'Warning') ? '#D4AA6A' : (strpos($wh['status'], 'Infeksi') !== false ? '#D46A6A' : '#728BA9');
                     ?>
                     <div class="glass-card p-5 group hover:-translate-y-1 transition-all cursor-pointer" onclick='openWoundHistoryModal(<?= json_encode($wh, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'>
                         <div class="w-full aspect-video rounded-xl bg-gray-200 mb-4 overflow-hidden relative">
@@ -1682,19 +1682,19 @@ function showWoundResult() {
         swelling = "Radang Sedang";
         fluid = "Vulkanis / Terdapat Serous Kuning";
         status = "Warning";
-        icon = '<svg class="w-8 h-8" style="color:#ca8a04;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>';
-        iconBg = "#fef08a";
+        icon = '<svg class="w-8 h-8" style="color:#D4AA6A;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>';
+        iconBg = "#F7F2EB";
         note = "Terdeteksi aktivitas inflamasi berlebih. Sangat disarankan untuk menjaga luka tetap kering dan mewaspadai demam.";
-        rednessColor = "#ca8a04";
+        rednessColor = "#D4AA6A";
     } else {
         redness = Math.floor(Math.random() * 30) + 60; 
         swelling = "Besar (Edema Meluas)";
         fluid = "Kuning Pudar / Hijau (Nanah)";
         status = "Indikasi Infeksi";
-        icon = '<svg class="w-8 h-8" style="color:#dc2626;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
-        iconBg = "#fecaca";
+        icon = '<svg class="w-8 h-8" style="color:#D46A6A;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+        iconBg = "#F9EAEA";
         note = "Tingkat kemerahan dan dugaan eksudat purulen menandakan rute infeksi. Silakan kunjungi instalasi gawat darurat atau dokter Anda secepatnya.";
-        rednessColor = "#dc2626";
+        rednessColor = "#D46A6A";
     }
     
     // Apply texts & logic
@@ -1710,7 +1710,7 @@ function showWoundResult() {
     document.getElementById('wl-size-val').textContent = size;
     
     document.getElementById('wl-status-title').textContent = status;
-    document.getElementById('wl-status-title').style.color = (status==="Warning"? "#ca8a04" : (status==="Indikasi Infeksi"?"#dc2626":"#5A6C7A"));
+    document.getElementById('wl-status-title').style.color = (status==="Warning"? "#D4AA6A" : (status==="Indikasi Infeksi"?"#D46A6A":"#5A6C7A"));
     
     document.getElementById('wl-status-icon').innerHTML = icon;
     document.getElementById('wl-status-icon').style.backgroundColor = iconBg;
@@ -1737,8 +1737,8 @@ function openWoundHistoryModal(wh) {
 
     var status = wh.status || "Normal";
     var icon = wh.iconSvg || '<svg class="w-8 h-8" style="color:#5A6C7A;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>';
-    var iconBg = wh.iconBg || (status === 'Warning' ? '#fef08a' : (status.includes('Infeksi') ? '#fecaca' : '#ECF2E6'));
-    var titleColor = status === 'Warning' ? '#ca8a04' : (status.includes('Infeksi') ? '#dc2626' : '#5A6C7A');
+    var iconBg = wh.iconBg || (status === 'Warning' ? '#F7F2EB' : (status.includes('Infeksi') ? '#F9EAEA' : '#ECF2E6'));
+    var titleColor = status === 'Warning' ? '#D4AA6A' : (status.includes('Infeksi') ? '#D46A6A' : '#5A6C7A');
     var rednessColor = wh.rednessColor || titleColor;
 
     document.getElementById('whm-status').textContent = status;
