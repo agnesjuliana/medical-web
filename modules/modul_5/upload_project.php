@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../config/database.php';
 header('Content-Type: application/json');
 
 try {
-    $pdo = getDBConnection(); // ← ganti ke backbone_medweb
+    $pdo = getAppDBConnection(); 
 
     $problem          = $_POST['problem']          ?? '';
     $solution         = $_POST['title']            ?? '';

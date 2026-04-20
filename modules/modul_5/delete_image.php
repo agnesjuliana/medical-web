@@ -7,7 +7,7 @@ $data      = json_decode(file_get_contents("php://input"), true);
 $imagePath = $data['path'] ?? '';
 
 try {
-    $pdo = getDBConnection(); // ← ganti ke backbone_medweb
+    $pdo = getAppDBConnection();
 
     if (!$imagePath) {
         throw new Exception("Path kosong");

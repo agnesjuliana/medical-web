@@ -7,7 +7,7 @@ $data = json_decode(file_get_contents("php://input"), true);
 $id   = isset($data['id']) ? (int)$data['id'] : 0;
 
 try {
-    $pdo = getDBConnection(); // ← ganti ke backbone_medweb
+    $pdo = getAppDBConnection();
 
     if (!$id) {
         throw new Exception("ID project tidak valid");

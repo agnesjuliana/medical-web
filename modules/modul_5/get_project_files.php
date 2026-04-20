@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../config/database.php';
 header('Content-Type: application/json');
 
 try {
-    $pdo = getDBConnection(); // ← ganti ke backbone_medweb
+    $pdo = getAppDBConnection();
 
     $projectId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
