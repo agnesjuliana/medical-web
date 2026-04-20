@@ -4,16 +4,16 @@ require_once __DIR__ . '/../../config/database.php';
 header('Content-Type: application/json');
 
 $data = json_decode(file_get_contents("php://input"), true);
-$id = $data['id'] ?? 0;
+$id   = isset($data['id']) ? (int)$data['id'] : 0;
 
 try {
-    $pdo = getAppDBConnection();
+    $pdo = getDBConnection(); // ← ganti ke backbone_medweb
 
     if (!$id) {
         throw new Exception("ID project tidak valid");
     }
 
-    // ambil gambar
+    // Ambil gambar dulu sebelum dihapus
     $stmt = $pdo->prepare("SELECT documentation FROM projects WHERE id = ?");
     $stmt->execute([$id]);
     $doc = $stmt->fetchColumn();
@@ -23,8 +23,11 @@ try {
 
         if (is_array($images)) {
             foreach ($images as $img) {
-                $path = __DIR__ . '/../../' . $img;
+                // Validasi path: hanya boleh di dalam folder uploads/
+                $img = ltrim($img, '/');
+                if (strpos($img, '..') !== false) continue;
 
+                $path = __DIR__ . '/../../' . $img;
                 if (file_exists($path)) {
                     unlink($path);
                 }
@@ -32,7 +35,7 @@ try {
         }
     }
 
-    // hapus project
+    // Hapus project dari DB
     $pdo->prepare("DELETE FROM projects WHERE id = ?")->execute([$id]);
 
     echo json_encode(['success' => true]);
