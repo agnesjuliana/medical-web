@@ -1,0 +1,104 @@
+author:	Copilot (AI)
+association:	none
+edited:	false
+status:	commented
+--
+## Pull request overview
+
+Implements the new **Onboarding Results** full-page screen for `modul_8` and updates the onboarding flow to render it as the `results` step with computed plan data. The PR also includes an unrelated change to global PHP database configuration.
+
+**Changes:**
+- Added `OnboardingResults.tsx` page component rendering the full results layout (macros grid, health score, goal items, sources, sticky CTA).
+- Updated `OnboardingPage.tsx` to early-return the results page and pass TDEE-derived macro values as props.
+- Updated `config/database.php` to load env vars and build a PostgreSQL PDO DSN from `DATABASE_URL`/`POSTGRES_URL` (plus changed `BASE_URL` defaulting).
+
+### Reviewed changes
+
+Copilot reviewed 3 out of 3 changed files in this pull request and generated 11 comments.
+
+| File | Description |
+| ---- | ----------- |
+| modules/modul_8/app/src/components/page/OnboardingResults.tsx | New results page UI (macros, health score, goals, sources, sticky CTA). |
+| modules/modul_8/app/src/components/page/OnboardingPage.tsx | Onboarding flow + results integration; computes and passes plan data. |
+| config/database.php | Switches DB/base-url configuration to env-driven PostgreSQL settings. |
+
+
+
+
+
+---
+
+💡 <a href="/agnesjuliana/medical-web/new/main?filename=.github/instructions/*.instructions.md" class="Link--inTextBlock" target="_blank" rel="noopener noreferrer">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href="https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot" class="Link--inTextBlock" target="_blank" rel="noopener noreferrer">Learn how to get started</a>.
+--
+author:	nashirabbash
+association:	collaborator
+edited:	false
+status:	commented
+--
+Great work implementing the Onboarding Results screen! The UI matches the specifications well and the components are nicely structured. However, I found a few critical logic bugs regarding unit conversions and some dead code that needs to be cleaned up.
+
+### 1. Bug: Imperial Unit Parsing Failure in TDEE & Goal Calculation
+**File**: `modules/modul_8/app/src/components/page/OnboardingPage.tsx`
+
+**Issue**: In `computeTDEE()`, `computeGoalDate()`, `MotivationContent`, and inside the `OnboardingPage` render block, `parseInt(form.weight)` and `parseInt(form.height)` are used. If the user toggles the unit to Imperial, `form.weight` will be a string like `"154 lbs"` and `form.height` will be `"5'7""`. Calling `parseInt("5'7\"")` evaluates to `5` (centimeters!), and `parseInt("154 lbs")` evaluates to `154` (kilograms!). This leads to wildly incorrect BMR calculations and calorie targets.
+
+**Fix**: Create helper functions to safely parse these values into metric equivalents before computation:
+
+```typescript
+// Add these helpers
+function parseHeightCm(heightStr: string): number {
+  if (!heightStr) return 170;
+  if (heightStr.includes("'")) {
+    const [feet, inches] = heightStr.split("'").map(s => parseInt(s) || 0);
+    return Math.round((feet * 30.48) + (inches * 2.54));
+  }
+  return parseInt(heightStr) || 170;
+}
+
+function parseWeightKg(weightStr: string): number {
+  if (!weightStr) return 70;
+  if (weightStr.includes("lbs")) {
+    return Math.round((parseInt(weightStr) || 154) / 2.20462);
+  }
+  return parseInt(weightStr) || 70;
+}
+```
+Then replace `parseInt(form.weight)` with `parseWeightKg(form.weight)` and `parseInt(form.height)` with `parseHeightCm(form.height)` everywhere these values are used.
+
+---
+
+### 2. UX/Logic: Mixed Units Display on Results Page
+**File**: `modules/modul_8/app/src/components/page/OnboardingPage.tsx`
+
+**Issue**: The `plan` object sets `goalLbs` using a hardcoded pounds conversion (`parseFloat((diff * 2.20462).toFixed(1))`), which `OnboardingResults` always displays as `lbs`. However, the goal item list below it hardcodes `kg` (`title: \`${action} ${diff} kg\``). This creates a confusing UX where the user sees both pounds and kilograms on the same screen, regardless of their selected preference.
+
+**Fix**: Pass a dynamic `targetWeight` and `targetUnit` to the `plan` object based on whether the user selected Metric or Imperial, and update `OnboardingResults.tsx` to use those props instead of hardcoding `lbs` and `kg`.
+
+---
+
+### 3. Maintainability: Unused `ResultsContent` Component (Dead Code)
+**File**: `modules/modul_8/app/src/components/page/OnboardingPage.tsx`
+
+**Issue**: The `ResultsContent` component is defined but never used. The `renderContent` function explicitly handles the `"results"` case with an early return (`return null; // handled as early return below`), and the main component renders the separate `<OnboardingResults />` component instead.
+
+**Fix**: Remove the entire `ResultsContent` function to keep the codebase clean.
+
+---
+
+### 4. Potential Bug: URL-encoded Passwords in Connection String
+**File**: `config/database.php`
+
+**Issue**: `parse_url()` does not automatically URL-decode the `user` and `pass` components. If the `DATABASE_URL` contains special characters in the password (e.g., `postgres://user:p%40ssword@host...`), the connection will fail because `p%40ssword` will be passed to PDO instead of the actual password `p@ssword`.
+
+**Fix**: Wrap the parsed credentials in `urldecode()`.
+
+```php
+-    define('DB_USER', $parsed['user'] ?? 'postgres');
+-    define('DB_PASS', $parsed['pass'] ?? '');
++    define('DB_USER', urldecode($parsed['user'] ?? 'postgres'));
++    define('DB_PASS', urldecode($parsed['pass'] ?? ''));
+```
+
+Please address these points. Let me know if you have any questions!
+
+--

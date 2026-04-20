@@ -1,0 +1,5 @@
+> tsc -b && vite build
+src/components/header/OnboardingHeader.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/page/OnboardingPage.tsx(769,11): error TS2322: Type 'string | Element' is not assignable to type 'string | undefined'.
+  Type 'Element' is not assignable to type 'string'.
+src/components/template/CarouselHome.tsx(11,3): error TS6133: 'Plus' is declared but its value is never read.

@@ -7,3 +7,9 @@ node_modules
 CLAUDE.md
 skills-lock.json
 .mcp.json
+config/*
+*.diff
+*.patch
+server.log
+graphify-out/
+modules/modul_8/app/src/graphify-out/

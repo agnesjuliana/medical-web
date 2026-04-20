@@ -1,0 +1,319 @@
+author:	nashirabbash
+association:	collaborator
+edited:	false
+status:	commented
+--
+Reviewed latest commit `dc6c1723424dbb0f95a719f6537b7ed398fb9fb9` on PR #36. I found several issues that should be fixed before merge.
+
+### 1) Blocking: AI quota is consumed even when scan fails
+**Location:** `modules/modul_8/Backend/Controllers/AiController.php:48-64`
+
+`checkAndIncrement()` is called before API key validation and before Claude call. If config is missing or provider call fails, users still lose one daily quota slot.
+
+**Suggested fix:** increment only after successful AI response parse, or rollback increment on failure.
+
+```php
+$limit = $this->service->getDailyLimit();
+if ('1,140p'this->repo->canScanToday($userId, $limit)) {
+    $this->jsonError("Daily AI scan limit reached ({$limit}/day)", 429);
+}
+
+$text = $this->service->callClaude($rawB64, $mediaType, $apiKey);
+$prediction = $this->service->sanitizePrediction(json_decode($text, true) ?? []);
+
+$this->repo->incrementScanCount($userId); // only on success
+$this->jsonSuccess($prediction);
+```
+
+### 2) Risk: Upstream error details are exposed to clients
+**Location:** `modules/modul_8/Backend/Controllers/AiController.php:63-64`, `modules/modul_8/Backend/Services/AiScanService.php:87-89`
+
+Controller returns `$e->getMessage()` directly as HTTP 502. Service may include provider error text. This can leak internal details and produces unstable client-facing messages.
+
+**Suggested fix:** log detailed error server-side, return a stable generic message to clients.
+
+```php
+try {
+    $text = $this->service->callClaude($rawB64, $mediaType, $apiKey);
+} catch (\RuntimeException $e) {
+    error_log('[ai_scan] ' . $e->getMessage());
+    $this->jsonError('AI service temporarily unavailable', 502);
+}
+```
+
+### 3) Blocking: Missing image size and JPEG signature validation
+**Location:** `modules/modul_8/Backend/Services/AiScanService.php:19-33`
+
+Current validation checks only `data:image/...` prefix and base64 decode, but does not enforce payload size or JPEG magic bytes. This can allow oversized payloads and unsupported formats.
+
+**Suggested fix:** enforce max size and verify JPEG signature.
+
+```php
+$rawB64 = preg_replace('/^data:image\/[a-z]+(?:;[^,]+)*;base64,/', '', $imageB64);
+$binary = base64_decode($rawB64, true);
+if ($binary === false) {
+    throw new \InvalidArgumentException('Invalid image encoding');
+}
+if (strlen($binary) > 2 * 1024 * 1024) {
+    throw new \InvalidArgumentException('Image exceeds 2MB limit');
+}
+if (strncmp($binary, "\xFF\xD8\xFF", 3) !== 0) {
+    throw new \InvalidArgumentException('Only JPEG images are allowed');
+}
+```
+
+### 4) Blocking: `logMeal` lacks key business-rule validation
+**Location:** `modules/modul_8/Backend/Controllers/MealController.php:53-73`
+
+Current flow allows:
+- future `log_date`
+- `source = saved` without `saved_food_id`
+- `ai_confidence` outside 0..1
+
+These create invalid data states.
+
+**Suggested fix:** add explicit guards.
+
+```php
+$logDateObj = new \DateTimeImmutable($log_date);
+if ($logDateObj > new \DateTimeImmutable('today')) {
+    $this->jsonError('log_date cannot be in the future', 422);
+}
+if ($source === 'saved' && $saved_food_id === null) {
+    $this->jsonError('saved_food_id is required when source is saved', 422);
+}
+if ($source === 'ai_scan' && ($ai_confidence < 0 || $ai_confidence > 1)) {
+    $this->jsonError('ai_confidence must be between 0 and 1', 422);
+}
+```
+
+### 5) Risk: meal listing endpoint is unbounded and reverse-order mismatch
+**Location:** `modules/modul_8/Backend/Controllers/MealController.php:26-34`, `modules/modul_8/Backend/Repositories/MealRepository.php:16-27`
+
+`listMeals()` does not apply pagination and repository orders `ASC`. This can degrade performance and does not match recent-first feed behavior.
+
+**Suggested fix:** support `limit/offset` with sane caps and use `ORDER BY created_at DESC`.
+
+```php
+// controller
+$limit = max(1, min(50, (int)($_GET['limit'] ?? 20)));
+$offset = max(0, (int)($_GET['offset'] ?? 0));
+$this->jsonSuccess($this->meals->getByDate($userId, $date, $limit, $offset));
+
+// repository
+SELECT ...
+FROM m8_meals
+WHERE user_id = ? AND log_date = ?
+ORDER BY created_at DESC
+LIMIT ? OFFSET ?
+```
+
+### 6) Risk: `logWater` response misses daily total and does not enforce range
+**Location:** `modules/modul_8/Backend/Controllers/MealController.php:200-214`
+
+Current endpoint accepts any positive amount and returns only inserted id. For consistency and safer input handling, enforce bounded range and return updated daily total.
+
+**Suggested fix:**
+
+```php
+if ($amount < 50 || $amount > 5000) {
+    $this->jsonError('amount_ml must be between 50 and 5000', 422);
+}
+$id = $this->water->insert($userId, $log_date, (int) $amount);
+$total = $this->water->getTotalByDate($userId, $log_date);
+$this->jsonSuccess(['id' => $id, 'amount_ml' => (int)$amount, 'water_ml' => $total], 201);
+```
+
+### 7) Risk: `logWeight` does not persist optional note
+**Location:** `modules/modul_8/Backend/Controllers/MealController.php:217-231`, `modules/modul_8/Backend/Repositories/WeightRepository.php:101-112`
+
+Controller/repository path ignores optional `note`, so user input can be silently dropped.
+
+**Suggested fix:** pass and persist `note` (with max-length validation) in `insertAndUpdateProfile()`.
+
+```php
+$note = isset($body['note']) ? trim((string)$body['note']) : null;
+if ($note !== null && mb_strlen($note) > 500) {
+    $this->jsonError('note max length is 500 characters', 422);
+}
+```
+
+If useful, I can send a follow-up patch implementing these directly.
+
+--
+author:	nashirabbash
+association:	collaborator
+edited:	false
+status:	commented
+--
+Correction to Finding #1 snippet in my previous review:
+
+The conditional line should be:
+
+`if (!$this->repo->canScanToday($userId, $limit)) {`
+
+Only that line was malformed in the pasted snippet; the finding itself and the rest of the review remain unchanged.
+
+--
+author:	nashirabbash
+association:	collaborator
+edited:	false
+status:	commented
+--
+Correction to Finding #1 in my previous review: the conditional should be: if ($this->repo->canScanToday($userId, $limit) === false) { ... }. Only that line was malformed; the rest of the review is unchanged.
+--
+author:	Copilot (AI)
+association:	none
+edited:	false
+status:	commented
+--
+## Pull request overview
+
+This PR aims to close Modul 8 gaps vs `API_SPEC.md` by introducing a typed frontend API layer + onboarding flow, and adding a new backend “controller/service/repository” architecture intended to address missing endpoints and security issues from Issue #35.
+
+**Changes:**
+- Added a new frontend API client (`api.ts`) and wired Home/Account/Profile flows to fetch/save profile + dashboard data.
+- Added a new onboarding experience (`OnboardingPage`) and UI type updates to support richer button labels/loading states.
+- Introduced a new backend entrypoint (`Backend/index.php`) with controller/repository/service classes for profile, meals, dashboard, and AI scan.
+
+### Reviewed changes
+
+Copilot reviewed 24 out of 24 changed files in this pull request and generated 19 comments.
+
+<details>
+<summary>Show a summary per file</summary>
+
+| File | Description |
+| ---- | ----------- |
+| modules/modul_8/app/src/services/api.ts | New typed API client for profile + dashboard, plus unit conversion helpers |
+| modules/modul_8/app/src/screens/Home.tsx | Replaced mock dashboard data with API-backed dashboard fetch + UI loading/error states |
+| modules/modul_8/app/src/screens/AccountDetailsScreen.tsx | Loads profile from API and renders loading/error states |
+| modules/modul_8/app/src/screens/EditDetailScreen.tsx | Saves profile via API and adds saving state + toast feedback |
+| modules/modul_8/app/src/components/page/OnboardingPage.tsx | New onboarding flow with profile save to backend |
+| modules/modul_8/app/src/components/ui/FixedBottomBar.tsx | Allows `label` to be a `ReactNode` (e.g., spinner + text) |
+| modules/modul_8/app/src/components/theme/ThemeToggle.tsx | Removes unused `themes` variable |
+| modules/modul_8/app/src/components/theme/ThemeProvider.tsx | Uses `import type` for `ReactNode` |
+| modules/modul_8/app/src/components/ui/ScrollPickerColumn.tsx | Removes unused `React` default import |
+| modules/modul_8/app/src/components/ui/RulerPicker.tsx | Removes unused `React` default import |
+| modules/modul_8/app/src/components/header/OnboardingHeader.tsx | Removes unused `React` default import |
+| modules/modul_8/app/src/screens/ProgressScreens.tsx | Removes unused icon imports + removes streak/badge UI block |
+| modules/modul_8/app/src/screens/LogFood.tsx | Removes unused `React` import |
+| modules/modul_8/app/src/components/template/CarouselHome.tsx | Removes unused `Plus` icon import |
+| modules/modul_8/Backend/index.php | New backend dispatcher intended to route actions to controllers |
+| modules/modul_8/Backend/Controllers/ProfileController.php | New profile endpoints with target calculation + validation changes |
+| modules/modul_8/Backend/Controllers/MealController.php | New meal/water/weight + saved-food endpoints with enum validation + IDOR check |
+| modules/modul_8/Backend/Controllers/DashboardController.php | New dashboard endpoint returning expanded nutrition fields + health score persistence |
+| modules/modul_8/Backend/Controllers/AiController.php | New AI scan + quota endpoints using Claude vision |
+| modules/modul_8/Backend/Repositories/ProfileRepository.php | New profile persistence (upsert) including added micronutrient targets |
+| modules/modul_8/Backend/Repositories/MealRepository.php | New meals + saved foods + safe search + daily calories query |
+| modules/modul_8/Backend/Repositories/WeightRepository.php | New weight logging + safe interval filtering + transactional insert/update |
+| modules/modul_8/Backend/Services/ProfileService.php | Target calculations + Postgres array helpers |
+| modules/modul_8/Backend/Services/AiScanService.php | Claude API call + base64 image validation + prediction sanitization |
+</details>
+
+
+
+
+
+
+---
+
+💡 <a href="/agnesjuliana/medical-web/new/main?filename=.github/instructions/*.instructions.md" class="Link--inTextBlock" target="_blank" rel="noopener noreferrer">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href="https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot" class="Link--inTextBlock" target="_blank" rel="noopener noreferrer">Learn how to get started</a>.
+--
+author:	nashirabbash
+association:	collaborator
+edited:	false
+status:	commented
+--
+Reviewed commit `90d4162999ba5afb93c319a31586ec5886dcd4d6` only. I found a few issues that should be fixed before merge.
+
+### 1) 🔴 Blocking: AI quota check is no longer atomic (race condition)
+**Location:** `modules/modul_8/Backend/Controllers/AiController.php:48-51,81-82` and `modules/modul_8/Backend/Repositories/AiScanRepository.php:32-58`
+
+Current flow does `canScanToday()` then later `incrementScanCount()`. Under concurrent requests, multiple scans can pass the check and all increment, allowing quota to exceed the daily limit.
+
+**Suggested fix:** keep increment-after-success behavior, but make the increment itself conditional+atomic.
+
+```php
+// Repository
+public function incrementIfUnderLimit(int $userId, int $limit): bool
+{
+    $stmt = $this->pdo->prepare('
+        INSERT INTO m8_ai_scan_quota (user_id, log_date, scan_count, created_at, updated_at)
+        VALUES (?, CURRENT_DATE, 1, NOW(), NOW())
+        ON CONFLICT (user_id, log_date) DO UPDATE
+            SET scan_count = m8_ai_scan_quota.scan_count + 1,
+                updated_at = NOW()
+        WHERE m8_ai_scan_quota.scan_count < ?
+        RETURNING scan_count
+    ');
+    $stmt->execute([$userId, $limit]);
+    return (bool) $stmt->fetchColumn();
+}
+
+// Controller (after successful parse/sanitize)
+if ('18,80p'this->repo->incrementIfUnderLimit($userId, $limit)) {
+    $this->jsonError("Daily AI scan limit reached ({$limit}/day)", 429);
+}
+```
+
+### 2) 🔴 Blocking: `log_date` validation can produce 500 and accepts impossible dates
+**Location:** `modules/modul_8/Backend/Controllers/MealController.php:57-63`
+
+`preg_match` only checks shape, then `new DateTimeImmutable($log_date)` is used directly.
+- Some invalid inputs throw exception (`2026-99-99`) and bubble as 500.
+- Some impossible dates normalize silently (`2026-02-31` becomes `2026-03-03`).
+
+**Suggested fix:** strict date parse with format round-trip check.
+
+```php
+$logDateObj = \DateTimeImmutable::createFromFormat('Y-m-d', $log_date);
+if ('18,80p'logDateObj || $logDateObj->format('Y-m-d') !== $log_date) {
+    $this->jsonError('Invalid log_date', 422);
+}
+if ($logDateObj > new \DateTimeImmutable('today')) {
+    $this->jsonError('log_date cannot be in the future', 422);
+}
+```
+
+### 3) 🟡 Important: goal progress logic fails for weight-gain goals
+**Location:** `modules/modul_8/Backend/Controllers/ProgressController.php:75-79`
+
+Current formula sets progress to `0.0` whenever `goalWeight > startWeight` (gain scenario), so users with gain goals never see progress.
+
+**Suggested fix:** compute direction-aware progress for both lose and gain goals.
+
+```php
+$goalProgress = 0.0;
+if ($goalWeight !== null && $startWeight !== $goalWeight) {
+    $direction = $goalWeight > $startWeight ? 1 : -1;
+    $numerator = ($currentWeight - $startWeight) * $direction;
+    $denominator = abs($goalWeight - $startWeight);
+    $goalProgress = max(0, min(100, round(($numerator / $denominator) * 100, 1)));
+}
+```
+
+### 4) 🟡 Important: JPEG enforcement and `media_type` can become inconsistent
+**Location:** `modules/modul_8/Backend/Services/AiScanService.php:37-45`
+
+The code validates JPEG magic bytes, but still forwards `media_type` from user input. A payload like `data:image/png;base64,<jpeg-bytes>` passes signature check yet sends `image/png` upstream, which can cause avoidable API failures.
+
+**Suggested fix:** enforce JPEG MIME explicitly when returning parsed image metadata.
+
+```php
+if (!preg_match('/^data:image\/(jpeg|jpg)(?:;[^,]+)*;base64,/', $imageB64)) {
+    throw new \InvalidArgumentException('Only JPEG images are allowed');
+}
+$mediaType = 'image/jpeg';
+```
+
+If you want, I can also provide a focused patch for these 4 points.
+
+--
+author:	nashirabbash
+association:	collaborator
+edited:	false
+status:	commented
+--
+Correction to my latest review (commit 90d416): two snippet lines were mangled by shell expansion. Correct lines are: (1) if ($this->repo->incrementIfUnderLimit($userId, $limit) === false) { (2) if ($logDateObj === false || $logDateObj->format("Y-m-d") !== $log_date) { . All other findings remain unchanged.
+--

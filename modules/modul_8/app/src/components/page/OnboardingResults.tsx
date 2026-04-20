@@ -1,5 +1,16 @@
 import React from "react";
-import { Check, Pencil, Heart, Leaf, UtensilsCrossed, Dna, Flame, Wheat, Beef, Droplets } from "lucide-react";
+import {
+  Check,
+  Pencil,
+  Heart,
+  Leaf,
+  UtensilsCrossed,
+  Dna,
+  Flame,
+  Wheat,
+  Beef,
+  Droplets,
+} from "lucide-react";
 import FixedBottomBar from "../ui/FixedBottomBar";
 import OnboardingHeader from "../header/OnboardingHeader";
 
@@ -103,13 +114,7 @@ function MacroCard({ macro }: { macro: MacroData }) {
 
 // ─── Health Score Card ────────────────────────────────────────────────────────
 
-function HealthScoreCard({
-  score,
-  max,
-}: {
-  score: number;
-  max: number;
-}) {
+function HealthScoreCard({ score, max }: { score: number; max: number }) {
   const pct = Math.round((score / max) * 100);
 
   return (
@@ -345,10 +350,7 @@ export default function OnboardingResults({
       </section>
 
       {/* ── Sticky Continue button ─────────────────────────────────────── */}
-      <FixedBottomBar
-        label="Continue"
-        onContinue={onContinue ?? (() => {})}
-      />
+      <FixedBottomBar label="Continue" onContinue={onContinue ?? (() => {})} />
     </main>
   );
 }
