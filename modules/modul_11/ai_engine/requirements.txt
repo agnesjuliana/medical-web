@@ -3,3 +3,4 @@ flask
 flask-cors
 opencv-python
 numpy
+easydict
