@@ -6,21 +6,33 @@ use Backend\Core\Controller;
 use Backend\Repositories\MealRepository;
 use Backend\Repositories\WaterRepository;
 use Backend\Repositories\WeightRepository;
+use Backend\Repositories\ProfileRepository;
+use Backend\Repositories\HealthScoreRepository;
+use Backend\Services\NutritionService;
 
 class MealController extends Controller
 {
     private MealRepository  $meals;
     private WaterRepository $water;
     private WeightRepository $weight;
+    private ProfileRepository $profiles;
+    private HealthScoreRepository $scores;
+    private NutritionService $nutrition;
 
     public function __construct(
         MealRepository  $meals,
         WaterRepository $water,
-        WeightRepository $weight
+        WeightRepository $weight,
+        ProfileRepository $profiles,
+        HealthScoreRepository $scores,
+        NutritionService $nutrition
     ) {
         $this->meals  = $meals;
         $this->water  = $water;
         $this->weight = $weight;
+        $this->profiles = $profiles;
+        $this->scores = $scores;
+        $this->nutrition = $nutrition;
     }
 
     public function listMeals(int $userId): void
@@ -59,7 +71,7 @@ class MealController extends Controller
         }
 
         // Validate log_date strictly and ensure not in the future
-        $logDateObj = \DateTimeImmutable::createFromFormat('Y-m-d', $log_date);
+        $logDateObj = \DateTimeImmutable::createFromFormat('!Y-m-d', $log_date);
         if ($logDateObj === false || $logDateObj->format('Y-m-d') !== $log_date) {
             $this->jsonError('Invalid log_date', 422);
         }
@@ -115,6 +127,8 @@ class MealController extends Controller
             'saved_food_id' => $saved_food_id,
         ]);
 
+        $this->recomputeAndPersistDailyScore($userId, $log_date);
+
         $this->jsonSuccess(['id' => (int) $row['id'], 'created_at' => $row['created_at']], 201);
     }
 
@@ -127,9 +141,16 @@ class MealController extends Controller
             $this->jsonError('ID required', 400);
         }
 
+        $meal = $this->meals->getByIdAndUser((int) $id, $userId);
+        if (!$meal) {
+            $this->jsonError('Meal not found or unauthorized', 404);
+        }
+
         if ($this->meals->delete((int) $id, $userId) === 0) {
             $this->jsonError('Meal not found or unauthorized', 404);
         }
+
+        $this->recomputeAndPersistDailyScore($userId, $meal['log_date']);
 
         $this->jsonSuccess(['deleted' => true]);
     }
@@ -237,6 +258,9 @@ class MealController extends Controller
 
         $id = $this->water->insert($userId, $log_date, (int) $amount);
         $total = $this->water->getTotalByDate($userId, $log_date);
+
+        $this->recomputeAndPersistDailyScore($userId, $log_date);
+
         $this->jsonSuccess(['id' => $id, 'amount_ml' => (int) $amount, 'water_ml' => $total], 201);
     }
 
@@ -261,5 +285,33 @@ class MealController extends Controller
 
         $id = $this->weight->insertAndUpdateProfile($userId, (float) $weight, $log_date, $note);
         $this->jsonSuccess(['id' => $id], 201);
+    }
+
+    private function recomputeAndPersistDailyScore(int $userId, string $date): void
+    {
+        $profile = $this->profiles->getByUserId($userId);
+        if (!$profile) {
+            return;
+        }
+
+        $summary = $this->meals->getDashboardSummaryByDate($userId, $date);
+
+        $targets = [
+            'calories'  => (int) $profile['daily_calorie_target'],
+            'protein_g' => (int) $profile['daily_protein_g'],
+            'carbs_g'   => (int) $profile['daily_carbs_g'],
+            'fats_g'    => (int) $profile['daily_fats_g'],
+        ];
+
+        $consumed = [
+            'calories'  => (int) $summary['meal_totals']['calories'],
+            'protein_g' => (float) $summary['meal_totals']['protein_g'],
+            'carbs_g'   => (float) $summary['meal_totals']['carbs_g'],
+            'fats_g'    => (float) $summary['meal_totals']['fats_g'],
+            'water_ml'  => (int) $summary['water_ml'],
+        ];
+
+        $score = $this->nutrition->computeHealthScore($targets, $consumed);
+        $this->scores->upsert($userId, $date, $score['score'], $score['cal_dev'], $score['macro_dev']);
     }
 }

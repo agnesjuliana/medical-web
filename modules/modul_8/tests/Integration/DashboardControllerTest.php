@@ -159,3 +159,28 @@ print_suite_header('get_health_scores');
     $r = $t->call('get_health_scores', ['days' => '9999']);
     assert_true('TC-D-11 no crash on large days param', isset($r['data']));
 }
+
+// TC-D-12: Score persisted dynamically via log_meal
+{
+    $t = new IntegrationBase();
+    // 1. Log meal response: insert ID
+    $t->pdo->enqueueRow(['id' => '99', 'created_at' => date('Y-m-d H:i:s')]);
+    // 2. Profile for recompute
+    $t->pdo->enqueueRow(['daily_calorie_target' => '2000', 'daily_protein_g' => '150', 'daily_carbs_g' => '200', 'daily_fats_g' => '60']);
+    // 3. Summary for recompute (calories + water)
+    $t->pdo->enqueueRow(['calories' => '500', 'protein_g' => '30', 'carbs_g' => '40', 'fats_g' => '10', 'fiber_g' => '0', 'sugar_g' => '0', 'sodium_mg' => '0', 'water_ml' => '0']);
+    // 4. Recent meals for recompute
+    $t->pdo->enqueueRows([]);
+    
+    // Call log_meal directly since Backend/index.php routes it
+    // Wait, log_meal goes to MealController. Since this is an integration test suite that tests index.php, we just pass the action!
+    $r = $t->call('log_meal', [], [
+        'meal_type' => 'breakfast', 'name' => 'Eggs', 'log_date' => date('Y-m-d'), 'source' => 'manual'
+    ]);
+    
+    assert_true('TC-D-12 log_meal recomputes score', isset($r['data']['id']));
+    
+    // Verify the upsert query was called at the end
+    // $t->pdo->lastPreparedSql should contain the UPSERT logic
+    assert_contains('TC-D-12 health score upserted', 'INSERT INTO m8_daily_health_scores', $t->pdo->lastPreparedSql);
+}

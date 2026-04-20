@@ -5,17 +5,31 @@ namespace Backend\Controllers;
 use Backend\Core\Controller;
 use Backend\Repositories\ProfileRepository;
 use Backend\Services\ProfileService;
+use Backend\Repositories\MealRepository;
+use Backend\Repositories\HealthScoreRepository;
+use Backend\Services\NutritionService;
 use DateTimeImmutable;
 
 class ProfileController extends Controller
 {
     private ProfileRepository $repository;
     private ProfileService $service;
+    private MealRepository $meals;
+    private HealthScoreRepository $scores;
+    private NutritionService $nutrition;
 
-    public function __construct(ProfileRepository $repository, ProfileService $service)
-    {
+    public function __construct(
+        ProfileRepository $repository,
+        ProfileService $service,
+        MealRepository $meals,
+        HealthScoreRepository $scores,
+        NutritionService $nutrition
+    ) {
         $this->repository = $repository;
         $this->service = $service;
+        $this->meals = $meals;
+        $this->scores = $scores;
+        $this->nutrition = $nutrition;
     }
 
     public function getProfile(int $userId): void
@@ -101,9 +115,38 @@ class ProfileController extends Controller
         $success = $this->repository->upsert($data);
 
         if ($success) {
+            $this->recomputeAndPersistDailyScore($userId, date('Y-m-d'));
             $this->jsonSuccess(['saved' => true, 'daily_calorie_target' => $targets['daily_calorie_target']], 200);
         } else {
             $this->jsonError('Failed to save profile', 500);
         }
+    }
+
+    private function recomputeAndPersistDailyScore(int $userId, string $date): void
+    {
+        $profile = $this->repository->getByUserId($userId);
+        if (!$profile) {
+            return;
+        }
+
+        $summary = $this->meals->getDashboardSummaryByDate($userId, $date);
+
+        $targets = [
+            'calories'  => (int) $profile['daily_calorie_target'],
+            'protein_g' => (int) $profile['daily_protein_g'],
+            'carbs_g'   => (int) $profile['daily_carbs_g'],
+            'fats_g'    => (int) $profile['daily_fats_g'],
+        ];
+
+        $consumed = [
+            'calories'  => (int) $summary['meal_totals']['calories'],
+            'protein_g' => (float) $summary['meal_totals']['protein_g'],
+            'carbs_g'   => (float) $summary['meal_totals']['carbs_g'],
+            'fats_g'    => (float) $summary['meal_totals']['fats_g'],
+            'water_ml'  => (int) $summary['water_ml'],
+        ];
+
+        $score = $this->nutrition->computeHealthScore($targets, $consumed);
+        $this->scores->upsert($userId, $date, $score['score'], $score['cal_dev'], $score['macro_dev']);
     }
 }
