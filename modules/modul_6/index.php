@@ -331,7 +331,7 @@
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
                 <h2 class="text-3xl lg:text-4xl font-heading font-bold mb-4">Tim <span class="text-medical-blue">Pengembang</span></h2>
-                <p class="text-gray-400 max-w-2xl mx-auto">Pakar yang berdedikasi tinggi menggabungkan Artifical Intelligence dengan dunia riset medis.</p>
+                <p class="text-gray-400 max-w-2xl mx-auto">Tim mahasiswa yang mengembangkan inovasi dengan menggabungkan Artificial Intelligence dan teknologi medis.</p>
             </div>
 
             <div class="grid md:grid-cols-3 gap-12 lg:gap-8 max-w-5xl mx-auto">
