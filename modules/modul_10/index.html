@@ -514,6 +514,30 @@
             </div>
         </div>
     </section>
+    <div class="container mx-auto px-4 mt-10">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="bg-blue-600 p-4">
+                <h3 class="text-white font-bold">Riwayat Kalkulasi Saya</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase">Waktu</th>
+                            <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase">Usia/JK</th>
+                            <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase">Berat/Tinggi</th>
+                            <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase">Hasil Kalori</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <tr>
+                            <td colspan="4" class="py-4 text-center text-gray-400">Memuat data riwayat...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
 
     <!-- Food Database Section -->
@@ -765,7 +789,6 @@
         });
     </script>
     
-
 
     <style>
         @keyframes fadeInUp {
