@@ -136,7 +136,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
 <!-- ===== VIDEO MODAL ===== -->
 <div id="video-modal" class="fixed inset-0 z-[100] items-center justify-center bg-black/60 backdrop-blur-sm p-4">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 relative">
-        <button onclick="closeVideoModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600 transition-all font-bold">âœ•</button>
+        <button onclick="closeVideoModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-gray-100 hover:bg-[#ECF2E6] text-gray-600 hover:text-[#5A6C7A] transition-all font-bold">âœ•</button>
         <p class="font-extrabold text-[#728BA9] text-lg mb-4" id="vmod-title">Panduan</p>
         <div class="aspect-video rounded-2xl overflow-hidden bg-black">
             <iframe id="vmod-frame" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -189,7 +189,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
                     Profil
                 </a>
-                <a href="index.php" class="nav-link nav-inactive hover:!bg-red-50 hover:!text-red-500">
+                <a href="index.php" class="nav-link nav-inactive hover:!bg-[#DAE3EC] hover:!text-[#5A6C7A]">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H9m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h6a3 3 0 013 3v1"/></svg>
                     Keluar
                 </a>
@@ -203,7 +203,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
         <!-- Persistent Red Flag Button -->
         <button onclick="document.getElementById('rf-modal').classList.remove('hidden'); document.getElementById('rf-modal').classList.add('flex');"
             class="fixed top-7 right-8 z-50 flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-bold text-sm transition-all transform hover:-translate-y-0.5"
-            style="background:#ef4444;box-shadow:0 8px 24px rgba(239,68,68,0.4);">
+            style="background:#5A6C7A;box-shadow:0 8px 24px rgba(90,108,122,0.3);">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             Red Flag
         </button>
@@ -212,30 +212,30 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
         <div id="rf-modal" class="hidden fixed inset-0 z-[90] items-center justify-center p-4" style="background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);">
             <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative">
                 <button onclick="document.getElementById('rf-modal').classList.add('hidden'); document.getElementById('rf-modal').classList.remove('flex');"
-                    class="absolute top-4 right-4 w-9 h-9 rounded-full bg-gray-100 hover:bg-red-100 text-gray-500 hover:text-red-600 flex items-center justify-center font-bold transition-all">âœ•</button>
+                    class="absolute top-4 right-4 w-9 h-9 rounded-full bg-gray-100 hover:bg-[#ECF2E6] text-gray-500 hover:text-[#5A6C7A] flex items-center justify-center font-bold transition-all">âœ•</button>
                 <div class="flex items-center gap-3 mb-5">
-                    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0"><svg class="w-6 h-6" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+                    <div class="w-12 h-12 rounded-full bg-[#ECF2E6] flex items-center justify-center shrink-0"><svg class="w-6 h-6" fill="none" stroke="#728BA9" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
                     <div>
-                        <h3 class="font-extrabold text-red-700 text-xl">Kondisi Darurat!</h3>
-                        <p class="text-red-400 text-sm font-medium">Segera ambil tindakan jika muncul tanda ini</p>
+                        <h3 class="font-extrabold text-[#5A6C7A] text-xl">Kondisi Darurat!</h3>
+                        <p class="text-[#728BA9] text-sm font-medium">Segera ambil tindakan jika muncul tanda ini</p>
                     </div>
                 </div>
-                <ul class="space-y-3 text-sm text-red-800 font-medium mb-6">
+                <ul class="space-y-3 text-sm text-[#5A6C7A] font-medium mb-6">
                     <?php if ($opType === 'cabg'): ?>
-                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> SpOâ‚‚ di bawah 92% â€” hentikan semua aktivitas</li>
-                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Sesak napas tiba-tiba atau nyeri dada sangat berat</li>
-                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Detak jantung tidak teratur (&gt;120 bpm)</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> SpOâ‚‚ di bawah 92% â€” hentikan semua aktivitas</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Sesak napas tiba-tiba atau nyeri dada sangat berat</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Detak jantung tidak teratur (&gt;120 bpm)</li>
                     <?php elseif ($opType === 'sc'): ?>
-                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Perdarahan sangat banyak atau gumpalan darah besar</li>
-                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Demam tinggi di atas 38.5Â°C</li>
-                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Luka terbuka atau mengeluarkan nanah berbau</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Perdarahan sangat banyak atau gumpalan darah besar</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Demam tinggi di atas 38.5 derajatC</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Luka terbuka atau mengeluarkan nanah berbau</li>
                     <?php else: ?>
-                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Perdarahan aktif dari area operasi</li>
-                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Area luka merah, panas, membengkak luas</li>
-                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Nyeri tidak terkontrol meski sudah minum obat</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Perdarahan aktif dari area operasi</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Area luka merah, panas, membengkak luas</li>
+                    <li class="flex gap-2 items-start"><svg class="w-4 h-4 text-[#728BA9] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Nyeri tidak terkontrol meski sudah minum obat</li>
                     <?php endif; ?>
                 </ul>
-                <a href="tel:119" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl text-white font-extrabold text-lg transition-all" style="background:#ef4444;">
+                <a href="tel:119" class="flex items-center justify-center gap-2 py-3.5 rounded-2xl text-white font-extrabold text-lg transition-all" style="background:#5A6C7A;">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.338c0-1.14.88-2.073 2.019-2.128a48.974 48.974 0 0119.462 0 2.126 2.126 0 012.019 2.128 4.487 4.487 0 01-1.268 3.217l-3.02 3.297a4.5 4.5 0 00-1.09 2.85v1.478m0 0a48.667 48.667 0 01-2.658-.813m-2.658.813a48.8 48.8 0 01-2.658-.813m0-1.478a4.5 4.5 0 00-1.09-2.85l-3.02-3.297a4.487 4.487 0 01-1.268-3.217"/></svg>
                     Hubungi 119 â€” IGD Darurat
                 </a>
@@ -264,17 +264,17 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
 
             <!-- Priority Banner -->
             <?php if (!$todayMonitoring): ?>
-            <a href="dashboard.php?page=monitoring" class="flex items-center gap-4 p-5 mb-6 rounded-2xl border transition-all group" style="background:#fffbeb;border-color:#fcd34d;">
-                <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style="background:#fef3c7;"><svg class="w-6 h-6" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+            <a href="dashboard.php?page=monitoring" class="flex items-center gap-4 p-5 mb-6 rounded-2xl border transition-all group" style="background:rgba(114,139,169,0.07);border-color:#DAE3EC;">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style="background:#ECF2E6;"><svg class="w-6 h-6" fill="none" stroke="#728BA9" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
                 <div class="flex-1">
-                    <p class="font-extrabold" style="color:#92400e;">Anda belum mengisi log pemantauan hari ini!</p>
-                    <p class="text-sm font-medium mt-0.5" style="color:#b45309;">Data kesehatan belum tercatat â€” isi sekarang agar bisa dipantau.</p>
+                    <p class="font-extrabold" style="color:#5A6C7A;">Anda belum mengisi log pemantauan hari ini!</p>
+                    <p class="text-sm font-medium mt-0.5" style="color:#7F8A83;">Data kesehatan belum tercatat â€” isi sekarang agar bisa dipantau.</p>
                 </div>
-                <span class="px-4 py-2 rounded-full text-white font-bold text-sm shrink-0 transition-all" style="background:#f59e0b;">Isi Sekarang â†’</span>
+                <span class="px-4 py-2 rounded-full text-white font-bold text-sm shrink-0 transition-all" style="background:#728BA9;">Isi Sekarang â†’</span>
             </a>
             <?php else: ?>
             <div class="flex items-center gap-4 p-5 mb-6 rounded-2xl border" style="background:#ECF2E6;border-color:#D1D9CA;">
-                <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style="background:#D1D9CA;"><svg class="w-6 h-6" fill="none" stroke="#4ade80" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg></div>
+                <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style="background:#D1D9CA;"><svg class="w-6 h-6" fill="none" stroke="#728BA9" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg></div>
                 <div>
                     <p class="font-extrabold" style="color:#5A6C7A;">Log pemantauan hari ini sudah terisi!</p>
                     <p class="text-sm font-medium mt-0.5" style="color:#A3ACA0;">Data Anda sudah tercatat. Tetap pantau kondisi Anda.</p>
@@ -303,8 +303,8 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                 <?php elseif ($opType==='sc'): ?>
                 <div class="glass-card p-6">
                     <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#728BA9;">Suhu Tubuh</p>
-                    <p class="text-4xl font-extrabold" style="color:#728BA9;"><?= isset($todayMonitoring['temp'])&&$todayMonitoring['temp']!==null ? htmlspecialchars($todayMonitoring['temp']) : '--' ?><span class="text-lg">Â°C</span></p>
-                    <p class="text-xs font-medium mt-1" style="color:#A3ACA0;">Normal 36â€“37.5Â°C</p>
+                    <p class="text-4xl font-extrabold" style="color:#728BA9;"><?= isset($todayMonitoring['temp'])&&$todayMonitoring['temp']!==null ? htmlspecialchars($todayMonitoring['temp']) : '--' ?><span class="text-lg"> derajatC</span></p>
+                    <p class="text-xs font-medium mt-1" style="color:#A3ACA0;">Normal 36â€“37.5 derajatC</p>
                 </div>
                 <div class="glass-card p-6">
                     <p class="text-xs font-bold uppercase tracking-wider mb-1" style="color:#A3ACA0;">Volume Perdarahan</p>
@@ -388,9 +388,9 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                         <?php endforeach; ?>
                     </div>
                     <p class="text-xs font-medium mt-4 pt-3" style="border-top:1px solid rgba(218,227,236,0.5);color:#A3ACA0;">
-                        <?php if ($painToday !== null && $painToday <= 3): ?><span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="#16a34a" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg><span style="color:#16a34a;font-weight:700;">Nyeri ringan</span></span> â€” batas normal
-                        <?php elseif ($painToday !== null && $painToday <= 6): ?><span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01"/></svg><span style="color:#d97706;font-weight:700;">Nyeri sedang</span></span> â€” pantau lebih ketat
-                        <?php elseif ($painToday !== null): ?><span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span style="color:#dc2626;font-weight:700;">Nyeri berat</span></span> â€” hubungi dokter
+                        <?php if ($painToday !== null && $painToday <= 3): ?><span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="#728BA9" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg><span style="color:#728BA9;font-weight:700;">Nyeri ringan</span></span> â€” batas normal
+                        <?php elseif ($painToday !== null && $painToday <= 6): ?><span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="#A3ACA0" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01"/></svg><span style="color:#A3ACA0;font-weight:700;">Nyeri sedang</span></span> â€” pantau lebih ketat
+                        <?php elseif ($painToday !== null): ?><span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="#5A6C7A" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span style="color:#5A6C7A;font-weight:700;">Nyeri berat</span></span> â€” hubungi dokter
                         <?php else: ?>Belum ada data hari ini<?php endif; ?>
                     </p>
                     <a href="dashboard.php?page=monitoring" class="mt-4 block text-center py-2.5 rounded-xl font-bold text-sm text-white transition-all hover:-translate-y-0.5" style="background:#728BA9;">
@@ -795,11 +795,11 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                 <?php elseif ($opType === 'sc'): ?>
                 <!-- SC -->
                 <div class="glass-card p-8">
-                    <h3 class="font-extrabold text-lg mb-4 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Suhu Tubuh (Â°C)</h3>
+                    <h3 class="font-extrabold text-lg mb-4 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Suhu Tubuh ( derajatC)</h3>
                     <input type="number" step="0.1" name="temp" min="35" max="42" value="<?= htmlspecialchars($todayMonitoring['temp'] ?? '') ?>" placeholder="misal: 36.8"
                         class="w-full px-4 py-3 rounded-xl border outline-none font-semibold" style="border-color:#DAE3EC;background:rgba(255,255,255,0.8);color:#5A6C7A;"
                         onfocus="this.style.borderColor='#728BA9'" onblur="this.style.borderColor='#DAE3EC'">
-                    <p class="text-xs font-medium mt-2" style="color:#A3ACA0;">Normal: 36â€“37.5Â°C. Demam jika &gt; 38Â°C.</p>
+                    <p class="text-xs font-medium mt-2" style="color:#A3ACA0;">Normal: 36â€“37.5 derajatC. Demam jika &gt; 38 derajatC.</p>
                 </div>
                 <div class="glass-card p-8">
                     <h3 class="font-extrabold text-lg mb-6 flex items-center gap-2" style="color:#5A6C7A;"><svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg> Pemantauan Perdarahan</h3>
@@ -891,9 +891,9 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                         <div class="rounded-2xl p-5" style="background:#ECF2E6;">
                             <p class="text-xs font-extrabold uppercase tracking-wider mb-3 flex items-center gap-1.5" style="color:#5A6C7A;"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> Referensi Luka</p>
                             <div class="space-y-3">
-                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#4ade80;"></span><div><p class="text-xs font-bold" style="color:#16a34a;">NORMAL</p><p class="text-xs font-medium" style="color:#7F7F7F;">Merah muda memudar, tepi rapat, cairan bening sedikit</p></div></div>
-                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#fbbf24;"></span><div><p class="text-xs font-bold" style="color:#d97706;">PERHATIAN</p><p class="text-xs font-medium" style="color:#7F7F7F;">Kemerahan tepi luka, sedikit bengkak â€” pantau ketat</p></div></div>
-                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#f87171;"></span><div><p class="text-xs font-bold" style="color:#dc2626;">BAHAYA!</p><p class="text-xs font-medium" style="color:#7F7F7F;">Nanah, bau menyengat, merah meluas, jahitan terbuka</p></div></div>
+                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#4ade80;"></span><div><p class="text-xs font-bold" style="color:#728BA9;">NORMAL</p><p class="text-xs font-medium" style="color:#7F7F7F;">Merah muda memudar, tepi rapat, cairan bening sedikit</p></div></div>
+                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#fbbf24;"></span><div><p class="text-xs font-bold" style="color:#A3ACA0;">PERHATIAN</p><p class="text-xs font-medium" style="color:#7F7F7F;">Kemerahan tepi luka, sedikit bengkak â€” pantau ketat</p></div></div>
+                                <div class="flex items-start gap-3"><span class="w-3 h-3 rounded-full shrink-0 mt-1" style="background:#f87171;"></span><div><p class="text-xs font-bold" style="color:#5A6C7A;">BAHAYA!</p><p class="text-xs font-medium" style="color:#7F7F7F;">Nanah, bau menyengat, merah meluas, jahitan terbuka</p></div></div>
                             </div>
                         </div>
                     </div>
@@ -905,7 +905,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                     Simpan Data Hari Ini
                 </button>
                 <?php if (!empty($errorMsg)): ?>
-                <p class="text-red-500 font-medium text-sm text-center"><?= htmlspecialchars($errorMsg) ?></p>
+                <p class="text-[#728BA9] font-medium text-sm text-center"><?= htmlspecialchars($errorMsg) ?></p>
                 <?php endif; ?>
             </form>
         </div>
@@ -991,7 +991,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
                         </div>
                         <div class="flex gap-3">
                             <a href="onboarding.php?edit=1" class="px-6 py-2.5 glass-card font-bold rounded-xl hover:shadow-md transition-all text-sm" style="color:#728BA9;">Edit Data</a>
-                            <a href="../../auth/logout.php" class="px-6 py-2.5 font-bold rounded-xl border text-sm transition-all" style="background:#fef2f2;color:#dc2626;border-color:#fee2e2;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">Logout</a>
+                            <a href="../../auth/logout.php" class="px-6 py-2.5 font-bold rounded-xl border text-sm transition-all" style="background:rgba(114,139,169,0.07);color:#5A6C7A;border-color:#DAE3EC;" onmouseover="this.style.background='#DAE3EC'" onmouseout="this.style.background='rgba(114,139,169,0.07)'">Logout</a>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1015,7 +1015,7 @@ input[type="checkbox"], input[type="range"] { accent-color: #728BA9; }
 
 <script>
 // ---- Pain Level Display ----
-var PAINCOLORS = ['#16a34a','#16a34a','#22c55e','#65a30d','#ca8a04','#d97706','#ea580c','#dc2626','#b91c1c','#991b1b','#7f1d1d'];
+var PAINCOLORS = ['#728BA9','#728BA9','#22c55e','#65a30d','#ca8a04','#A3ACA0','#ea580c','#5A6C7A','#b91c1c','#5A6C7A','#7f1d1d'];
 function setPain(v, faceId, valId) {
     var iv = parseInt(v);
     var f = document.getElementById(faceId); var t = document.getElementById(valId);
