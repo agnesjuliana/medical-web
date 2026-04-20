@@ -11,7 +11,7 @@ $pageTitle = 'Modul 10';
 // koneksi database (kalau sudah ada)
 //require_once __DIR__ . '/../../config_modul10.php';
 
-$username = $user['username'];
+$username = $user['name'];
 ?>
 
 <?php require_once __DIR__ . '/../../layout/header.php'; ?>

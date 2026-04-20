@@ -11,14 +11,14 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+       
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
             overflow-x: hidden;
         }
-        
+       
         /* Navigation */
         nav {
             background: #fff;
@@ -29,7 +29,7 @@
             top: 0;
             z-index: 1000;
         }
-        
+       
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -38,30 +38,30 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+       
         .logo {
             font-size: 1.8rem;
             font-weight: bold;
             color: #27ae60;
         }
-        
+       
         .nav-menu {
             display: flex;
             list-style: none;
             gap: 2rem;
         }
-        
+       
         .nav-menu a {
             text-decoration: none;
             color: #333;
             font-weight: 500;
             transition: color 0.3s;
         }
-        
+       
         .nav-menu a:hover {
             color: #27ae60;
         }
-        
+       
         /* Hero Section */
         .hero {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -70,7 +70,7 @@
             align-items: center;
             padding: 80px 20px 20px;
         }
-        
+       
         .hero-content {
             max-width: 1200px;
             margin: 0 auto;
@@ -79,20 +79,20 @@
             gap: 3rem;
             align-items: center;
         }
-        
+       
         .hero-text h1 {
             font-size: 3rem;
             color: #fff;
             margin-bottom: 1.5rem;
             line-height: 1.2;
         }
-        
+       
         .hero-text p {
             font-size: 1.2rem;
             color: #f0f0f0;
             margin-bottom: 2rem;
         }
-        
+       
         .btn-primary {
             background: #27ae60;
             color: white;
@@ -105,36 +105,36 @@
             display: inline-block;
             text-decoration: none;
         }
-        
+       
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
-        
+       
         .hero-image {
             position: relative;
         }
-        
+       
         .hero-card {
             background: white;
             border-radius: 20px;
             padding: 2rem;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
-        
+       
         /* Features Section */
         .features {
             padding: 80px 20px;
             background: #f8f9fa;
         }
-        
+       
         .section-title {
             text-align: center;
             font-size: 2.5rem;
             margin-bottom: 3rem;
             color: #2c3e50;
         }
-        
+       
         .features-grid {
             max-width: 1200px;
             margin: 0 auto;
@@ -142,7 +142,7 @@
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
         }
-        
+       
         .feature-card {
             background: white;
             padding: 2rem;
@@ -151,28 +151,28 @@
             transition: transform 0.3s;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
         }
-        
+       
         .feature-card:hover {
             transform: translateY(-5px);
         }
-        
+       
         .feature-icon {
             font-size: 3rem;
             margin-bottom: 1rem;
         }
-        
+       
         .feature-title {
             font-size: 1.5rem;
             margin-bottom: 1rem;
             color: #2c3e50;
         }
-        
+       
         /* Calculator Section */
         .calculator {
             padding: 80px 20px;
             background: white;
         }
-        
+       
         .calculator-container {
             max-width: 800px;
             margin: 0 auto;
@@ -181,30 +181,30 @@
             padding: 3rem;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
-        
+       
         .calculator-form {
             display: grid;
             gap: 1.5rem;
         }
-        
+       
         .form-group {
             display: flex;
             flex-direction: column;
         }
-        
+       
         .form-group label {
             color: white;
             margin-bottom: 0.5rem;
             font-weight: 500;
         }
-        
+       
         .form-group input, .form-group select {
             padding: 12px;
             border: none;
             border-radius: 8px;
             font-size: 1rem;
         }
-        
+       
         .calc-result {
             background: white;
             border-radius: 10px;
@@ -212,17 +212,17 @@
             margin-top: 1.5rem;
             display: none;
         }
-        
+       
         .calc-result.show {
             display: block;
         }
-        
+       
         /* Food Database Section */
         .food-database {
             padding: 80px 20px;
             background: #f8f9fa;
         }
-        
+       
         .food-grid {
             max-width: 1200px;
             margin: 2rem auto;
@@ -230,7 +230,7 @@
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 1.5rem;
         }
-        
+       
         .food-card {
             background: white;
             border-radius: 10px;
@@ -238,18 +238,18 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             transition: transform 0.3s;
         }
-        
+       
         .food-card:hover {
             transform: scale(1.05);
         }
-        
+       
         .food-name {
             font-size: 1.2rem;
             font-weight: bold;
             color: #2c3e50;
             margin-bottom: 0.5rem;
         }
-        
+       
         .nutrition-info {
             display: flex;
             justify-content: space-between;
@@ -257,27 +257,27 @@
             padding-top: 0.5rem;
             border-top: 1px solid #e0e0e0;
         }
-        
+       
         .nutrition-item {
             text-align: center;
         }
-        
+       
         .nutrition-value {
             font-weight: bold;
             color: #27ae60;
         }
-        
+       
         .nutrition-label {
             font-size: 0.8rem;
             color: #666;
         }
-        
+       
         /* Search Box */
         .search-container {
             max-width: 600px;
             margin: 0 auto 2rem;
         }
-        
+       
         .search-box {
             width: 100%;
             padding: 15px;
@@ -286,12 +286,12 @@
             font-size: 1rem;
             transition: border-color 0.3s;
         }
-        
+       
         .search-box:focus {
             outline: none;
             border-color: #27ae60;
         }
-        
+       
         /* CTA Section */
         .cta {
             background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
@@ -299,12 +299,12 @@
             text-align: center;
             color: white;
         }
-        
+       
         .cta h2 {
             font-size: 2.5rem;
             margin-bottom: 1.5rem;
         }
-        
+       
         .cta p {
             font-size: 1.2rem;
             margin-bottom: 2rem;
@@ -312,7 +312,7 @@
             margin-left: auto;
             margin-right: auto;
         }
-        
+       
         .btn-white {
             background: white;
             color: #27ae60;
@@ -326,11 +326,11 @@
             display: inline-block;
             text-decoration: none;
         }
-        
+       
         .btn-white:hover {
             transform: scale(1.05);
         }
-        
+       
         /* Footer */
         footer {
             background: #2c3e50;
@@ -338,26 +338,26 @@
             padding: 40px 20px;
             text-align: center;
         }
-        
+       
         /* Responsive */
         @media (max-width: 768px) {
             .nav-menu {
                 display: none;
             }
-            
+           
             .hero-content {
                 grid-template-columns: 1fr;
                 text-align: center;
             }
-            
+           
             .hero-text h1 {
                 font-size: 2rem;
             }
-            
+           
             .features-grid {
                 grid-template-columns: 1fr;
             }
-            
+           
             .food-grid {
                 grid-template-columns: 1fr;
             }
@@ -378,6 +378,7 @@
             </ul>
         </div>
     </nav>
+
 
     <!-- Hero Section -->
     <section class="hero" id="home">
@@ -409,6 +410,7 @@
             </div>
         </div>
     </section>
+
 
     <!-- Features Section -->
     <section class="features" id="features">
@@ -446,6 +448,7 @@
             </div>
         </div>
     </section>
+
 
     <!-- Calculator Section -->
     <section class="calculator" id="calculator">
@@ -511,6 +514,7 @@
             </div>
         </div>
     </section>
+
 
     <!-- Food Database Section -->
     <section class="food-database" id="food-database">
@@ -654,6 +658,7 @@
         </div>
     </section>
 
+
     <!-- CTA Section -->
     <section class="cta">
         <h2>Mulai Perjalanan Hidup Sehat Anda</h2>
@@ -661,11 +666,13 @@
         <a href="#" class="btn-white">Daftar Gratis Sekarang</a>
     </section>
 
+
     <!-- Footer -->
     <footer>
         <p>&copy; 2024 NutriCheck. All rights reserved.</p>
         <p style="margin-top: 1rem; opacity: 0.8;">Platform Edukasi Kesehatan untuk Indonesia Sehat</p>
     </footer>
+
 
     <script>
         // Smooth scrolling
@@ -682,16 +689,17 @@
             });
         });
 
+
         // Calorie Calculator
         document.getElementById('calorieForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+           
             const age = parseFloat(document.getElementById('age').value);
             const gender = document.getElementById('gender').value;
             const weight = parseFloat(document.getElementById('weight').value);
             const height = parseFloat(document.getElementById('height').value);
             const activity = parseFloat(document.getElementById('activity').value);
-            
+           
             // Harris-Benedict Formula
             let bmr;
             if (gender === 'male') {
@@ -699,31 +707,32 @@
             } else {
                 bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
             }
-            
+           
             const totalCalories = Math.round(bmr * activity);
-            
+           
             // Calculate macronutrients (example distribution)
             const protein = Math.round((totalCalories * 0.25) / 4); // 25% of calories, 4 cal/g
             const carbs = Math.round((totalCalories * 0.50) / 4); // 50% of calories, 4 cal/g
             const fat = Math.round((totalCalories * 0.25) / 9); // 25% of calories, 9 cal/g
-            
+           
             // Display results
             document.getElementById('calorieResult').textContent = totalCalories;
             document.getElementById('proteinResult').textContent = protein + 'g';
             document.getElementById('carbResult').textContent = carbs + 'g';
             document.getElementById('fatResult').textContent = fat + 'g';
-            
+           
             document.getElementById('result').classList.add('show');
-            
+           
             // Scroll to result
             document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
+
 
         // Food Search
         document.getElementById('foodSearch').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const foodCards = document.querySelectorAll('.food-card');
-            
+           
             foodCards.forEach(card => {
                 const foodName = card.querySelector('.food-name').textContent.toLowerCase();
                 if (foodName.includes(searchTerm)) {
@@ -734,11 +743,13 @@
             });
         });
 
+
         // Add animation on scroll
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
         };
+
 
         const observer = new IntersectionObserver(function(entries) {
             entries.forEach(entry => {
@@ -748,10 +759,13 @@
             });
         }, observerOptions);
 
+
         document.querySelectorAll('.feature-card, .food-card').forEach(el => {
             observer.observe(el);
         });
     </script>
+    
+
 
     <style>
         @keyframes fadeInUp {
@@ -768,3 +782,6 @@
     <script src="script.js"></script>
 </body>
 </html>
+
+
+
