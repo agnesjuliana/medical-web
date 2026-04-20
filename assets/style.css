@@ -180,11 +180,10 @@ em { font-family: 'Lora', Georgia, serif; font-style: italic; }
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.22;
-  filter: grayscale(40%) contrast(0.85);
-  transition: opacity 0.3s;
+  opacity: 1.0;
+  filter: grayscale(0%) contrast(1.0);
 }
-.hero-logo-wrap:hover { opacity: 0.32; }
+.hero-logo-wrap:hover { opacity: 1; }
 .hero-logo-img { width: 100%; object-fit: contain; }
 .caduceus-svg { width: 100%; height: auto; }
 

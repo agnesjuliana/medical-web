@@ -46,12 +46,12 @@ try {
     <div class="hero-topbar">MEDICAL WEBSITE – 05</div>
     <div class="hero-inner">
       <div class="hero-logo-wrap">
-        <img
-          src="https://upload.wikimedia.org/wikipedia/id/b/b3/Logo_ITS_-_Institut_Teknologi_Sepuluh_Nopember.png"
-          alt="ITS Logo watermark"
-          class="hero-logo-img"
-          onerror="this.style.display='none'; document.querySelector('.logo-fallback').style.display='flex';"
-        />
+        <img 
+  src="/medical-web/assets/image/logo_tekdok.png"
+  alt="ITS Logo watermark"
+  class="hero-logo-img"
+  onerror="this.style.display='none'; document.querySelector('.logo-fallback').style.display='flex';"
+/>
         <div class="logo-fallback" style="display:none;">
           <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="caduceus-svg">
             <circle cx="110" cy="110" r="105" fill="none" stroke="#1e3a5f" stroke-width="6"/>
@@ -93,9 +93,7 @@ try {
                 <defs>
                   <path id="circlePath" d="M 55,55 m -50,0 a 50,50 0 1,1 100,0 a 50,50 0 1,1 -100,0"/>
                 </defs>
-                <text font-size="9" fill="#1a3460" font-family="DM Sans, sans-serif" font-weight="700" letter-spacing="2.5">
-                  <textPath href="#circlePath">Upload Your Project! • Upload Your Project! •</textPath>
-                </text>
+              
               </svg>
               <button class="btn-upload-circle" onclick="showSection('upload')" title="Upload Your Project">
                 <span class="upload-icon">✏️</span>
