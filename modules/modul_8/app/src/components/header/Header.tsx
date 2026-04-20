@@ -10,6 +10,18 @@ import {
 import { X, ChevronRight } from "lucide-react";
 import { getUserInfo, logout, deleteAccount, toast } from "../../services/api";
 
+declare global {
+  interface Window {
+    __USER__?: { id: number; name: string; email: string; initials?: string };
+  }
+}
+
+function computeInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return (parts[0]?.[0] ?? '?').toUpperCase();
+}
+
 interface HeaderProps {
   title: string;
   subtitle: string;
@@ -37,9 +49,15 @@ export default function Header({
   subtitle,
   onActionClick,
 }: HeaderProps) {
-  const [initials, setInitials] = useState("?");
+  const bootstrapUser = window.__USER__;
+  const [initials, setInitials] = useState<string>(() => {
+    if (bootstrapUser?.initials) return bootstrapUser.initials;
+    if (bootstrapUser?.name) return computeInitials(bootstrapUser.name);
+    return '?';
+  });
 
   useEffect(() => {
+    if (bootstrapUser?.initials || bootstrapUser?.name) return;
     getUserInfo()
       .then((res) => setInitials(res.data.initials))
       .catch((err) => console.error("Failed to load user info", err));
