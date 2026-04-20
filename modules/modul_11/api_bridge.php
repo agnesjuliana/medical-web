@@ -9,21 +9,18 @@ if (!isset($_GET['id'])) {
 }
 
 $id_analisis = (int)$_GET['id'];
+$conf = isset($_GET['conf']) ? (int)$_GET['conf'] : 30; // Bawaan slider
+$overlap = isset($_GET['overlap']) ? (int)$_GET['overlap'] : 50;
+
 $pdo = getDBConnection();
 
 // 1. Ambil nama file dari DB
-$stmt = $pdo->prepare("SELECT foto_rontgen, data_landmark FROM modul_11_sefalometri WHERE id_analisis = ?");
+$stmt = $pdo->prepare("SELECT foto_rontgen FROM modul_11_sefalometri WHERE id_analisis = ?");
 $stmt->execute([$id_analisis]);
 $data = $stmt->fetch();
 
 if (!$data) {
     echo json_encode(["status" => "error", "message" => "Data tidak ditemukan di database"]);
-    exit();
-}
-
-// Jika sudah pernah diproses AI sebelumnya, kembalikan cahce DB agar tidak memberatkan server 
-if ($data['data_landmark'] != null && $data['data_landmark'] != "") {
-    echo json_encode(["status" => "success", "source" => "database", "landmarks" => json_decode($data['data_landmark'], true)]);
     exit();
 }
 
@@ -35,16 +32,22 @@ if (!file_exists($file_path)) {
     exit();
 }
 
-// 2. Hubungi Otak Python via cURL Multipart
-$cfile = new CURLFile($file_path, mime_content_type($file_path), $file_name);
-$postData = array('image' => $cfile);
+// 2. Hubungi Superkomputer Roboflow (Amerika Serikat) via cURL Base64
+$image_data = file_get_contents($file_path);
+$base64_image = base64_encode($image_data);
+
+// Suntikkan Variabel Slider Langsung ke Otak Roboflow!
+$api_url = "https://detect.roboflow.com/reappciona-train-2ihu8/3?api_key=85m4iA2oYXKKT63LkMM6&confidence=" . $conf . "&overlap=" . $overlap;
 
 $ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, "http://127.0.0.1:5000/predict");
+curl_setopt($ch, CURLOPT_URL, $api_url);
 curl_setopt($ch, CURLOPT_POST, 1);
-curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $base64_image);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "Content-Type: application/x-www-form-urlencoded"
+]);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+curl_setopt($ch, CURLOPT_TIMEOUT, 60); // Timeout lebih singkat karena Roboflow sangat cepat
 
 $response = curl_exec($ch);
 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -52,23 +55,34 @@ $error = curl_error($ch);
 curl_close($ch);
 
 if ($http_code != 200 || $response === false) {
-    echo json_encode(["status" => "error", "message" => "Gagal menghubungi Engine AI Python. Pastikan app.py sedang menyala di terminal!", "detail" => $error]);
+    echo json_encode(["status" => "error", "message" => "Gagal menghubungi Server Roboflow Cloud!", "detail" => $response ? $response : $error]);
     exit();
 }
 
-// 3. Tangkap dan Simpan permanen balasan Python ke Database XAMPP
+// 3. Tangkap dan Rapikan Format Balasan Roboflow agar cocok dengan Web
 $responseData = json_decode($response, true);
-if (isset($responseData['landmarks'])) {
+if (isset($responseData['predictions'])) {
     
-    // Konversi array landmarks menjadi string JSON
-    $jsonLandmarks = json_encode($responseData['landmarks']);
+    $results = [];
+    foreach ($responseData['predictions'] as $idx => $pred) {
+        // Roboflow mengembalikan x, y sebagai titik pusat balok bounding box / keypoint
+        $results[] = [
+            "id" => isset($pred['class_id']) ? $pred['class_id'] : $idx,
+            "label" => isset($pred['class']) ? $pred['class'] : 'Titik ' . $idx,
+            "x" => (float)$pred['x'],
+            "y" => (float)$pred['y']
+        ];
+    }
+
+    // Konversi array landmarks rapi menjadi string JSON
+    $jsonLandmarks = json_encode($results);
     
-    // Update ke database teman Anda
+    // Update ke database XAMPP
     $upd = $pdo->prepare("UPDATE modul_11_sefalometri SET data_landmark = ? WHERE id_analisis = ?");
     $upd->execute([$jsonLandmarks, $id_analisis]);
     
-    echo json_encode(["status" => "success", "source" => "ai_python", "landmarks" => $responseData['landmarks']]);
+    echo json_encode(["status" => "success", "source" => "roboflow_ai", "landmarks" => $results]);
 } else {
-    echo json_encode(["status" => "error", "message" => "Format balasan Python (JSON) tidak valid saat diparsing PHP"]);
+    echo json_encode(["status" => "error", "message" => "Format balasan Roboflow tidak dapat dikenali.", "raw" => $response]);
 }
 ?>
