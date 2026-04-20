@@ -182,8 +182,7 @@
     <nav class="fixed w-full z-50 glass-card border-b-0 border-t-0 border-x-0 !rounded-none py-4 px-8">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <img src="assets/images/logo-neuroai.png" alt="NeuroAI Logo" class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]">
-                <span class="font-heading font-bold text-xl tracking-wider text-white">Neuro<span class="text-medical-cyan">AI</span></span>
+                <img src="assets/images/logo-neuroai.png" alt="NeuroAI Logo" class="h-10 w-auto object-contain drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]">
             </div>
             <div class="hidden md:flex gap-8 text-sm font-medium text-gray-400">
                 <a href="#technology" class="hover:text-white transition-colors">Teknologi</a>
@@ -375,8 +374,7 @@
     <footer class="py-8 relative z-10 bg-[#030712] border-t border-white/5">
         <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-2">
-                <img src="assets/images/logo-neuroai.png" alt="NeuroAI Logo" class="w-8 h-8 object-contain opacity-80">
-                <span class="font-heading font-bold text-lg tracking-wider text-white">Neuro<span class="text-medical-cyan">AI</span></span>
+                <img src="assets/images/logo-neuroai.png" alt="NeuroAI Logo" class="h-8 w-auto object-contain opacity-80">
             </div>
             <p class="text-gray-500 text-sm font-medium">© 2026 NeuroAI System. Mendiagnosis Masa Depan.</p>
         </div>
