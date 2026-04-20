@@ -66,80 +66,28 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete_profile') {
     exit;
 }
 
-// --- Local JSON Monitoring Storage Helpers ---
-function getLocalMonitoringLogs() {
-    $file = __DIR__ . '/data/monitoring_logs.json';
-    if (!file_exists($file)) return [];
-    return json_decode(file_get_contents($file), true) ?: [];
-}
-
-function saveLocalMonitoringLog($newLog) {
-    $file = __DIR__ . '/data/monitoring_logs.json';
-    $dir = dirname($file);
-    if (!is_dir($dir)) {
-        mkdir($dir, 0777, true);
-    }
-    $logs = getLocalMonitoringLogs();
-    
-    $found = false;
-    foreach ($logs as $i => $log) {
-        if ($log['user_id'] == $newLog['user_id'] && $log['profile_id'] == $newLog['profile_id'] && $log['record_date'] === $newLog['record_date']) {
-            $logs[$i] = array_merge($log, $newLog);
-            $found = true;
-            break;
-        }
-    }
-    if (!$found) $logs[] = $newLog;
-    file_put_contents($file, json_encode($logs, JSON_PRETTY_PRINT));
-}
-
-// --- Local JSON Wound Log Storage Helpers ---
-function getLocalWoundLogs() {
-    $file = __DIR__ . '/data/wound_logs.json';
-    if (!file_exists($file)) return [];
-    return json_decode(file_get_contents($file), true) ?: [];
-}
-
-function saveLocalWoundLog($newLog) {
-    $file = __DIR__ . '/data/wound_logs.json';
-    $dir = dirname($file);
-    if (!is_dir($dir)) mkdir($dir, 0777, true);
-    $logs = getLocalWoundLogs();
-    
-    $found = false;
-    foreach ($logs as $i => $log) {
-        if ($log['user_id'] == $newLog['user_id'] && $log['profile_id'] == $newLog['profile_id'] && $log['record_date'] === $newLog['record_date']) {
-            $logs[$i] = array_merge($log, $newLog);
-            $found = true;
-            break;
-        }
-    }
-    if (!$found) $logs[] = $newLog;
-    file_put_contents($file, json_encode($logs)); // no pretty print, base64 may be large
-}
-
 // Handle Wound Log Submit
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_wound_log') {
     $today = date('Y-m-d');
     $profile_id = $_SESSION['active_profile_id'] ?? 0;
     
-    $newWoundLog = [
-        'user_id' => $user['id'],
-        'profile_id' => $profile_id,
-        'record_date' => $today,
-        'image_data' => $_POST['image_base64'] ?? '',
-        'status' => $_POST['ai_status'] ?? 'Normal',
-        'redness' => $_POST['ai_redness'] ?? '0% Area Sengit',
-        'swelling' => $_POST['ai_swelling'] ?? 'Minim',
-        'fluid' => $_POST['ai_fluid'] ?? 'Jernih',
-        'size' => $_POST['ai_size'] ?? '0 cm',
-        'note' => $_POST['ai_note'] ?? '',
-        'rednessColor' => $_POST['ai_redness_color'] ?? '#728BA9',
-        'iconBg' => $_POST['ai_icon_bg'] ?? '#ECF2E6',
-        'iconSvg' => $_POST['ai_icon_svg'] ?? '',
-    ];
+    $stmt = $pdo->prepare("INSERT INTO user_wound_logs (user_id, profile_id, record_date, image_data, status, redness, swelling, fluid, size, note, rednessColor, iconBg, iconSvg) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE image_data=VALUES(image_data), status=VALUES(status), redness=VALUES(redness), swelling=VALUES(swelling), fluid=VALUES(fluid), size=VALUES(size), note=VALUES(note), rednessColor=VALUES(rednessColor), iconBg=VALUES(iconBg), iconSvg=VALUES(iconSvg)");
+    $stmt->execute([
+        $user['id'],
+        $profile_id,
+        $today,
+        $_POST['image_base64'] ?? '',
+        $_POST['ai_status'] ?? 'Normal',
+        $_POST['ai_redness'] ?? '0% Area Sengit',
+        $_POST['ai_swelling'] ?? 'Minim',
+        $_POST['ai_fluid'] ?? 'Jernih',
+        $_POST['ai_size'] ?? '0 cm',
+        $_POST['ai_note'] ?? '',
+        $_POST['ai_redness_color'] ?? '#728BA9',
+        $_POST['ai_icon_bg'] ?? '#ECF2E6',
+        $_POST['ai_icon_svg'] ?? ''
+    ]);
 
-    saveLocalWoundLog($newWoundLog);
     header("Location: dashboard.php?page=woundlog"); exit;
 }
 
@@ -162,26 +110,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     $profile_id = $_SESSION['active_profile_id'] ?? 0;
 
-    $newLog = [
-        'user_id' => $user['id'],
-        'profile_id' => $profile_id,
-        'record_date' => $today,
-        'spo2' => $r_spo2,
-        'heart_rate' => $r_hr,
-        'pain_level' => $r_pain,
-        'temp' => $r_temp,
-        'blood_volume' => $r_bVol,
-        'blood_color' => $r_bCol,
-        'blood_clots' => $r_bClot,
-        'stump_pain' => $r_stump,
-        'phantom_pain' => $r_phantom,
-        'wound_color' => $r_wCol,
-        'wound_swelling' => $r_wSwell,
-        'wound_fluid' => $r_wFluid,
-        'wound_odor' => $r_wOdor
-    ];
+    $stmt = $pdo->prepare("INSERT INTO user_daily_monitoring (user_id, profile_id, record_date, spo2, heart_rate, pain_level, temp, blood_volume, blood_color, blood_clots, stump_pain, phantom_pain, wound_color, wound_swelling, wound_fluid, wound_odor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE spo2=VALUES(spo2), heart_rate=VALUES(heart_rate), pain_level=VALUES(pain_level), temp=VALUES(temp), blood_volume=VALUES(blood_volume), blood_color=VALUES(blood_color), blood_clots=VALUES(blood_clots), stump_pain=VALUES(stump_pain), phantom_pain=VALUES(phantom_pain), wound_color=VALUES(wound_color), wound_swelling=VALUES(wound_swelling), wound_fluid=VALUES(wound_fluid), wound_odor=VALUES(wound_odor)");
+    $stmt->execute([
+        $user['id'], $profile_id, $today, 
+        $r_spo2, $r_hr, $r_pain, $r_temp, 
+        $r_bVol, $r_bCol, $r_bClot, $r_stump, $r_phantom, 
+        $r_wCol, $r_wSwell, $r_wFluid, $r_wOdor
+    ]);
 
-    saveLocalMonitoringLog($newLog);
     header("Location: dashboard.php?page=home"); exit;
 }
 
@@ -189,37 +125,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 $todayMonitoring = null;
 $profile_id = $_SESSION['active_profile_id'] ?? 0;
 $today = date('Y-m-d');
-$allLogs = getLocalMonitoringLogs();
 
-// Filter for current profile
-$profileLogs = array_filter($allLogs, function($l) use ($user, $profile_id) {
-    return $l['user_id'] == $user['id'] && $l['profile_id'] == $profile_id;
-});
+$stmt = $pdo->prepare("SELECT * FROM user_daily_monitoring WHERE user_id = ? AND profile_id = ? ORDER BY record_date DESC LIMIT 30");
+$stmt->execute([$user['id'], $profile_id]);
+$monitoringHistory = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-foreach ($profileLogs as $l) {
+foreach ($monitoringHistory as $l) {
     if ($l['record_date'] === $today) {
         $todayMonitoring = $l;
         break;
     }
 }
 
-// Fetch monitoring history (last 30 records)
-$monitoringHistory = $profileLogs;
-usort($monitoringHistory, function($a, $b) {
-    return strtotime($b['record_date']) - strtotime($a['record_date']);
-});
-$monitoringHistory = array_slice($monitoringHistory, 0, 30);
-
 // Fetch wound logs (last 30 records)
-$allWounds = getLocalWoundLogs();
-$profileWounds = array_filter($allWounds, function($l) use ($user, $profile_id) {
-    return $l['user_id'] == $user['id'] && $l['profile_id'] == $profile_id;
-});
-$woundHistory = $profileWounds;
-usort($woundHistory, function($a, $b) {
-    return strtotime($b['record_date']) - strtotime($a['record_date']);
-});
-$woundHistory = array_slice($woundHistory, 0, 30);
+$stmt = $pdo->prepare("SELECT * FROM user_wound_logs WHERE user_id = ? AND profile_id = ? ORDER BY record_date DESC LIMIT 30");
+$stmt->execute([$user['id'], $profile_id]);
+$woundHistory = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Days post-op
 $dayPostOp = 1;
