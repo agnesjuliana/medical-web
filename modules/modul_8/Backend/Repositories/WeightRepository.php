@@ -95,6 +95,31 @@ class WeightRepository
     }
 
     /**
+     * Fetch weight logs for the past N days plus the earliest recorded log.
+     * One query per window — callers derive deltas in PHP.
+     */
+    public function getProgressSummary(int $userId, int $rangeDays): array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT weight_kg, log_date
+            FROM m8_weight_logs
+            WHERE user_id = ? AND log_date >= CURRENT_DATE - (? || \' days\')::INTERVAL
+            ORDER BY log_date ASC
+        ');
+        $stmt->execute([$userId, $rangeDays]);
+        $logs = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        foreach ($logs as &$r) {
+            $r['weight_kg'] = (float) $r['weight_kg'];
+        }
+        unset($r);
+
+        return [
+            'logs'      => $logs,
+            'first_log' => $this->getFirstLog($userId),
+        ];
+    }
+
+    /**
      * Insert a new weight log entry and update the profile snapshot.
      * Runs inside a transaction to guarantee atomicity.
      * @param string|null $note Optional note with max 500 characters

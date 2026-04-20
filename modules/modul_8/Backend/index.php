@@ -172,15 +172,17 @@ try {
         case 'get_weight_progress':
         case 'get_weekly_energy':
         case 'get_calorie_averages':
+        case 'get_progress_summary':
             $controller = new \Backend\Controllers\ProgressController(
                 new \Backend\Repositories\WeightRepository($pdo),
                 new \Backend\Repositories\MealRepository($pdo),
                 new \Backend\Repositories\ProfileRepository($pdo)
             );
             match ($action) {
-                'get_weight_progress' => $controller->getWeightProgress($userId),
-                'get_weekly_energy'   => $controller->getWeeklyEnergy($userId),
-                'get_calorie_averages'=> $controller->getCalorieAverages($userId),
+                'get_weight_progress'  => $controller->getWeightProgress($userId),
+                'get_weekly_energy'    => $controller->getWeeklyEnergy($userId),
+                'get_calorie_averages' => $controller->getCalorieAverages($userId),
+                'get_progress_summary' => $controller->getProgressSummaryPayload($userId),
             };
             break;
 
