@@ -8,4 +8,8 @@ CLAUDE.md
 skills-lock.json
 .mcp.json
 config/*
-.github/*
+*.diff
+*.patch
+server.log
+graphify-out/
+modules/modul_8/app/src/graphify-out/

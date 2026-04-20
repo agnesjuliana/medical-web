@@ -1,4 +1,0 @@
-[Mon Apr 20 15:19:12 2026] PHP 8.3.6 Development Server (http://127.0.0.1:8000) started
-[Mon Apr 20 15:19:14 2026] 127.0.0.1:57284 Accepted
-[Mon Apr 20 15:19:14 2026] 127.0.0.1:57284 [302]: POST /auth/process_register.php
-[Mon Apr 20 15:19:14 2026] 127.0.0.1:57284 Closing
