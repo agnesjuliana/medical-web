@@ -1,18 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Header from "@/components/header/Header";
 import {
-  Flame,
-  Award,
-  ChevronRight,
-  TrendingDown,
-  TrendingUp,
-  Minus,
   Plus,
   Camera,
   Info,
   Flag,
   LineChart as LineChartIcon,
-  BarChart as BarChartIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +21,6 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  Cell,
 } from "recharts";
 import ChangeRow from "@/components/page/ChangeRow";
 
@@ -65,36 +57,6 @@ export default function ProgressScreen() {
       <Header title="Progress" subtitle="Track your health journey" />
 
       <div className="space-y-4 max-w-2xl mx-auto">
-        {/* Phase 2: Streak and Badge Cards */}
-        <div className="flex gap-4">
-          <Card className="flex-1 bg-white border-none shadow-xs dark:bg-neutral-900">
-            <CardContent className="flex flex-col items-center justify-center p-6">
-              <div className="relative flex items-center justify-center w-12 h-12 bg-orange-50 rounded-full dark:bg-orange-900/20">
-                <Flame className="w-8 h-8 text-orange-500 fill-orange-500" />
-                <span className="absolute text-white font-bold text-xs top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-1">
-                  0
-                </span>
-              </div>
-              <span className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Day Streak
-              </span>
-            </CardContent>
-          </Card>
-          <Card className="flex-1 bg-white border-none shadow-xs dark:bg-neutral-900">
-            <CardContent className="flex flex-col items-center justify-center p-6">
-              <div className="relative flex items-center justify-center w-12 h-12 bg-blue-50 rounded-full dark:bg-blue-900/20">
-                <Award className="w-8 h-8 text-blue-500" />
-                <span className="absolute text-blue-500 font-bold text-xs top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-1">
-                  0
-                </span>
-              </div>
-              <span className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Badges Earned
-              </span>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Phase 3: Current Weight Card */}
         <Card className="bg-white border-none shadow-xs dark:bg-neutral-900">
           <CardContent className="">

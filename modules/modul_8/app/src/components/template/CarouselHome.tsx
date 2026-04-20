@@ -8,7 +8,6 @@ import {
   Candy,
   Salad,
   Footprints,
-  Plus,
 } from "lucide-react";
 import Ring from "@/components/ui/Ring";
 import { cn } from "@/lib/utils";

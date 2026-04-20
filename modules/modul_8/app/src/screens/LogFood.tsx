@@ -1,6 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import FoodCard, { type FoodItem } from "@/components/template/FoodCard";
-import React from "react";
+
 
 const MOCK_FOOD_LIST: FoodItem[] = [
   {

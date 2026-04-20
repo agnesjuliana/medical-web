@@ -14,7 +14,8 @@ import {
   X,
   Heart,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { getDashboard, type DashboardData } from "../services/api";
 import ProgressScreen from "./ProgressScreens";
 import SettingsScreen from "./SettingsScreens";
 import ScannerScreen from "./ScannerScreen";
@@ -39,66 +40,13 @@ const NAV_TABS: TabItem[] = [
   { id: "settings", label: "Settings", icon: <Settings size={20} /> },
 ];
 
-// ── Food Log Types & Mock Data ────────────────────────────────────────────────
+// ── Food Log Types ───────────────────────────────────────────────────────────
 import FoodCard, { type FoodItem } from "@/components/template/FoodCard";
 
-const MOCK_FOOD_LOGS: FoodItem[] = [
-  {
-    id: "1",
-    status: "analyzing",
-    imageUrl:
-      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80",
-    progress: 28,
-  },
-  {
-    id: "2",
-    status: "analyzed",
-    name: "De Milan Wafer Cream Chocolate",
-    time: "03:24 AM",
-    calories: 150,
-    protein: 2,
-    carbs: 20,
-    fats: 7,
-    imageUrl:
-      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80",
-  },
-  {
-    id: "3",
-    status: "analyzed",
-    name: "Peanut Butter",
-    time: "03:22 AM",
-    calories: 94,
-    protein: 4,
-    carbs: 3,
-    fats: 8,
-  },
-  {
-    id: "4",
-    status: "analyzed",
-    name: "Peanut Butter",
-    time: "03:22 AM",
-    calories: 94,
-    protein: 4,
-    carbs: 3,
-    fats: 8,
-  },
-];
-
-// ── Stub data (replaced by API later) ────────────────────────────────────────
-const DATA = {
-  calories: { left: 2583, target: 2850 },
-  protein: { leftG: 184, targetG: 213 },
-  carbs: { leftG: 300, targetG: 356 },
-  fats: { leftG: 71, targetG: 95 },
-  fiber: { leftG: 38, targetG: 38 },
-  sugar: { leftG: 59, targetG: 50 },
-  sodium: { leftMg: 2300, targetMg: 2300 },
-  steps: { count: 1109, goal: 10000 },
-  caloriesBurned: 44,
-  waterMl: 0,
-};
+// ── Stub data ────────────────────────────────────────────────────────────────
 
 function consumed(left: number, target: number) {
+  if (!target || target === 0) return 0;
   return Math.min(Math.max((target - left) / target, 0), 1);
 }
 
@@ -167,7 +115,9 @@ function HomeContent({
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [slideIndex, setSlideIndex] = useState(0);
   const [bannerDismissed, setBannerDismissed] = useState(false);
-  const [foodLogs, setFoodLogs] = useState<FoodItem[]>(MOCK_FOOD_LOGS);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   function handleScroll() {
@@ -176,27 +126,81 @@ function HomeContent({
     setSlideIndex(Math.round(el.scrollLeft / el.offsetWidth));
   }
 
-  const today = new Date();
-  const isToday =
-    selectedDate.getFullYear() === today.getFullYear() &&
-    selectedDate.getMonth() === today.getMonth() &&
-    selectedDate.getDate() === today.getDate();
+  useEffect(() => {
+    const dateStr = selectedDate.toISOString().split("T")[0];
+    setIsLoading(true);
+    setError(null);
+    getDashboard(dateStr)
+      .then((res) => {
+        setDashboardData(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError("Failed to load dashboard data");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [selectedDate]);
 
-  // Show real stub data for today; zeros for any other date
-  const d = isToday
-    ? DATA
+  const d = dashboardData
+    ? {
+        calories: {
+          left: dashboardData.remaining.calories,
+          target: dashboardData.targets.calories,
+        },
+        protein: {
+          leftG: dashboardData.remaining.protein_g,
+          targetG: dashboardData.targets.protein_g,
+        },
+        carbs: {
+          leftG: dashboardData.remaining.carbs_g,
+          targetG: dashboardData.targets.carbs_g,
+        },
+        fats: {
+          leftG: dashboardData.remaining.fats_g,
+          targetG: dashboardData.targets.fats_g,
+        },
+        fiber: {
+          leftG: dashboardData.consumed.fiber_g,
+          targetG: 38, // API doesn't provide fiber target yet
+        },
+        sugar: { leftG: 0, targetG: 50 },
+        sodium: { leftMg: 0, targetMg: 2300 },
+        steps: { count: 0, goal: 10000 },
+        caloriesBurned: 0,
+        waterMl: dashboardData.consumed.water_ml,
+        healthScore: dashboardData.health_score,
+      }
     : {
-        calories: { left: 0, target: DATA.calories.target },
-        protein: { leftG: 0, targetG: DATA.protein.targetG },
-        carbs: { leftG: 0, targetG: DATA.carbs.targetG },
-        fats: { leftG: 0, targetG: DATA.fats.targetG },
-        fiber: { leftG: 0, targetG: DATA.fiber.targetG },
-        sugar: { leftG: 0, targetG: DATA.sugar.targetG },
-        sodium: { leftMg: 0, targetMg: DATA.sodium.targetMg },
-        steps: { count: 0, goal: DATA.steps.goal },
+        calories: { left: 0, target: 1 },
+        protein: { leftG: 0, targetG: 1 },
+        carbs: { leftG: 0, targetG: 1 },
+        fats: { leftG: 0, targetG: 1 },
+        fiber: { leftG: 0, targetG: 1 },
+        sugar: { leftG: 0, targetG: 1 },
+        sodium: { leftMg: 0, targetMg: 1 },
+        steps: { count: 0, goal: 10000 },
         caloriesBurned: 0,
         waterMl: 0,
+        healthScore: null,
       };
+
+  const foodLogs: FoodItem[] = (dashboardData?.recent_meals || []).map((m) => ({
+    id: String(m.id),
+    status: m.status || "analyzed",
+    name: m.name,
+    time: new Date(m.created_at).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    calories: m.calories,
+    protein: m.protein_g,
+    carbs: m.carbs_g,
+    fats: m.fats_g,
+    imageUrl: m.photo_url || undefined,
+    progress: m.progress,
+  }));
 
   return (
     <div className="flex flex-col gap-5">
@@ -310,7 +314,9 @@ function HomeContent({
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <Heart size={16} className="text-muted-foreground" />
-                <p className="text-base font-bold text-foreground">N/A</p>
+                <p className="text-base font-bold text-foreground">
+                  {d.healthScore || "N/A"}
+                </p>
               </div>
             </div>
           </div>
@@ -444,7 +450,15 @@ function HomeContent({
         )}
 
         {/* List or Empty state */}
-        {foodLogs.length === 0 ? (
+        {isLoading ? (
+          <div className="py-12 flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
+          <div className="bg-destructive/10 text-destructive rounded-2xl p-6 text-center text-sm">
+            {error}
+          </div>
+        ) : foodLogs.length === 0 ? (
           <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm p-8 flex flex-col items-center gap-2">
             <p className="text-sm text-muted-foreground text-center">
               No foods logged today.

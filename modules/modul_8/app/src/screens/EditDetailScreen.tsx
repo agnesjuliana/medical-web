@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { saveProfile, parseHeightCm, parseWeightKg, toast } from "../services/api";
 import ScreenHeader from "@/components/header/ScreenHeader";
 import {
   SingleSelectContent,
@@ -33,6 +34,7 @@ export default function EditDetailScreen({
 }: EditDetailScreenProps) {
   const [form, setForm] = useState<FormData>(initialData.form);
   const [stepGoal, setStepGoal] = useState(initialData.stepGoal);
+  const [isSaving, setIsSaving] = useState(false);
 
   function setField<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((prev: FormData) => ({ ...prev, [key]: value }));
@@ -109,10 +111,50 @@ export default function EditDetailScreen({
 
         <div className="mt-auto pt-8 pb-8">
           <Button
-            onClick={() => onSave({ form, stepGoal })}
+            disabled={isSaving}
+            onClick={async () => {
+              setIsSaving(true);
+              try {
+                const monthIdx = [
+                  "January",
+                  "February",
+                  "March",
+                  "April",
+                  "May",
+                  "June",
+                  "July",
+                  "August",
+                  "September",
+                  "October",
+                  "November",
+                  "December",
+                ].indexOf(form.birthMonth);
+                const birth_date = `${form.birthYear}-${String(monthIdx + 1).padStart(2, "0")}-${String(form.birthDay).padStart(2, "0")}`;
+
+                await saveProfile({
+                  gender: form.gender as "male" | "female",
+                  birth_date,
+                  height_cm: parseHeightCm(form.height),
+                  weight_kg: parseWeightKg(form.weight),
+                  activity_level: form.activity as any,
+                  goal: form.goal as any,
+                  goal_weight_kg: form.desiredWeight,
+                  step_goal: stepGoal,
+                  barriers: form.barriers,
+                });
+
+                toast.success("Profile updated successfully");
+                onSave({ form, stepGoal });
+              } catch (err: any) {
+                console.error(err);
+                toast.error(err.message || "Failed to update profile");
+              } finally {
+                setIsSaving(false);
+              }
+            }}
             className="w-full h-14 rounded-full text-lg font-bold bg-black text-white"
           >
-            Save Changes
+            {isSaving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </div>
