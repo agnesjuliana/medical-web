@@ -11,7 +11,7 @@ $pageTitle = 'Modul 5';
 ?>
 <?php require_once __DIR__ . '/../../layout/header.php'; ?>
 <?php require_once __DIR__ . '/../../layout/navbar.php'; ?>
-#haha 
+
 <?php
 try {
     $pdo = getDBConnection();
