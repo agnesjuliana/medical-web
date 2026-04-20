@@ -23,7 +23,8 @@ try {
             status ENUM('completed_by_ml', 'pending_doctor_review', 'reviewed_by_doctor') NOT NULL DEFAULT 'completed_by_ml',
             doctor_id INT NULL,
             doctor_notes TEXT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT fk_screening_patient FOREIGN KEY (patient_id) REFERENCES backbone_medweb.users(id) ON DELETE CASCADE ON UPDATE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ";
 

@@ -31,4 +31,8 @@ ALTER TABLE `screening_results`
 
 ALTER TABLE `screening_results`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+ALTER TABLE `screening_results`
+  ADD CONSTRAINT `fk_screening_patient` FOREIGN KEY (`patient_id`) REFERENCES `backbone_medweb`.`users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
 COMMIT;
