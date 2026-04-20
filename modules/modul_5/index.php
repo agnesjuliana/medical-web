@@ -14,9 +14,10 @@ $pageTitle = 'Modul 5';
 
 <?php
 try {
-    $pdo = getAppDBConnection();
+    $pdo = getDBConnection();
     $stmt = $pdo->query("
-        SELECT id, problem, title, methodology, skills, result, impact, documentation
+        SELECT id, problem, title, methodology, skills, result, impact, documentation,
+               contributor_name, created_at
         FROM projects
         ORDER BY id DESC
     ");
@@ -84,23 +85,22 @@ try {
           </div>
 
           <div class="projects-actions">
-  <button class="btn-home" onclick="showSection('hero')" title="Home">🏠</button>
+            <button class="btn-home" onclick="showSection('hero')" title="Home">🏠</button>
 
-  <div class="btn-upload-wrapper">
-    <svg class="upload-ring-svg" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <path id="circlePath" d="M 55,55 m -50,0 a 50,50 0 1,1 100,0 a 50,50 0 1,1 -100,0"/>
-  </defs>
-  <text font-size="9" fill="#1a3460" font-family="DM Sans, sans-serif" font-weight="700" letter-spacing="2.5">
-    <textPath href="#circlePath">Upload Your Project! • Upload Your Project! •</textPath>
-  </text>
-</svg>
-    <button class="btn-upload-circle" onclick="showSection('upload')" title="Upload Your Project">
-      <span class="upload-icon">✏️</span>
-    </button>
-  </div>
-</div>
-
+            <div class="btn-upload-wrapper">
+              <svg class="upload-ring-svg" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <path id="circlePath" d="M 55,55 m -50,0 a 50,50 0 1,1 100,0 a 50,50 0 1,1 -100,0"/>
+                </defs>
+                <text font-size="9" fill="#1a3460" font-family="DM Sans, sans-serif" font-weight="700" letter-spacing="2.5">
+                  <textPath href="#circlePath">Upload Your Project! • Upload Your Project! •</textPath>
+                </text>
+              </svg>
+              <button class="btn-upload-circle" onclick="showSection('upload')" title="Upload Your Project">
+                <span class="upload-icon">✏️</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -116,6 +116,89 @@ try {
           <p>Belum ada data project.</p>
         <?php endif; ?>
       </div>
+
+      <!-- ══ HISTORY SECTION ══ -->
+      <div class="history-wrapper">
+        <div class="history-header">
+          <div class="history-title-group">
+            <h2 class="section-title">Upload <em>history</em></h2>
+            <p class="section-subtitle">Semua project yang pernah diunggah oleh anggota tim</p>
+          </div>
+          <div class="history-count-badge">
+            <span id="history-count"><?= count($projects) ?></span> projects
+          </div>
+        </div>
+
+        <div class="history-table-wrap">
+          <?php if (!empty($projects)): ?>
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th class="ht-num">#</th>
+                  <th class="ht-title">Project / Problem</th>
+                  <th class="ht-contributor">Uploaded by</th>
+                  <th class="ht-date">Date</th>
+                  <th class="ht-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php foreach ($projects as $i => $project): ?>
+                  <tr class="history-row" data-id="<?= $project['id'] ?>">
+                    <td class="ht-num">
+                      <span class="row-index"><?= $i + 1 ?></span>
+                    </td>
+                    <td class="ht-title">
+                      <span class="ht-title-text" onclick="openDetail(<?= $project['id'] ?>)">
+                        <?= htmlspecialchars($project['title'] ?? 'Untitled') ?>
+                      </span>
+                      <span class="ht-problem-preview">
+                        <?= htmlspecialchars(substr($project['problem'], 0, 60)) ?>...
+                      </span>
+                    </td>
+                    <td class="ht-contributor">
+                      <div class="contributor-pill">
+                        <span class="contributor-avatar">
+                          <?= strtoupper(substr($project['contributor_name'] ?? '?', 0, 1)) ?>
+                        </span>
+                        <span class="contributor-name">
+                          <?= htmlspecialchars($project['contributor_name'] ?? 'Unknown') ?>
+                        </span>
+                      </div>
+                    </td>
+                    <td class="ht-date">
+                      <span class="date-text">
+                        <?= date('d M Y', strtotime($project['created_at'])) ?>
+                      </span>
+                      <span class="time-text">
+                        <?= date('H:i', strtotime($project['created_at'])) ?>
+                      </span>
+                    </td>
+                    <td class="ht-actions">
+                      <button
+                        class="ht-btn ht-btn--edit"
+                        onclick="editFromHistory(<?= $project['id'] ?>)"
+                        title="Edit project"
+                      >✏️ Edit</button>
+                      <button
+                        class="ht-btn ht-btn--delete"
+                        onclick="deleteFromHistory(<?= $project['id'] ?>)"
+                        title="Delete project"
+                      >🗑 Delete</button>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          <?php else: ?>
+            <div class="history-empty">
+              <span class="history-empty-icon">📋</span>
+              <p>Belum ada project yang diunggah.</p>
+            </div>
+          <?php endif; ?>
+        </div>
+      </div>
+      <!-- ══ END HISTORY ══ -->
+
     </div>
   </section>
 
@@ -196,6 +279,19 @@ try {
         <div class="uflow-box">
           <div class="uflow-label">Skills &amp; Tools.</div>
           <textarea class="uflow-input" id="u-skills" placeholder="List Here..."></textarea>
+        </div>
+      </div>
+
+      <!-- Contributor name field -->
+      <div class="contributor-input-row">
+        <div class="uflow-box uflow-box--contributor">
+          <div class="uflow-label">Your Name.</div>
+          <input
+            type="text"
+            class="uflow-input uflow-input--single"
+            id="u-contributor"
+            placeholder="Nama kamu..."
+          />
         </div>
       </div>
 
