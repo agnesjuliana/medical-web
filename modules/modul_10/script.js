@@ -10,11 +10,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Ambil data dari form
             const formData = {
-                usia: parseFloat(document.getElementById('age').value),
+                usia: parseFloat(document.getElementById('usia').value),
                 gender: document.getElementById('gender').value,
-                berat: parseFloat(document.getElementById('weight').value),
-                tinggi: parseFloat(document.getElementById('height').value),
-                aktivitas: parseFloat(document.getElementById('activity').value)
+                berat: parseFloat(document.getElementById('berat').value),
+                tinggi: parseFloat(document.getElementById('tinggi').value),
+                aktivitas: parseFloat(document.getElementById('aktivitas').value)
             };
 
             console.log('Data yang akan dikirim:', formData);

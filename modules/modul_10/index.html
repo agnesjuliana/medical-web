@@ -718,15 +718,15 @@
         document.getElementById('calorieForm').addEventListener('submit', function(e) {
             e.preventDefault();
            
-            const age = parseFloat(document.getElementById('age').value);
+            const age = parseFloat(document.getElementById('usia').value);
             const gender = document.getElementById('gender').value;
-            const weight = parseFloat(document.getElementById('weight').value);
-            const height = parseFloat(document.getElementById('height').value);
-            const activity = parseFloat(document.getElementById('activity').value);
+            const weight = parseFloat(document.getElementById('berat').value);
+            const height = parseFloat(document.getElementById('tinggi').value);
+            const activity = parseFloat(document.getElementById('aktivitas').value);
            
             // Harris-Benedict Formula
             let bmr;
-            if (gender === 'male') {
+            if (gender === 'Laki-laki') {
                 bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
             } else {
                 bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
