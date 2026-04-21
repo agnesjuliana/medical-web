@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS modul3_patients (
     gender VARCHAR(20) NOT NULL,
     symptoms TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE (Dihapus karena beda database)
+    -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE (Dihapus karena beda databjase)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS modul3_history (
