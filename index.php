@@ -17,7 +17,7 @@ $pageTitle = 'Module Hub';
 
 // Module definitions
 $modules = [
-    1  => ['name' => 'Modul 1',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>', 'color' => 'from-cyan-500 to-cyan-600'],
+    1  => ['name' => 'RuangPulih',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>', 'color' => 'from-cyan-500 to-cyan-600', 'logo' => 'assets/images/logo.png', 'theme' => 'light'],
     2  => ['name' => 'Modul 2',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>', 'color' => 'from-blue-500 to-blue-600'],
     3  => ['name' => 'Modul 3',  'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>', 'color' => 'from-violet-500 to-violet-600'],
     4  => ['name' => 'Calorie Care','icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>', 'color' => 'from-emerald-500 to-emerald-600', 'bg_image' => 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop'],
@@ -48,19 +48,57 @@ $modules = [
         <?php foreach ($modules as $id => $module): ?>
 
         <?php if (!empty($module['logo'])): ?>
-        <!-- Logo Card with Vanta background -->
+        <?php 
+        $isLight = isset($module['theme']) && $module['theme'] === 'light'; 
+        $textColor = $isLight ? 'text-[#728BA9]' : 'text-white';
+        $subTextColor = $isLight ? 'text-[#A3ACA0]' : 'text-white/50';
+        $iconColor = $isLight ? 'text-[#7F7F7F]' : 'text-white/40';
+        $hoverTextColor = $isLight ? 'group-hover:text-[#A3ACA0]' : 'group-hover:text-cyan-300';
+        $hoverIconColor = $isLight ? 'group-hover:text-[#A3ACA0]' : 'group-hover:text-cyan-400';
+        $bgColor = $isLight ? 'bg-[#F8FCFF]' : 'bg-transparent';
+        ?>
+        <!-- Animated Card with Logo -->
         <a href="<?= BASE_URL ?>/modules/modul_<?= $id ?>/index.php"
-           class="group relative rounded-2xl border border-gray-700/50 shadow-sm p-6 hover:shadow-xl hover:shadow-cyan-500/10 hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden">
-            <div id="vanta-bg-<?= $id ?>" class="absolute inset-0 z-0 rounded-2xl overflow-hidden"></div>
-            <div class="relative z-10 flex flex-col flex-1">
-                <div class="w-12 h-12 rounded-xl overflow-hidden shadow-lg shadow-cyan-500/20 mb-4 group-hover:scale-110 transition-transform duration-300 border border-white/20">
-                    <img src="<?= BASE_URL ?>/modules/modul_<?= $id ?>/<?= $module['logo'] ?>" alt="<?= htmlspecialchars($module['name']) ?>" class="w-full h-full object-cover">
+           class="group relative rounded-2xl border <?= $isLight ? 'border-[#B8C9DD]/30' : 'border-gray-700/50' ?> shadow-sm p-6 hover:shadow-xl <?= $isLight ? 'hover:shadow-[#B8C9DD]/20' : 'hover:shadow-cyan-500/10' ?> hover:-translate-y-1 transition-all duration-300 block overflow-hidden <?= $bgColor ?>"
+           style="min-height: 180px;">
+            <div id="vanta-bg-<?= $id ?>" class="absolute inset-0 z-0 rounded-2xl overflow-hidden">
+                <?php if($id == 1): ?>
+                <!-- CSS Soft Sparkles and Rich Aurora for Modul 1 -->
+                <div class="absolute inset-0 overflow-hidden pointer-events-none">
+                    <!-- Subtle background dot pattern -->
+                    <div class="absolute inset-0 pattern-dots"></div>
+                    
+                    <!-- Large Animated Blobs (Aurora Effect) -->
+                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#B8C9DD] rounded-full blur-[40px] opacity-40 animate-[blobOrbit_10s_ease-in-out_infinite]"></div>
+                    <div class="absolute -bottom-16 -left-8 w-56 h-56 bg-[#ECF2E6] rounded-full blur-[50px] opacity-60 animate-[blobOrbit_12s_ease-in-out_infinite_reverse]"></div>
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-[#D1D9CA] rounded-full blur-[50px] opacity-40 animate-[blobOrbit_15s_ease-in-out_infinite_1s]"></div>
+
+                    <!-- Floating Medical Crosses -->
+                    <div class="absolute top-1/4 right-1/4 text-[#A3ACA0] font-bold text-lg opacity-0 animate-[floatUp_6s_linear_infinite_1s] drop-shadow-sm">+</div>
+                    <div class="absolute bottom-1/3 left-1/4 text-[#B8C9DD] font-bold text-xl opacity-0 animate-[floatUp_8s_linear_infinite_2s] drop-shadow-sm">+</div>
+                    <div class="absolute top-1/2 right-10 text-[#728BA9] font-bold text-base opacity-0 animate-[floatUp_7s_linear_infinite_0s] drop-shadow-sm">+</div>
+
+                    <!-- Sparkles/Stars -->
+                    <div class="absolute top-8 right-16 w-2 h-2 bg-[#B8C9DD] rounded-full opacity-0 animate-[sparkle_3s_ease-in-out_infinite] shadow-[0_0_8px_rgba(184,201,221,0.8)]"></div>
+                    <div class="absolute top-24 left-12 w-3 h-3 bg-[#D1D9CA] rounded-full opacity-0 animate-[sparkle_4s_ease-in-out_infinite_1s] shadow-[0_0_10px_rgba(209,217,202,0.8)]"></div>
+                    <div class="absolute bottom-12 right-20 w-1.5 h-1.5 bg-[#728BA9] rounded-full opacity-0 animate-[sparkle_2.5s_ease-in-out_infinite_0.5s] shadow-[0_0_8px_rgba(114,139,169,0.5)]"></div>
+                    <div class="absolute bottom-8 left-16 w-2.5 h-2.5 bg-[#B8C9DD] rounded-full opacity-0 animate-[sparkle_3.5s_ease-in-out_infinite_1.5s] shadow-[0_0_8px_rgba(184,201,221,0.8)]"></div>
+                    
+                    <!-- Overlay for hover effect -->
+                    <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
-                <h3 class="text-base font-semibold text-white group-hover:text-cyan-300 transition-colors"><?= htmlspecialchars($module['name']) ?></h3>
-                <p class="text-sm text-white/50 mt-1">Click to open module</p>
-                <div class="mt-auto pt-4 flex items-center text-sm text-white/40 group-hover:text-cyan-400 transition-colors">
-                    <span class="font-medium">Open</span>
-                    <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <?php endif; ?>
+            </div>
+            
+            <div class="relative z-10">
+                <div class="w-12 h-12 rounded-xl overflow-hidden shadow-sm <?= $isLight ? 'shadow-[#B8C9DD]/20 border border-white bg-white/80 backdrop-blur-sm flex items-center justify-center' : 'shadow-cyan-500/20 border border-white/20' ?> mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <img src="<?= BASE_URL ?>/modules/modul_<?= $id ?>/<?= $module['logo'] ?>" alt="<?= htmlspecialchars($module['name']) ?>" class="<?= $isLight ? 'w-8 h-8 object-contain opacity-80' : 'w-full h-full object-cover' ?>">
+                </div>
+                <h3 class="text-base font-extrabold <?= $textColor ?> <?= $hoverTextColor ?> transition-colors tracking-tight"><?= htmlspecialchars($module['name']) ?></h3>
+                <p class="text-sm font-medium <?= $subTextColor ?> mt-1">Click to open module</p>
+                <div class="mt-4 flex items-center text-sm font-bold <?= $iconColor ?> <?= $hoverIconColor ?> transition-colors uppercase tracking-wider text-[10px]">
+                    <span>Open</span>
+                    <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </div>
             </div>
         </a>
@@ -101,6 +139,29 @@ $modules = [
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.waves.min.js"></script>
+<style>
+@keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0.5) translateY(0); }
+    50% { opacity: 1; transform: scale(1.2) translateY(-10px); }
+}
+@keyframes floatUp {
+    0% { transform: translateY(20px) rotate(0deg) scale(0.8); opacity: 0; }
+    20% { opacity: 0.6; }
+    80% { opacity: 0.6; }
+    100% { transform: translateY(-40px) rotate(90deg) scale(1.2); opacity: 0; }
+}
+@keyframes blobOrbit {
+    0% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -20px) scale(1.1); }
+    66% { transform: translate(-20px, 10px) scale(0.9); }
+    100% { transform: translate(0, 0) scale(1); }
+}
+.pattern-dots {
+    background-image: radial-gradient(#B8C9DD 1.5px, transparent 1.5px);
+    background-size: 20px 20px;
+    opacity: 0.2;
+}
+</style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var el9 = document.getElementById('vanta-bg-9');

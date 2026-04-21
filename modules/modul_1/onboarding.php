@@ -15,17 +15,26 @@ $isEditMode = isset($_GET['edit']) && $_GET['edit'] == '1';
 $existingData = null;
 
 try {
-    $stmt = $pdo->prepare("SELECT * FROM user_onboarding WHERE user_id = ? ORDER BY id DESC LIMIT 1");
+    $stmt = $pdo->prepare("SELECT * FROM user_onboarding WHERE user_id = ? ORDER BY id DESC");
     $stmt->execute([$user['id']]);
-    $existingData = $stmt->fetch();
-    if ($existingData) {
+    $allProfiles = $stmt->fetchAll();
+    if (count($allProfiles) > 0) {
         $isOnboarded = true;
+        if ($isEditMode && isset($_SESSION['active_profile_id'])) {
+            foreach ($allProfiles as $prof) {
+                if ($prof['id'] == $_SESSION['active_profile_id']) {
+                    $existingData = $prof;
+                    break;
+                }
+            }
+        }
     }
 } catch (PDOException $e) {
     // Table doesn't exist yet — treat as not onboarded
 }
 
-if ($isOnboarded && !$isEditMode) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['select_profile_id'])) {
+    $_SESSION['active_profile_id'] = $_POST['select_profile_id'];
     header('Location: dashboard.php');
     exit;
 }
@@ -49,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $stmtInsert = $pdo->prepare("INSERT INTO user_onboarding (user_id, role, full_name, patient_name, operation_type, surgery_date, pain_level, mobility, symptoms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmtInsert->execute([$user['id'], $role, $fullName, $patientName, $operationType, $surgeryDate, $painLevel, $mobility, $symptoms]);
+            $_SESSION['active_profile_id'] = $pdo->lastInsertId();
             header('Location: dashboard.php');
         }
         exit;
@@ -139,13 +149,55 @@ $pageTitle = 'Onboarding - RuangPulih';
             </div>
         </div>
 
+        <?php if ($isOnboarded && !$isEditMode): ?>
+        <?php foreach ($allProfiles as $prof): ?>
+        <form id="profile-select-<?= $prof['id'] ?>" action="onboarding.php" method="POST" class="hidden">
+            <input type="hidden" name="select_profile_id" value="<?= $prof['id'] ?>">
+        </form>
+        <?php endforeach; ?>
+        <?php endif; ?>
+
         <!-- Main Card Container -->
         <div class="bg-white rounded-[24px] shadow-[0_15px_50px_rgb(0,0,0,0.05)] p-10 md:p-14 min-h-[500px] flex flex-col border border-white/60 relative overflow-hidden backdrop-blur-sm shadow-xl">
             
             <form id="onboarding-form" action="onboarding.php" method="POST" class="flex-1 flex flex-col step-container justify-between h-full">
                 
+                <!-- STEP 0: PROFILE SLECTION (SSO) -->
+                <?php if ($isOnboarded && !$isEditMode): ?>
+                <div id="step-0" class="step-block active step-enter">
+                    <div class="text-center mb-10">
+                        <h2 class="text-3xl md:text-4xl font-extrabold text-[#728BA9] mb-3 font-medium">Pilih Profil Pemulihan</h2>
+                        <p class="text-[#7F7F7F] font-medium text-lg">Kamu mau melanjutkan profil pemulihan siapa?</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-10">
+                        <?php foreach($allProfiles as $prof): ?>
+                        <div onclick="document.getElementById('profile-select-<?= $prof['id'] ?>').submit();" class="p-8 rounded-[16px] border-2 border-[#DAE3EC] hover:border-[#728BA9] hover:shadow-lg transition-all duration-300 bg-white cursor-pointer relative group flex flex-col items-center text-center">
+                            <div class="w-20 h-20 bg-[#ECF2E6] text-[#728BA9] rounded-full flex items-center justify-center mb-4 text-3xl font-extrabold group-hover:scale-110 transition-transform">
+                                <?= strtoupper(substr($prof['full_name'], 0, 1)) ?>
+                            </div>
+                            <h3 class="text-2xl font-bold text-[#5A6C7A] mb-1"><?= htmlspecialchars($prof['full_name']) ?></h3>
+                            <p class="text-sm font-bold text-[#A3ACA0] uppercase tracking-wider mb-2">
+                                <?= htmlspecialchars($prof['role'] === 'pasien' ? 'Pasien' : 'Caregiver') ?> - <?= htmlspecialchars(strtoupper($prof['operation_type'])) ?>
+                            </p>
+                            <span class="px-5 py-2 inline-block bg-[#F8FCFF] text-[#728BA9] rounded-full text-xs font-bold mt-4 group-hover:bg-[#728BA9] group-hover:text-white transition-colors shadow-sm">
+                                Lanjutkan &rarr;
+                            </span>
+                        </div>
+                        <?php endforeach; ?>
+
+                        <div onclick="startCreateNewProfile()" class="p-8 rounded-[16px] border-2 border-dashed border-[#DAE3EC] hover:border-[#728BA9] hover:bg-[#F8FCFF] transition-all duration-300 bg-white cursor-pointer group flex flex-col items-center justify-center text-center min-h-[250px]">
+                            <div class="w-16 h-16 bg-[#F8FCFF] text-[#B8C9DD] group-hover:text-[#728BA9] group-hover:bg-[#ECF2E6] shadow-sm rounded-full flex items-center justify-center mb-4 text-4xl transition-all">
+                                +
+                            </div>
+                            <h3 class="text-xl font-bold text-[#728BA9]">Buat Profil Baru</h3>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <!-- STEP 1: ROLE SELECTION -->
-                <div id="step-1" class="step-block active step-enter">
+                <div id="step-1" class="step-block <?= ($isOnboarded && !$isEditMode) ? '' : 'active step-enter' ?>">
                     <div class="text-center mb-10">
                         <h2 class="text-3xl md:text-4xl font-extrabold text-[#728BA9] mb-3 font-medium">Mulai Pemulihan</h2>
                         <p class="text-[#7F7F7F] font-medium text-lg">Kamu menggunakan RuangPulih sebagai:</p>
@@ -317,7 +369,7 @@ $pageTitle = 'Onboarding - RuangPulih';
                 </div>
 
                 <!-- Navigation Buttons -->
-                <div class="pt-6 mt-auto border-t border-[#F8FCFF] flex justify-between items-center w-full">
+                <div id="nav-buttons" class="pt-6 mt-auto border-t border-[#F8FCFF] flex justify-between items-center w-full <?= ($isOnboarded && !$isEditMode) ? 'hidden' : '' ?>">
                     <button type="button" id="btn-prev" class="hidden px-8 py-4 rounded-full border border-[#DAE3EC] text-[#7F7F7F] hover:bg-[#F8FCFF] transition-all font-bold tracking-wide text-lg">
                         Kembali
                     </button>
@@ -338,10 +390,11 @@ $pageTitle = 'Onboarding - RuangPulih';
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    let currentStep = 1;
+    let currentStep = <?= ($isOnboarded && !$isEditMode) ? '0' : '1' ?>;
     const totalSteps = 5;
     
     const elements = {
+        navButtons: document.getElementById('nav-buttons'),
         btnNext: document.getElementById('btn-next'),
         btnPrev: document.getElementById('btn-prev'),
         btnSubmit: document.getElementById('btn-submit'),
@@ -351,6 +404,19 @@ document.addEventListener('DOMContentLoaded', () => {
         dayCounter: document.getElementById('day-counter'),
         painSlider: document.getElementById('pain-slider'),
         painVal: document.getElementById('pain-val'),
+    };
+
+    window.startCreateNewProfile = () => {
+        const outContainer = document.getElementById('step-0');
+        const inContainer = document.getElementById('step-1');
+        
+        outContainer.classList.remove('active', 'step-enter');
+        inContainer.classList.add('active', 'step-enter');
+        elements.navButtons.classList.remove('hidden');
+        
+        currentStep = 1;
+        elements.progressText.textContent = currentStep;
+        elements.progressBar.style.width = '20%';
     };
 
     // Update Pain Slider value

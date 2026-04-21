@@ -25,9 +25,11 @@ CREATE TABLE IF NOT EXISTS user_onboarding (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 3. Create the Modul 1 daily monitoring data table
+DROP TABLE IF EXISTS user_daily_monitoring;
 CREATE TABLE IF NOT EXISTS user_daily_monitoring (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
+    profile_id INT NOT NULL,
     record_date DATE NOT NULL,
     
     -- Generic & CABG
@@ -51,6 +53,33 @@ CREATE TABLE IF NOT EXISTS user_daily_monitoring (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY user_date_unique (user_id, record_date),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    UNIQUE KEY user_profile_date_unique (user_id, profile_id, record_date),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (profile_id) REFERENCES user_onboarding(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 4. Create the Modul 1 wound log data table
+DROP TABLE IF EXISTS user_wound_logs;
+CREATE TABLE IF NOT EXISTS user_wound_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    profile_id INT NOT NULL,
+    record_date DATE NOT NULL,
+    
+    image_data MEDIUMTEXT,
+    status VARCHAR(50) DEFAULT NULL,
+    redness VARCHAR(100) DEFAULT NULL,
+    swelling VARCHAR(100) DEFAULT NULL,
+    fluid VARCHAR(100) DEFAULT NULL,
+    size VARCHAR(50) DEFAULT NULL,
+    note TEXT DEFAULT NULL,
+    rednessColor VARCHAR(20) DEFAULT NULL,
+    iconBg VARCHAR(20) DEFAULT NULL,
+    iconSvg TEXT DEFAULT NULL,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY user_profile_date_unique_wound (user_id, profile_id, record_date),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (profile_id) REFERENCES user_onboarding(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

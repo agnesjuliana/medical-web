@@ -3,6 +3,9 @@
  * Database Configuration (Original MySQL XAMPP)
  */
 
+date_default_timezone_set('Asia/Jakarta');
+
+// Base URL — update this if the project moves to a different subdirectory
 define('BASE_URL', '/medical-web');
 
 function getDBConnection(): PDO
