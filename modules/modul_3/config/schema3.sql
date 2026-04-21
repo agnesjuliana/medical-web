@@ -1,0 +1,28 @@
+CREATE DATABASE IF NOT EXISTS medical_web3;
+USE medical_web3;
+
+-- Tabel users sudah ditangani oleh global database (medical-web).
+-- Oleh karena itu foreign key ke tabel users dihapus karena terpisah database.
+
+CREATE TABLE IF NOT EXISTS modul3_patients (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    user_id INT(11) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    age INT(11) NOT NULL,
+    gender VARCHAR(20) NOT NULL,
+    symptoms TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE (Dihapus karena beda databjase)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS modul3_history (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    user_id INT(11) NOT NULL,
+    patient_id INT(11) NULL,
+    filename VARCHAR(255) NOT NULL,
+    confidence_score INT(11) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE (Dihapus)
+    FOREIGN KEY (patient_id) REFERENCES modul3_patients(id) ON DELETE SET NULL
+) ENGINE=InnoDB;

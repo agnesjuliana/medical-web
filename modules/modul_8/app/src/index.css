@@ -1,14 +1,92 @@
 @import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+/* ─── Base reset ────────────────────────────────────────────────────────────── */
+html {
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ─── Cal AI Design Tokens ─────────────────────────────────────────────────── */
+@theme {
+  /* App shell */
+  --color-app-bg:        #f5f5fa;   /* near-white cool gray */
+  --color-surface:       #ffffff;
+  --color-surface-muted: #f0f0f6;   /* secondary card bg */
+
+  /* Ring track (very light lavender-gray) */
+  --color-ring-track:    #e8eaf2;
+
+  /* Macro semantic colors */
+  --color-cal:     #1a1a1a;   /* calories — near-black ring */
+  --color-protein: #f4845f;   /* coral / salmon */
+  --color-carbs:   #e8a040;   /* amber / wheat */
+  --color-fats:    #6b9cf4;   /* periwinkle blue */
+  --color-fiber:   #5ac476;   /* leaf green */
+  --color-sugar:   #b06dcc;   /* purple */
+  --color-sodium:  #40bcd8;   /* teal */
+  --color-steps:   #6c63ff;   /* indigo */
+  --color-water:   #60aef5;   /* sky blue */
+
+  /* Streak accent */
+  --color-streak:  #ff6b2b;   /* orange flame */
+
+  /* Typography scale */
+  --font-size-stat: 2.5rem;   /* big KPI number (2583) */
+  --font-weight-stat: 800;
+}
+
+/* ─── Shadcn / foreground tokens (light mode) ──────────────────────────────── */
+:root {
+  --background:   var(--color-app-bg);
+  --foreground:   #0a0a0a;
+  --card:         var(--color-surface);
+  --card-foreground: #0a0a0a;
+  --muted:        var(--color-surface-muted);
+  --muted-foreground: #6b7280;
+  --border:       #e5e7eb;
+  --ring:         var(--color-ring-track);
+}
+
+/* dark mode overrides */
+.dark {
+  --background:   #0f172a;
+  --foreground:   #f8fafc;
+  --card:         #1e293b;
+  --card-foreground: #f8fafc;
+  --muted:        #1e293b;
+  --muted-foreground: #94a3b8;
+  --border:       #334155;
+  --ring:         #334155;
+}
+
+/* ─── Utilities ─────────────────────────────────────────────────────────────── */
+.no-scrollbar,
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
 
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+/* ─── Scanner bracket pulse ─────────────────────────────────────────────────── */
+@keyframes bracket-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
 }
